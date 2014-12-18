@@ -1,0 +1,62 @@
+<script>
+    $(document).foundation('tooltip');
+</script>
+<div class="row" id="results-found">
+    <div class="small-5 text-left columns">
+        <div>{{ qlength }} {{ plural_or_not }} found...</div>
+    </div>
+    <div class="small-7 text-right columns">
+        <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">What do these mean?</a>
+    </div>
+</div>
+<div class="row">
+    <div class="small-12 large-8 columns map-wrapper">
+        <div id="map"></div>
+        <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
+    </div>
+    <div class="small-12 large-4 columns table-footer-wrapper" id="table-footer-wrapper">
+        <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
+            <table id="myTable" class="tablesorter">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Location</th>
+                        <th>Sellers</th>
+                        <th>Buyers</th>
+                        <th>Instrument Number</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for newrow in newrows %}
+                        <tr id="{{ newrow.instrument_no }}">
+                            <td class="document_date">{{ newrow.document_date }}</td>
+                            <td class="amount">{{ newrow.amount }}</td>
+                            <td class="location">{{ newrow.location }}</td>
+                            <td class="sellers">{{ newrow.sellers }}</td>
+                            <td class="buyers">{{ newrow.buyers }}</td>
+                            <td class="instrument_no">{{ newrow.instrument_no }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="row" id="footer">
+            <div class="medium-1 visible-for-medium-only columns">
+                &nbsp;
+            </div>
+            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
+                <i class="fa fa-arrow-left"></i> Back
+            </div>
+            <div class="small-4 text-center current-page columns">
+                Page {{ page }} of {{ totalpages }}
+            </div>
+            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
+                Forward <i class="fa fa-arrow-right"></i>
+            </div>
+            <div class="medium-1 visible-for-medium-only columns">
+                &nbsp;
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,43 @@
+<div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
+    <table id="myTable" class="tablesorter">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Location</th>
+                <th>Sellers</th>
+                <th>Buyers</th>
+                <th>Instrument Number</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for newrow in newrows %}
+                <tr id="{{ newrow.instrument_no }}">
+                    <td class="document_date">{{ newrow.document_date }}</td>
+                    <td class="amount">{{ newrow.amount }}</td>
+                    <td class="location">{{ newrow.location }}</td>
+                    <td class="sellers">{{ newrow.sellers }}</td>
+                    <td class="buyers">{{ newrow.buyers }}</td>
+                    <td class="instrument_no">{{ newrow.instrument_no }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+<div class="row" id="footer">
+    <div class="medium-1 visible-for-medium-only columns">
+        &nbsp;
+    </div>
+    <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
+        <i class="fa fa-arrow-left"></i> Back
+    </div>
+    <div class="small-4 text-center current-page columns">
+        Page {{ page }} of {{ totalpages }}
+    </div>
+    <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
+        Forward <i class="fa fa-arrow-right"></i>
+    </div>
+    <div class="medium-1 visible-for-medium-only columns">
+        &nbsp;
+    </div>
+</div>

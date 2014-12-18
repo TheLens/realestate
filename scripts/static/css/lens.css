@@ -1,0 +1,669 @@
+/*************
+  Lens Theme
+
+  Red: #B33125;
+  Dark gray: #5A5A54
+  Medium gray: #A8A299
+  Light gray: #F5F5EF
+  Black: #000000;
+  White: #FFFFFF;
+
+  Headlines (bold)
+  font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+  font-weight: bold;
+
+  Headlines alternate (roman)
+  font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+
+  Sub-headlines (demi)
+  font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+
+  Body content
+  font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+
+ *************/
+body {
+	width: 100%;
+	margin: 0 auto;
+	font-size: 14px;
+}
+select {
+	height: 100%;
+}
+.centered {
+	text-align: center;
+}
+a, a:hover, a:focus, a:visited, a:active {
+	color: #B43018;
+}
+a:hover {
+	text-decoration: underline;
+}
+.leaflet-control-attribution {
+	text-align: right;
+}
+.leaflet-container .leaflet-control-attribution {
+	background-color: rgba(255,255,255,0);
+}
+.small-break {
+	line-height: 2px;
+}
+#results-found {
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+	font-size: 14px;
+}
+.has-tip {
+	font-weight: normal;
+}
+#filters {
+	display: none;
+}
+#advanced-search {
+	font-size: 14px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+.label {
+	background-color: transparent;
+}
+label {
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+}
+.explainer {
+	padding-right: 0;
+}
+#menu-dont-miss li h4 {
+	color: #FFFFFF;
+}
+#myTable, #myTable th, #myTable tr, #myTable td {
+	margin: 0;
+	font-size: 15px;
+	table-layout: auto;
+	border-collapse: collapse;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+#mapButton {
+	vertical-align: baseline;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+}
+#myTable thead th {
+	vertical-align: middle;
+}
+.pageback, .pageforward, .current-page {
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+}
+.fa, .pageforward, .pageback {
+	cursor: pointer;
+}
+.pageforward:hover, .pageback:hover {
+	color: #7A7A7A;
+}
+.has-tip, .has-tip:hover, .has-tip:focus { 
+	border-bottom:none;
+	}
+#tailend {
+	background-color: #A8A299;
+	height: 1px;
+	margin: 3% 15px 0;
+}
+#lens-about {
+	padding-top: 15px;
+}
+#lens-about p {
+	font-size: 14px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+#about-title, #credit-title {
+	font-size: 20px;
+	padding-bottom: 1%;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+}
+#credit {
+	margin: 10px 0;
+	font-size: 14px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+table {
+	margin: 0;
+}
+.fa:hover {
+	color: #7A7A7A;
+}
+#banner {
+	z-index: 9999;
+	position: fixed;
+	width: 100%;
+	height: 40px;
+	overflow: hidden;
+	border-bottom: 3px solid #B33125;
+	background: #FFFFFF;
+	box-shadow: 0 0 0.9px 1px rgba(0,0,0,.8);
+	top: 0;
+}
+#banner-logo {
+	float: left;
+	margin: 5px 10px 0px;
+}
+#banner-title {
+	float: left;
+	margin: 5px 10px 0px;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+	font-size: 18px;
+}
+#banner-social {
+	float: right;
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+#banner-social-email, #banner-social-twitter, #banner-social-facebook, #banner-support {
+	float: right;
+	font-size: 26px;
+	margin: 5px 15px 0px 0px;
+}
+#banner-support {
+	font-size: 14px;
+	line-height: 1.1em;
+	margin: 5px 15px 0 0;
+	text-align: center;
+}
+#banner a, #banner-social a, #banner-title a, #banner-logo a, #banner-social-twitter a, #banner-social-facebook a, #banner-social-email {
+	text-decoration: none;
+	font-weight: normal;
+	color: #5A5A54;
+}
+#banner-logo:hover, #banner-social-twitter:hover, #banner-social-facebook:hover, #banner-social-email:hover, #banner-title:hover, #banner-support:hover {
+	opacity: 0.7;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    background: rgba( 255, 255, 255, .6 ) 
+                url('images/ajax-loader.gif') 
+                50% 50% 
+                no-repeat;
+}
+/* When the body has the loading class, we turn
+   the scrollbar off with overflow:hidden */
+body.loading {
+    overflow: hidden;   
+}
+/* Anytime the body has the loading class, our
+   modal element will be visible */
+body.loading .modal {
+    display: block;
+}
+.popup p {
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+    font-size: 14px;
+}
+.popup p strong {
+	font-size: 14px;
+}
+#amount1, #amount2, #date1, #date2, #name_address_box  {
+	width: 100% !important;
+}
+.slim {
+	height: 37px;
+}
+input {
+	outline: none;
+	color: #555;
+	padding: 1%;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	border-radius: 0px !important;
+	-webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+	box-shadow: inset 0 1px 1px rgba(0,0,0,0.075);
+	-webkit-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+input:focus {
+    box-shadow: 0 0 5px #b33125;
+    -webkit-box-shadow: 0 0 5px #b33125; 
+    -moz-box-shadow: 0 0 5px #b33125;
+    border:1px solid #b33125; 
+}
+li.button, li.button:hover, li.button:active, li.button:focus, li.button:visited {
+	background-color: #FFFFFF;
+	border-color: #FFFFFF;
+}
+a.greybutton {
+	color: #4e4c4d;
+}
+#page-title {
+	text-align: center;
+	position: relative;
+	padding: 50px 0;
+	font-size: 40px;
+	line-height: 40px;
+	color: #000;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+  	font-weight: bold;
+}
+.initial-daterange {
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+	padding: 0 0 4px 0;
+	font-size: 14px;
+}
+.table-wrapper {
+	height: 400px;
+	border: 1px solid #c3c3c3;
+	overflow: scroll;
+}
+#map {
+	width: 100%;
+	height: 400px;
+	border: 1px solid #F5F5EF;
+}
+.map-button {
+	margin: 0 auto;
+	text-align: right;
+	font-size: 13px;
+	padding: 1px 0 0 0;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+.search-area {
+	background-color: #fff;
+	margin: 1% 0 4%;
+	padding: 1%;
+	height: auto;
+	overflow: hidden;
+}
+.search-area-title {
+	font-size: 24px;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+	padding: 1% 0;
+}
+#name_address_box {
+	margin-bottom: 0;
+	font-size: 14px;
+}
+#search-examples {
+	font-size: 14px;
+	margin-bottom: 3%;
+	padding-left: 15px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+.search-bar-div {
+	width:100%;
+	height: auto;
+	margin: 0 auto;
+}
+.amount-date-div {
+	overflow:hidden;
+	margin: 3% auto;
+}
+.amount-div {
+	width: 40%;
+	float: left;
+	padding-left: 10%;
+}
+.date-div {
+	width: 40%;
+	float: right;
+	padding-right: 10%;
+}
+.search-range-title {
+	font-size: 18px;
+	padding: 3% 0 0 0;
+	text-align: center;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
+}
+.search-bounds {
+	width:100%;
+	float:left;
+}
+.from-to {
+	display:table-cell;
+	min-width: 45px;
+	font-size: 14px;
+}
+.amount-date-input {
+	display: table-cell;
+	width: 100%;
+}
+.input-measurements {
+	width: 90%;
+	min-width: 110px;
+	height: 21px;
+	margin: 1% 0;
+	font-size: 14px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+	cursor: text;
+}
+.search-buttons {
+	margin: 0 auto;
+	text-align: center;
+}
+button.button {
+	background-color: #B33125;
+}
+button.button:active, button.button:focus, button.button:hover {
+	background-image: none;
+	background-color: #B33125;
+	-webkit-box-shadow: inset 0 3px 5px rgba(0,0,0,0.125);
+	box-shadow: inset 0 6px 10px rgba(0,0,0,0.125);
+	outline: none;
+}
+button.button:hover {
+	background-color: #922A21;
+}
+#footer {
+	padding: 1% 0 0 0;
+}
+.pager {
+	font-size: 13px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+	width: 100%;
+	position: relative;
+}
+.pager-options {
+	float: right;
+}
+.download-link {
+	float: right;
+	width: 37%;
+	font-size: 12px;
+	text-align: right;
+	padding-top: 5px;
+}
+.download-link a {
+	font-size: 12px;
+	float: right;
+	color: #3D3D3D;
+}
+.download-link a:hover {
+	color: rgb(0, 0, 155);
+}
+
+@media screen and (min-width: 1025px) {	
+	.map-wrapper {
+		padding-right: 0;
+	}
+	/*.table-footer-wrapper {
+		padding: 0;
+	}*/
+
+
+	.table-wrapper {
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+	#footer .pageback {
+		padding-right: 0;
+	}
+	#footer .pageforward {
+		padding-left: 0;
+	}
+	#footer .current-page {
+		padding-left: 0;
+		padding-right: 0;
+	}
+
+	#myTable {
+		border: none;
+		width: 100%;
+	}
+	#myTable thead {
+	  	display: none;
+	}
+	#myTable tr {
+		width: 100%;
+		height: auto;
+		padding: 4px 0;
+		border-bottom: 1px solid #A8A299;
+	}
+	#myTable td {
+	 	border: none;
+	 	width: 100%;
+	}
+	#myTable td.document_recorded {
+		display: none;
+	}
+	#myTable td.document_date, #myTable td.amount {
+		width: 50%;
+		display: inline-block;
+		font-size: 18px;
+		padding: 4px;
+		color: #000;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		margin: 0;
+		font-weight: normal; 
+	}
+	#myTable td.document_date {
+		text-align: left;
+		margin-right: 0;
+	}
+	#myTable td.amount {
+		text-align: right;
+		margin-left: 0;
+		color: #B43018;
+	}
+	#myTable td.location {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.sellers, #myTable td.buyers {
+      width: 100%;
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 0%;
+      margin-bottom: 0%;
+      text-align: left;
+      font-size: 14px;
+      color: #000;
+      font-weight: normal;
+      background-color: #FFF;
+	  font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+	}
+	#myTable td.sellers {
+		margin-right: 0%;
+	}
+	#myTable td.buyers {
+		margin-left: 0%;
+	}
+	#myTable td.sellers:before, #myTable td.buyers:before {
+	  font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.sellers:before {
+    	content: "Sellers";
+    }
+    #myTable td.buyers:before {
+    	content: "Buyers";
+	}
+	#myTable td.instrument_no {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.instrument_no:before {
+	  font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.instrument_no:before {
+    	content: "Instrument Number";
+    }
+	/*table.tablesorter tbody td {
+		vertical-align: none;
+	}*/
+	table.tablesorter tbody td,
+	table tr.even, table tr.alt, table tr:nth-of-type(even),
+	table.tablesorter tbody > tr:hover > td,
+	table.tablesorter tbody > tr:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.even:hover > td,
+	table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.odd:hover > td,
+	table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td {
+		background: #FFFFFF;
+	}
+
+
+
+
+}
+
+@media screen and (max-width: 500px) {	
+	.table-wrapper {
+		height: auto;
+		border: none;
+		overflow-x: hidden;
+		overflow-y: auto;
+	}
+	#footer {
+		padding-top: 10px;
+	}
+	#footer .pageback {
+		padding-right: 0;
+	}
+	#footer .pageforward {
+		padding-left: 0;
+	}
+	#footer .current-page {
+		padding-left: 0;
+		padding-right: 0;
+	}
+
+	#myTable {
+		border: none;
+		width: 100%;
+	}
+	#myTable thead {
+	  	display: none;
+	}
+	#myTable tr {
+		width: 100%;
+		height: auto;
+		padding: 4px 0;
+		border-bottom: 1px solid #A8A299;
+	}
+	#myTable td {
+	 	border: none;
+	 	width: 100%;
+	}
+	#myTable td.document_recorded {
+		display: none;
+	}
+	#myTable td.document_date, #myTable td.amount {
+		width: 50%;
+		display: inline-block;
+		font-size: 18px;
+		padding: 4px 0;
+		color: #000;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		margin: 0;
+		font-weight: normal; 
+	}
+	#myTable td.document_date {
+		text-align: left;
+		margin-right: 0;
+	}
+	#myTable td.amount {
+		text-align: right;
+		margin-left: 0;
+		color: #B43018;
+	}
+	#myTable td.location {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px 0 8px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.sellers, #myTable td.buyers {
+      width: 48%;
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 0;
+      margin-bottom: 2%;
+      text-align: left;
+      font-size: 14px;
+      color: #000000;
+      font-weight: normal;
+      background-color: #E9E9E9;
+	  font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+	}
+	#myTable td.sellers {
+		margin-right: 2%;
+	}
+	#myTable td.buyers {
+		margin-left: 2%;
+	}
+	#myTable td.sellers:before, #myTable td.buyers:before {
+	  font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.sellers:before {
+    	content: "Sellers";
+    }
+    #myTable td.buyers:before {
+    	content: "Buyers";
+	}
+	#myTable td.instrument_no {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px 0 8px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.instrument_no:before {
+	  font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.instrument_no:before {
+    	content: "Instrument Number";
+    }
+	/*table.tablesorter tbody td {
+		vertical-align: none;
+	}*/
+	table.tablesorter tbody td,
+	table tr.even, table tr.alt, table tr:nth-of-type(even),
+	table.tablesorter tbody > tr:hover > td,
+	table.tablesorter tbody > tr:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.even:hover > td,
+	table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.odd:hover > td,
+	table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow > td,
+	table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td {
+		background: #FFFFFF;
+	}
+}
+
+@media screen and (min-width: 421px) {
+	.low-break-hack {
+		display: none !important;
+	}
+	.attribution-break {
+		display: none !important;
+	}
+}

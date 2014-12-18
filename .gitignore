@@ -1,0 +1,11 @@
+#directories
+data
+ 
+#files
+app_config.py
+*.pyc
+*.DS_Store
+*.sql
+*.bmml
+*.csv
+*.out
