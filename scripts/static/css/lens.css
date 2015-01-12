@@ -76,7 +76,7 @@ label {
 }
 #myTable, #myTable th, #myTable tr, #myTable td {
 	margin: 0;
-	font-size: 15px;
+	font-size: 14px;
 	table-layout: auto;
 	border-collapse: collapse;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;

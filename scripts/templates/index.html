@@ -23,15 +23,15 @@
         <meta name="twitter:creator" content="@TheLensNOLA">
         <meta name="twitter:title" content="New Orleans property sales">
         <meta name="twitter:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map.">
-        <meta name="twitter:image:src" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/promo.png">
+        <meta name="twitter:image:src" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png">
 
         <meta property="og:title" content="New Orleans property sales" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="http://vault.thelensnola.org/realestate"/>
         <meta property="og:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map." />      
         <meta property="og:site_name" content="The Lens" />
-        <meta property="og:image" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/promo.png" />
-        <meta property="article:publisher" content="https://www.facebook.com/lensnola" />
+        <meta property="og:image" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png" />
+        <meta property="article:publisher" content="https://www.facebook.com/thelensnola" />
 
         <link rel="apple-touch-icon" href="http://lensnola.wpengine.netdna-cdn.com/wp-content/uploads/2013/01/TheLens-400x400_icon.png"/>   
         <link rel="canonical" href="http://vault.thelensnola.org/realestate" />
@@ -80,7 +80,7 @@
             <div class="small-12 medium-8 columns slim">
                 <div class="row collapse slim">
                     <div class="small-10 columns">
-                        <input id="name_address_box" type="text" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
+                        <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
                     </div>
                     <div class="small-2 columns">
                         <button class="button postfix"><i class="fa fa-search"></i></button>
@@ -92,7 +92,7 @@
         <div class="row">
             <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             <div class="small-7 medium-4 large-5 text-left columns" id="search-examples">Example: John Doe; Doe, John; Esplanade Avenue; 70119</div>
-            <div class="small-5 medium-4 large-3 text-right columns" id="advanced-search"><a>Show advanced search</a></div>
+            <div class="small-5 medium-4 large-3 text-right columns" id="advanced-search"><a>Advanced search</a></div>
             <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
         </div>
         <div id="filters">
@@ -106,12 +106,12 @@
                 <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
                 <div class="small-6 medium-4 columns">
                     <label><span class="low-break-hack"><br></span>Low:
-                        <input id="amount1" class="currency" type="text" name="amount-low" placeholder="$">
+                        <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
                     </label>
                 </div>
                 <div class="small-6 medium-4 columns">
                     <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):
-                        <input id="date1" type="text" name="begin-date" placeholder="mm/dd/yyyy">
+                        <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
                     </label>
                 </div>
                 <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
@@ -120,19 +120,19 @@
                 <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
                 <div class="small-6 medium-4 columns">
                     <label>High:
-                        <input id="amount2" class="currency" type="text" name="amount-high" placeholder="$">
+                        <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
                     </label>
                 </div>
                 <div class="small-6 medium-4 columns">
                     <label>To:
-                        <input id="date2" type="text" name="end-date" placeholder="mm/dd/yyyy">
+                        <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
                     </label>
                 </div>
                 <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
         </div>
         <div class="p402_premium">
-            <div class="row">
+            <div class="row" id="search-button">
                 <div class="small-4 columns">
                     &nbsp;
                 </div>
@@ -168,12 +168,12 @@
                 </div>
             </div>
         </div>
-        <div class="modal"></div>
+        <div class="modal" id="modal"></div>
         <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
         <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
-        <script src="http://www.mapquestapi.com/sdk/leaflet/v1.s/mq-map.js?key=Fmjtd%7Cluur2qa72u%2C7a%3Do5-9abx1y"></script>
-        <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js"></script>
+        <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
+        <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.min.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.pager.min.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
