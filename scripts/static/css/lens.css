@@ -59,7 +59,7 @@ a:hover {
 	display: none;
 }
 #advanced-search {
-	font-size: 14px;
+	font-size: 12px;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 .label {
@@ -283,7 +283,7 @@ a.greybutton {
 	font-size: 14px;
 }
 #search-examples {
-	font-size: 14px;
+	font-size: 12px;
 	margin-bottom: 3%;
 	padding-left: 15px;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;

@@ -80,7 +80,7 @@
             <div class="small-12 medium-8 columns slim">
                 <div class="row collapse slim">
                     <div class="small-10 columns">
-                        <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
+                        <input id="name_address_box" type="text" data-type="search" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
                     </div>
                     <div class="small-2 columns">
                         <button class="button postfix"><i class="fa fa-search"></i></button>
@@ -132,7 +132,7 @@
             </div>
         </div>
         <div class="p402_premium">
-            <div class="row" id="search-button">
+            <div class="row" id="search-button"><!--todo: possible to just make display: none? could solve js tasks to remove this div-->
                 <div class="small-4 columns">
                     &nbsp;
                 </div>
@@ -184,5 +184,21 @@
         <script type="text/javascript" src={{ js }}></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/lens.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
+        <script type="text/javascript">
+            var getdata;
+            console.log('ello');
+            if ({{ incomingdata|tojson }} !== 'None') {
+                console.log('incomingdata');
+                getdata = {{ incomingdata|tojson }};
+            }
+            //console.log(data);
+            //$("#map-table-wrapper").html(info.template1);
+            //$("#map-table-wrapper").trigger("updateAll");
+            //$("#foot").html(info.template2);
+            //document.getElementById('map-table-wrapper').style.display = 'block';
+            //document.getElementById('foot').style.display = 'block';
+
+            //initialMapFunction(info.jsdata);
+        </script>
     </body>
 </html>

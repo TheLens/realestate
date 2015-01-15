@@ -289,6 +289,48 @@ function mapSearching() {
   });
 }
 
+function buildMapQueryString(data) {
+  var map_query_string = '?';
+
+  if (data.name_address !== '') {
+    map_query_string = map_query_string + "q=" + data.name_address;
+  }
+
+  if (data.amountlow !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "a1=" + data.amountlow;
+  }
+
+  if (data.amounthigh !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "a2=" + data.amounthigh;
+  }
+
+  if (data.begindate !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "d1=" + data.begindate;
+  }
+
+  if (data.enddate !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "d2=" + data.enddate;
+  }
+
+  if (map_query_string == '?') {
+    map_query_string = "?q=&a1=&a2=&d1=&d2=";
+  }
+
+  return map_query_string;
+}
+
 $(document).on("click", '.searchButton', function () {
   document.getElementById('search-button').innerHTML = '';//Remove "Search" button
 
@@ -311,12 +353,17 @@ $(document).on("click", '.searchButton', function () {
     data.direction = 'none';
 
     var maprequest = JSON.stringify(data);
+
+    // Build query string. Only include non-empty parameters and let Python do the rest
+    var map_query_string = buildMapQueryString(data);
+
     $.ajax({
-      url: "/realestate/mapsearch",
+      url: "/realestate/mapsearch" + map_query_string,
       type: "POST",
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
+        window.history.pushState(null,'hi','search' + map_query_string);
         $("#table-footer-wrapper").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
         $("#results-found").html(info.resultstemplate);
@@ -324,20 +371,22 @@ $(document).on("click", '.searchButton', function () {
       }
     });
   } else { //initial search without map initialized yet
-    console.log('data.name_address: ', data.name_address);
+
     var searchrequest = JSON.stringify(data);
+    var query_string = "?q=" + data.name_address + "&a1=" + data.amountlow + "&a2=" + data.amounthigh + "&d1=" + data.begindate + "&d2=" + data.enddate;
     $.ajax({
-      url: "/realestate/search/" + data.name_address,
-      //url: "/realestate/search",
-      type: "POST",
+      url: "/realestate/search" + query_string,
+        type: "POST",
       data: searchrequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
+        window.history.pushState(null,'hi','realestate/search' + query_string);
         $("#map-table-wrapper").html(info.template1);
         $("#map-table-wrapper").trigger("updateAll");
         $("#foot").html(info.template2);
         document.getElementById('map-table-wrapper').style.display = 'block';
         document.getElementById('foot').style.display = 'block';
+
         initialMapFunction(info.jsdata);
       }
     });
@@ -446,7 +495,8 @@ $("body").on("click", ".pageback", function () {
     var maprequest = JSON.stringify(data);
 
     $.ajax({
-      url: "/realestate/mapsearch",
+      url: "/realestate/mapsearch?q=" + data.name_address + "&a1=" + data.amountlow + "&a2=" + data.amounthigh + "&d1=" + data.begindate + "&d2=" + data.enddate,
+      //url: "/realestate/mapsearch",
       type: "POST",
       data: maprequest,
       contentType: "application/json; charset=utf-8",
@@ -502,7 +552,6 @@ if ($(window).width() < 500) {
   $('#date1').attr('placeholder','');
   $('#date2').attr('placeholder','');
 }
-
 
 function isValidDate(dateString) {
   if (dateString === '') {
@@ -565,14 +614,72 @@ function isValidAmountRange(amount1, amount2) {
   }
 }
 
-document.onload = checkForChanges();
+function doPostBack(data) {
+  console.log('doPostBack');
+  var searchrequest = JSON.stringify(data);
+  var query_string = "?q=" + data.name_address + "&a1=" + data.amountlow + "&a2=" + data.amounthigh + "&d1=" + data.begindate + "&d2=" + data.enddate;
+  $.ajax({
+    url: "/realestate/search" + query_string,
+    //url: "/realestate/search",
+    type: "POST",
+    data: searchrequest,
+    contentType: "application/json; charset=utf-8",
+    success: function (info) {
+      window.history.pushState(null,'hi',query_string);
+      $("#map-table-wrapper").html(info.template1);
+      $("#map-table-wrapper").trigger("updateAll");
+      $("#foot").html(info.template2);
+      document.getElementById('map-table-wrapper').style.display = 'block';
+      document.getElementById('foot').style.display = 'block';
 
-function checkForChanges()
-{
-  if ($('button.t402-elided').length) {
-    setTimeout(checkForChanges, 2000);
-  }
-  else {
-    $('button').addClass('searchButton');
+      initialMapFunction(info.jsdata);
+    }
+  });
+}
+
+function checkForIncomingData() {
+  console.log('checkForIncomingData');
+  var dataTimeout =  setTimeout(checkForIncomingData, 500);
+  if (typeof getdata !== 'undefined') {
+    clearTimeout(dataTimeout);
+    document.getElementById('search-button').innerHTML = '';//Remove "Search" button
+    doPostBack(getdata);
   }
 }
+
+document.onload = checkForChanges();
+
+function checkForChanges() {
+  var gcsTimeout;
+  if ($('button.t402-elided').length) {
+    gcsTimeout = setTimeout(checkForChanges, 500);
+  } else {
+    clearTimeout(gcsTimeout);
+    $('button').addClass('searchButton');
+    checkForIncomingData();
+  }
+}
+
+/*
+ * jQuery Autocomplete
+ */
+$('#name_address_box').autocomplete({
+  source: function (request, response) {
+    console.log('request.term: ', request.term);
+    $.ajax({
+      url: "/realestate/input" + "?q=" + request.term,
+      contentType: "application/json; charset=utf-8",
+      success: function (info) {
+        console.log('success');
+        //console.log('info: ', info.response);
+        response(info.response);
+      }
+    });
+  },
+  select: function(event, ui) {
+    console.log('event: ', event);
+    console.log('ui: ', ui);
+  },
+  minLength: 2,
+  delay: 0
+});
