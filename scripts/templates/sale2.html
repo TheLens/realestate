@@ -1,18 +1,10 @@
-<script>
-    $(document).foundation('tooltip');
-</script>
-<div class="row" id="results-found">
-    <div class="small-5 text-left columns">
-        <div>{{ qlength }} {{ plural_or_not }} found...</div>
-    </div>
-    <div class="small-7 text-right columns">
-        <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">What do these mean?</a>
-    </div>
-</div>
 <div class="row">
+    <div>
+        <a href="http://qpublic9.qpublic.net/la_orleans_display.php?KEY={{url_param}}" target="_blank">Read more about this property on the Assessor's Office's website.</a>
+    </div>
     <div class="small-12 large-8 columns map-wrapper">
         <div id="map"></div>
-        <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
+        
     </div>
     <div class="small-12 large-4 columns" id="table-footer-wrapper">
         <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
@@ -40,23 +32,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-        <div class="row" id="footer">
-            <div class="medium-1 visible-for-medium-only columns">
-                &nbsp;
-            </div>
-            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
-                <i class="fa fa-arrow-left"></i> Back
-            </div>
-            <div class="small-4 text-center current-page columns">
-                Page {{ page }} of {{ totalpages }}
-            </div>
-            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
-                Forward <i class="fa fa-arrow-right"></i>
-            </div>
-            <div class="medium-1 visible-for-medium-only columns">
-                &nbsp;
-            </div>
         </div>
     </div>
 </div>

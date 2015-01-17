@@ -292,6 +292,11 @@ function mapSearching() {
 function buildQueryString(data) {
   var map_query_string = '?';
 
+  if (typeof data.instrument_no !== 'undefined') {
+    map_query_string = '/' + data.instrument_no;
+    return map_query_string;
+  }
+
   if (data.name_address !== '') {
     map_query_string = map_query_string + "q=" + data.name_address;
   }
@@ -611,7 +616,6 @@ function doPostBack(data) {
       $("#map-table-wrapper").html(info.template1);
       $("#map-table-wrapper").trigger("updateAll");
       document.getElementById('map-table-wrapper').style.display = 'block';
-      document.getElementById('foot').style.display = 'block';
 
       initialMapFunction(info.jsdata);
     }
@@ -630,6 +634,47 @@ function checkForIncomingData() {
   }
 }
 
+
+
+
+function salePostBack(data) {
+  console.log('doSalePostBack');
+  console.log('data.instrument_no: ', data.instrument_no);
+  var searchrequest = JSON.stringify(data);
+  var query_string = buildQueryString(data);
+  $.ajax({
+    url: "/realestate/sale" + query_string,//todo: this should be the only difference between salePostBack and doPostBack, so eventually they can be the same function with this as the only difference.
+    type: "POST",
+    data: searchrequest,
+    contentType: "application/json; charset=utf-8",
+    success: function (info) {
+      console.log('SUCC');
+      //window.history.pushState(null,'hi','sale' + query_string);//not necessary, but could do anyway just to be consistent (i think)
+      $("#map-table-wrapper").html(info.template1);
+      $("#map-table-wrapper").trigger("updateAll");
+      document.getElementById('map-table-wrapper').style.display = 'block';// was unnecessary, but consisten with doPostBack
+
+      initialMapFunction(info.jsdata);
+    }
+  });
+}
+
+function checkForIncomingSaleData() {
+  console.log('checkForIncomingSaleData');
+  var dataTimeout;
+  if (typeof getsaledata === 'undefined') {
+    dataTimeout = setTimeout(checkForIncomingSaleData, 500);
+  } else {
+    clearTimeout(dataTimeout);
+    salePostBack(getsaledata);
+  }
+}
+
+
+
+
+
+
 document.onload = checkForChanges();
 
 function checkForChanges() {
@@ -641,6 +686,7 @@ function checkForChanges() {
     clearTimeout(gcsTimeout);
     $('button').addClass('searchButton');
     checkForIncomingData();
+    checkForIncomingSaleData();
   }
 }
 

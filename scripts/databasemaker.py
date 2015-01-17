@@ -1,12 +1,10 @@
-from sqlalchemy import Column, Integer, String, Numeric, Date, Float, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, String, Numeric, Date, Float, ForeignKey
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
 from fabric.api import local
 from app_config import server_engine, server_connection
 import psycopg2
-
-#from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
@@ -69,7 +67,7 @@ class Cleaned(Base):
 	__tablename__ = 'cleaned'
 
 	id = Column(Integer, primary_key=True)
-	amount = Column(Integer)
+	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
 	location = Column(String)
@@ -118,7 +116,7 @@ class Detail(Base):
 	page = Column(String)
 	document_date = Column(Date, nullable=True) 
 	document_recorded = Column(Date, nullable=True) 
-	amount = Column(Integer)
+	amount = Column(BigInteger)
 	status = Column(String)
 	prior_mortage_doc_type = Column(String) 
 	prior_conveyance_doc_type = Column(String)

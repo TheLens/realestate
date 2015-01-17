@@ -75,80 +75,13 @@
                 <h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4>
             </div>
         </div>
-        <div class="row slim">
-            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-            <div class="small-12 medium-10 columns slim">
-                <div class="row collapse slim">
-                    <div class="small-10 columns" id="input-div">
-                        <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
-                    </div>
-                    <div class="small-2 columns">
-                        <button class="button postfix"><i class="fa fa-search"></i></button>
-                    </div>
-                </div>
-            </div>
-            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-        </div>
         <div class="row">
-            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-            <div class="small-7 medium-7 text-left columns" id="search-examples">Example: John Doe; Doe, John; Esplanade Avenue; 70119</div>
-            <div class="small-5 medium-3 text-right columns" id="advanced-search"><a>Advanced search</a></div>
-            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-        </div>
-        <div id="filters">
-            <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 text-center columns search-range-title">Amount</div>
-                <div class="small-6 medium-4 text-center columns search-range-title">Date</div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-            </div>
-            <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 columns">
-                    <label><span class="low-break-hack"><br></span>Low:
-                        <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
-                    </label>
-                </div>
-                <div class="small-6 medium-4 columns">
-                    <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):
-                        <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
-                    </label>
-                </div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-            </div>
-            <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 columns">
-                    <label>High:
-                        <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
-                    </label>
-                </div>
-                <div class="small-6 medium-4 columns">
-                    <label>To:
-                        <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
-                    </label>
-                </div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+            <div class="small-12 text-left columns">
+                <= Back
             </div>
         </div>
-        <div class="p402_premium">
-            <div class="row" id="search-button"><!--todo: possible to just make display: none? could solve js tasks to remove this div-->
-                <div class="small-4 columns">
-                    &nbsp;
-                </div>
-                
-                <div class="small-4 columns">
-                    <button class="small button expand">Search</button>
-                </div>
-                <div class="small-4 columns">
-                    &nbsp;&nbsp;
-                </div>
-            </div>
+        <div class="map-table-wrapper" id="map-table-wrapper" style="display:none;">
         </div>
-        <script type="text/javascript">
-            try { _402_Show(); } catch(e) {}
-        </script>
-        <div class="map-table-wrapper" id="map-table-wrapper" style="display:none;"></div>
         <div id="foot">
             <div class="row">
                 <div class="small-12 columns">
@@ -181,24 +114,16 @@
         <script>
             $(document).foundation();
         </script>
-        <script type="text/javascript" src={{ js }}></script>
+        <script type="text/javascript" src={{ salejs }}></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/lens.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
         <script type="text/javascript">
-            var getdata;
+            var getsaledata;
             console.log('ello');
             if ({{ incomingdata|tojson }} !== 'None') {
                 console.log('incomingdata');
-                getdata = {{ incomingdata|tojson }};
+                getsaledata = {{ incomingdata|tojson }};
             }
-            //console.log(data);
-            //$("#map-table-wrapper").html(info.template1);
-            //$("#map-table-wrapper").trigger("updateAll");
-            //$("#foot").html(info.template2);
-            //document.getElementById('map-table-wrapper').style.display = 'block';
-            //document.getElementById('foot').style.display = 'block';
-
-            //initialMapFunction(info.jsdata);
         </script>
     </body>
 </html>

@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from bs4 import BeautifulSoup
 import glob
 import re
 import psycopg2
+import Cleanup
+import gmail
+import pprint
+from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, insert, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from databasemaker import Detail, Location, Vendor, Vendee, Cleaned, Neighborhood, Square
-import Cleanup
 from app_config import server_engine, server_connection
-import pprint
 
 pp = pprint.PrettyPrinter()
 
@@ -47,7 +48,7 @@ def document_details(form, form_id):
                 if cell == "None": # In the case that the cell is blank, the loop won't fail
                     cell = ""
                 output.append(cell)
-
+                
     output.append(form_id)
     amt = output[10]
     amt = re.sub(r"\$",r"", amt)
@@ -55,94 +56,36 @@ def document_details(form, form_id):
     output[10] = int(float(amt))
 
     dict_output = {}
-    if output[8] == "" and output[9] != "":
-        dict_output = {
-                        'document_type': '%s' % (output[0]),
-                        'instrument_no': '%s' % (output[1]),
-                        'multi_seq': '%s' % (output[2]),
-                        'min_': '%s' % (output[3]),
-                        'cin': '%s' % (output[4]),
-                        'book_type': '%s' % (output[5]),
-                        'book': '%s' % (output[6]),
-                        'page': '%s' % (output[7]),
-                        'document_date': None,
-                        'document_recorded': '%s' % (output[9]),
-                        'amount': '%d' % (output[10]),
-                        'status': '%s' % (output[11]),
-                        'prior_mortage_doc_type': '%s' % (output[12]),
-                        'prior_conveyance_doc_type': '%s' % (output[13]),
-                        'cancel_status': '%s' % (output[14]),
-                        'remarks': '%s' % (output[15]),
-                        'no_pages_in_image': '%s' % (output[16]),
-                        'image': '%s' % (output[17]), 
-                        'document_id': '%s' % (output[18])
-                       }
-    elif output[9] == "" and output[8] != "":
-        dict_output = {
-                        'document_type': '%s' % (output[0]),
-                        'instrument_no': '%s' % (output[1]),
-                        'multi_seq': '%s' % (output[2]),
-                        'min_': '%s' % (output[3]),
-                        'cin': '%s' % (output[4]),
-                        'book_type': '%s' % (output[5]),
-                        'book': '%s' % (output[6]),
-                        'page': '%s' % (output[7]),
-                        'document_date': '%s' % (output[8]),
-                        'document_recorded': None,
-                        'amount': '%d' % (output[10]),
-                        'status': '%s' % (output[11]),
-                        'prior_mortage_doc_type': '%s' % (output[12]),
-                        'prior_conveyance_doc_type': '%s' % (output[13]),
-                        'cancel_status': '%s' % (output[14]),
-                        'remarks': '%s' % (output[15]),
-                        'no_pages_in_image': '%s' % (output[16]),
-                        'image': '%s' % (output[17]), 
-                        'document_id': '%s' % (output[18])
-                        }
-    elif output[8] == "" and output[9] == "":
-        dict_output = {
-                        'document_type': '%s' % (output[0]),
-                        'instrument_no': '%s' % (output[1]),
-                        'multi_seq': '%s' % (output[2]),
-                        'min_': '%s' % (output[3]),
-                        'cin': '%s' % (output[4]),
-                        'book_type': '%s' % (output[5]),
-                        'book': '%s' % (output[6]),
-                        'page': '%s' % (output[7]),
-                        'document_date': None,
-                        'document_recorded': None,
-                        'amount': '%d' % (output[10]),
-                        'status': '%s' % (output[11]),
-                        'prior_mortage_doc_type': '%s' % (output[12]),
-                        'prior_conveyance_doc_type': '%s' % (output[13]),
-                        'cancel_status': '%s' % (output[14]),
-                        'remarks': '%s' % (output[15]),
-                        'no_pages_in_image': '%s' % (output[16]),
-                        'image': '%s' % (output[17]),
-                        'document_id': '%s' % (output[18])
-                        }
+    dict_output = {
+        'document_type': '%s' % (output[0]),
+        'instrument_no': '%s' % (output[1]),
+        'multi_seq': '%s' % (output[2]),
+        'min_': '%s' % (output[3]),
+        'cin': '%s' % (output[4]),
+        'book_type': '%s' % (output[5]),
+        'book': '%s' % (output[6]),
+        'page': '%s' % (output[7]),
+        'amount': '%d' % (output[10]),
+        'status': '%s' % (output[11]),
+        'prior_mortage_doc_type': '%s' % (output[12]),
+        'prior_conveyance_doc_type': '%s' % (output[13]),
+        'cancel_status': '%s' % (output[14]),
+        'remarks': '%s' % (output[15]),
+        'no_pages_in_image': '%s' % (output[16]),
+        'image': '%s' % (output[17]), 
+        'document_id': '%s' % (output[18])
+       }
+
+    if output[8] == "":
+        dict_output['document_date'] = None
     else:
-        dict_output = {
-                        'document_type': '%s' % (output[0]),
-                        'instrument_no': '%s' % (output[1]),
-                        'multi_seq': '%s' % (output[2]),
-                        'min_': '%s' % (output[3]),
-                        'cin': '%s' % (output[4]),
-                        'book_type': '%s' % (output[5]),
-                        'book': '%s' % (output[6]),
-                        'page': '%s' % (output[7]),
-                        'document_date': '%s' % (output[8]),
-                        'document_recorded': '%s' % (output[9]),
-                        'amount': '%d' % (output[10]),
-                        'status': '%s' % (output[11]),
-                        'prior_mortage_doc_type': '%s' % (output[12]),
-                        'prior_conveyance_doc_type': '%s' % (output[13]),
-                        'cancel_status': '%s' % (output[14]),
-                        'remarks': '%s' % (output[15]),
-                        'no_pages_in_image': '%s' % (output[16]),
-                        'image': '%s' % (output[17]),
-                        'document_id': '%s' % (output[18])
-                        }
+        dict_output['document_date'] = '%s' % (output[8])
+
+    if output[9] == "":
+        dict_output['document_recorded'] = None
+    else:
+        dict_output['document_recorded'] = '%s' % (output[9])
+
     i = insert(Detail)
     i = i.values(dict_output)
     session.execute(i)
@@ -322,6 +265,7 @@ def Publish():
     old_date = '2014-01-01'
     session.query(Location).filter(Location.rating <= 3).update({"location_publish": "1"})
     session.commit()
+
     session.query(Location).filter(Location.rating > 3).update({"location_publish": "0"})
     session.commit()
     session.query(Location).filter(Location.longitude < -90.140388).update({"location_publish": "0"}) # Long less than -90.140388 is west of New Orleans
@@ -345,167 +289,39 @@ def Publish():
     session.commit()
     session.query(Detail).filter(Detail.amount == 0).update({"detail_publish": "0"}) # Not sure about these, so check them all for now to be safe
     session.commit()
-    session.query(Detail).filter(Detail.amount >= 10000000).update({"detail_publish": "0"}) # Anything over $10,000,000 wouldn't be impossible, but is certainly a rare occurrence
+    session.query(Detail).filter(Detail.amount >= 20000000).update({"detail_publish": "0"}) # Anything over $10,000,000 wouldn't be impossible, but is certainly a rare occurrence
     session.commit()
 
 def Clean():
-    q = session.query(Detail, Location, Vendor, Vendee).join(Location).join(Vendor).join(Vendee).all() 
+    sql = """ WITH vendee AS (
+        SELECT document_id, string_agg(vendee_firstname::text || ' ' || vendee_lastname::text, ', ') AS buyers FROM vendees GROUP BY document_id
+    ), vendor AS (
+        SELECT document_id, string_agg(vendor_firstname::text || ' ' || vendor_lastname::text, ', ') AS sellers FROM vendors GROUP BY document_id
+    ), location AS (
+        SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text || ', Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude FROM locations GROUP BY document_id
+    )
+    SELECT details.amount, details.document_date, details.document_recorded, location.location, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, location.location_publish FROM details JOIN location ON details.document_id = location.document_id JOIN vendor ON details.document_id = vendor.document_id JOIN vendee ON details.document_id = vendee.document_id;"""
+    # WHERE document_recorded = '%s';""" % (yesterday_date)
+
+    #todo: adjust above to clean all records when rebuilding DB
+
+    result = engine.execute(sql)
+
     rows = []
-    for u in q:
-        zdict = {}
-        for v in u:
-            vdict = v.__dict__
-            zdict = dict(vdict.items() + zdict.items())
-        del zdict['_sa_instance_state']
-        rows.append(zdict)
+    for row in result:
+        row = dict(row)
+        rows.append(row)
 
-    print 'rows'
-    pp.pprint(rows)
+    rows = Cleanup.CleanNew(rows) # Clean up things like capitalizations, abbreviations, AP style quirks, etc.
 
-    rows = Cleanup.CombineORM(rows)
-    print 'rows'
-    pp.pprint(rows)
-    rows = Cleanup.Clean(rows) # Clean up things like capitalizations, abbreviations, AP style quirks, etc.
-    
+    # Send me an email of new rows
+    gmail.main(rows)
+
     for row in rows:
-        dict_output = {}
-        if row['document_date'] == None and row['document_recorded'] != None:
-            print "Ruh-roh"
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': None,
-                            'document_recorded': '%s' % (row['document_recorded']),
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        elif row['document_recorded'] == None and row['document_date'] != None:
-            print "Ruh-roh"
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': '%s' % (row['document_date']),
-                            'document_recorded': None,
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']), 'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        elif row['document_recorded'] == None and row['document_date'] == None:
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': None,
-                            'document_recorded': None,
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        else:
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': '%s' % (row['document_date']),
-                            'document_recorded': '%s' % (row['document_recorded']),
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        dict_output['sellers'] = dict_output['sellers'].strip()
-        dict_output['buyers'] = dict_output['buyers'].strip()
         i = insert(Cleaned)
-        i = i.values(dict_output)
-        session.execute(i)
-    session.commit()
+        i = i.values(row)
+        #session.execute(i)
 
-def CleanYesterday():
-    q = session.query(Detail, Location, Vendor, Vendee).join(Location).join(Vendor).join(Vendee).filter(Detail.document_recorded == '%s' % (yesterday_date)).all() 
-    rows = []
-    for u in q:
-        zdict = {}
-        for v in u:
-            vdict = v.__dict__
-            zdict = dict(vdict.items() + zdict.items())
-        del zdict['_sa_instance_state']
-        rows.append(zdict)
-
-    rows = Cleanup.CombineORM(rows)
-    rows = Cleanup.Clean(rows) # Clean up things like capitalizations, abbreviations, AP style quirks, etc.
-    
-    for row in rows:        
-        dict_output = {}
-        if row['document_date'] == None and row['document_recorded'] != None:
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': None,
-                            'document_recorded': '%s' % (row['document_recorded']),
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        elif row['document_recorded'] == None and row['document_date'] != None:
-            dict_output = {
-                            'amount': '%s' % (row['amount']), 'document_date': '%s' % (row['document_date']), 'document_recorded': None, 'location': '%s %s' % (row['street_number'], row['address']), 'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']), 'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']), 'instrument_no': '%s' % (row['instrument_no']), 'latitude': '%s' % (row['latitude']), 'longitude': '%s' % (row['longitude']), 'zip_code': '%s' % (row['zip_code']), 'detail_publish': '%s' % (row['detail_publish']), 'location_publish': '%s' % (row['location_publish'])}
-        elif row['document_recorded'] == None and row['document_date'] == None:
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': None,
-                            'document_recorded': None,
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        else:
-            dict_output = {
-                            'amount': '%s' % (row['amount']),
-                            'document_date': '%s' % (row['document_date']),
-                            'document_recorded': '%s' % (row['document_recorded']),
-                            'location': '%s %s' % (row['street_number'], row['address']),
-                            'sellers': '%s %s' % (row['vendor_firstname'], row['vendor_lastname']),
-                            'buyers': '%s %s' % (row['vendee_firstname'], row['vendee_lastname']),
-                            'instrument_no': '%s' % (row['instrument_no']),
-                            'latitude': '%s' % (row['latitude']),
-                            'longitude': '%s' % (row['longitude']),
-                            'zip_code': '%s' % (row['zip_code']),
-                            'detail_publish': '%s' % (row['detail_publish']),
-                            'location_publish': '%s' % (row['location_publish'])
-                            }
-        dict_output['sellers'] = dict_output['sellers'].strip()
-        dict_output['buyers'] = dict_output['buyers'].strip()
-        i = insert(Cleaned)
-        i = i.values(dict_output)
-        session.execute(i)
     session.commit()
 
 def buildFromScratch():
@@ -522,37 +338,33 @@ def buildFromScratch():
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             print form
             document_details(form,form_id)
-        if folder == '../data/2014-02-18':
+        if folder == '../data/2014-09-11':
             break
     session.commit()
 
     print "vendors"
     for folder in glob.glob('../data/*'): # For all folders (days)
         for form in glob.glob('%s/form-html/*.html' % (folder)): # For all records (within each day)
-	    # Regex to get Document ID (not Instrument #, but the Document ID only visible in URLs and HTML on the site)
-            # This is crucial to identifying records from the same document in other functions, such as combining rows for multiple names on a sale document
             form_id = re.search("(?<=/)\S+", form).group() #Leaves string with "OPxxxx.html"
             form_id = re.search("(?<=/)(.*)(?=.html)", form_id).group() # Leaves string with "OPxxxx"
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             print form
             vendors(form,form_id)
-        if folder == '../data/2014-02-18':
+        if folder == '../data/2014-09-11':
             break
     session.commit()
 
     print 'vendees'
     for folder in glob.glob('../data/*'): # For all folders (days)
         for form in glob.glob('%s/form-html/*.html' % (folder)): # For all records (within each day)
-	    # Regex to get Document ID (not Instrument #, but the Document ID only visible in URLs and HTML on the site)
-            # This is crucial to identifying records from the same document in other functions, such as combining rows for multiple names on a sale document
             form_id = re.search("(?<=/)\S+", form).group() #Leaves string with "OPxxxx.html"
             form_id = re.search("(?<=/)(.*)(?=.html)", form_id).group() # Leaves string with "OPxxxx"
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             print form
             vendees(form,form_id)
-        if folder == '../data/2014-02-18':
+        if folder == '../data/2014-09-11':
             break
     session.commit()
 
@@ -560,15 +372,13 @@ def buildFromScratch():
     for folder in glob.glob('../data/*'): # For all folders (days)
         print folder
         for form in glob.glob('%s/form-html/*.html' % (folder)): # For all records (within each day)
-	    # Regex to get Document ID (not Instrument #, but the Document ID only visible in URLs and HTML on the site)
-            # This is crucial to identifying records from the same document in other functions, such as combining rows for multiple names on a sale document
             form_id = re.search("(?<=/)\S+", form).group() #Leaves string with "OPxxxx.html"
             form_id = re.search("(?<=/)(.*)(?=.html)", form_id).group() # Leaves string with "OPxxxx"
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             form_id = re.search("(?<=/)(.*)\S+", form_id).group()
             print form
             locations(form,form_id)
-        if folder == '../data/2014-02-18':
+        if folder == '../data/2014-09-11':
             break
     session.commit()
 
@@ -672,12 +482,16 @@ print "Determing whether to publish records..."
 #Publish()
 print "Adding to cleaned table..."
 Clean()
-#CleanYesterday()
 print "Identifying square..."
 #Squares()
 print "Identifying neighborhoods..."
 #Neighborhoods()
 
+#Create new .csv file of table
+#cur.execute("COPY cleaned to '/Users/Tom/projects/land-records/temp/table_dump.csv' delimiters',';")
+#cur.execute("\copy cleaned to '/home/tom/projects/land-records/repo/scripts/static/lens-property-sales-%s.csv' csv header" % (yesterday_date))
+# For limited columns: http://stackoverflow.com/questions/2952366/dump-csv-from-sqlalchemy
+#conn.commit()
 
 session.close()
 cur.close()
