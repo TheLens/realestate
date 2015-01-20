@@ -1,62 +1,230 @@
-<script>
-    $(document).foundation('tooltip');
-</script>
-<div class="row" id="results-found">
-    <div class="small-5 text-left columns">
-        <div>{{ qlength }} {{ plural_or_not }} found...</div>
-    </div>
-    <div class="small-7 text-right columns">
-        <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">What do these mean?</a>
-    </div>
-</div>
-<div class="row">
-    <div class="small-12 large-8 columns map-wrapper">
-        <div id="map"></div>
-        <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
-    </div>
-    <div class="small-12 large-4 columns" id="table-footer-wrapper">
-        <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
-            <table id="myTable" class="tablesorter">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Amount</th>
-                        <th>Location</th>
-                        <th>Sellers</th>
-                        <th>Buyers</th>
-                        <th>Instrument Number</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for newrow in newrows %}
-                        <tr id="{{ newrow.instrument_no }}">
-                            <td class="document_date no-wrap">{{ newrow.document_date }}</td>
-                            <td class="amount no-wrap">{{ newrow.amount }}</td>
-                            <td class="location"><a href="/realestate/sale/{{newrow.instrument_no}}" target="_blank">{{ newrow.location }}</a></td>
-                            <td class="sellers">{{ newrow.sellers }}</td>
-                            <td class="buyers">{{ newrow.buyers }}</td>
-                            <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+<!DOCTYPE html>
+<html>
+    <head>
+        <script type="text/javascript">var _sf_startpt=(new Date()).getTime()</script>
+        <title>New Orleans property sales</title>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <script type="text/javascript" src="//use.typekit.net/oct0mkd.js"></script>
+        <script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+        <link rel='stylesheet' id='open-sans-css'  href='//fonts.googleapis.com/css?family=Open+Sans%3A300italic%2C400italic%2C600italic%2C300%2C400%2C600&#038;subset=latin%2Clatin-ext&#038;ver=3.8.3' type='text/css' media='all' />
+        <link rel="stylesheet" src="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css"/>
+        <script type='text/javascript' src='https://s3-us-west-2.amazonaws.com/lensnola/lens.js'></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/vault_analytics.js"></script>
+        <script type='text/javascript' src='http://lensnola.wpengine.netdna-cdn.com/wp-content/themes/largo/js/modernizr.custom.js?ver=3.8.3'></script>
+
+        <meta name="description" content="New Orleans property sales, including buyers, sellers, amounts and locations on a map.">
+        <meta name="keywords" content="New Orleans, property, sales, property sales, real estate, Louisiana" />
+
+        <meta name="twitter:card" content="summary_large_image">
+        <meta name="twitter:site" content="@TheLensNOLA">
+        <meta name="twitter:site:id" content="thelensnola">
+        <meta name="twitter:creator" content="@TheLensNOLA">
+        <meta name="twitter:title" content="New Orleans property sales">
+        <meta name="twitter:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map.">
+        <meta name="twitter:image:src" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png">
+
+        <meta property="og:title" content="New Orleans property sales" />
+        <meta property="og:type" content="article" />
+        <meta property="og:url" content="http://vault.thelensnola.org/realestate"/>
+        <meta property="og:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map." />      
+        <meta property="og:site_name" content="The Lens" />
+        <meta property="og:image" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png" />
+        <meta property="article:publisher" content="https://www.facebook.com/thelensnola" />
+
+        <link rel="apple-touch-icon" href="http://lensnola.wpengine.netdna-cdn.com/wp-content/uploads/2013/01/TheLens-400x400_icon.png"/>   
+        <link rel="canonical" href="http://vault.thelensnola.org/realestate" />
+
+        <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/favicon.ico">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery-ui.css">
+        <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/lenstablesorter.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/mapbox.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery.tablesorter.pager.css">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/foundation.min.css">
+        <link rel="stylesheet" href={{ css }}>        
+    </head>
+    <body>
+        <div id="banner">
+            <a href="http://thelensnola.org/" target="_blank" id="banner-logo">
+                <img src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo-retina.png" width="100">
+            </a>
+            <a href="#" id="banner-title"></a>
+            <a href="http://thelensnola.org/support-us/" target="_blank" id="banner-support">Support<br>The Lens</a>
+            <a href="mailto:?subject=New Orleans%20property%20sales%20by%20The%20Lens&body=http://vault.thelensnola.org/realestate" target="_blank" id="banner-social-email"><i class="fa fa-envelope"></i></a>
+            <a href="https://twitter.com/intent/tweet?url=http://vault.thelensnola.org/realestate" target="_blank" id="banner-social-twitter"><i id="social-twitter" class="fa fa-twitter"></i></a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u=http%3A%2F%2Fvault.thelensnola.org/realestate" target="_blank" id="banner-social-facebook"><i class="fa fa-facebook"></i></a>
+          </div>
+        <div class="row">
+            <div class="small-12 columns">
+                <a href="/realestate/"><h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4></a>
+            </div>
         </div>
-        <div class="row" id="footer">
-            <div class="medium-1 visible-for-medium-only columns">
-                &nbsp;
+        <div class="row slim">
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+            <div class="small-12 medium-10 columns slim">
+                <div class="row collapse slim">
+                    <div class="small-10 columns" id="input-div">
+                        <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address, zip code or instrument number">
+                    </div>
+                    <div class="small-2 columns">
+                        <button class="button postfix"><i class="fa fa-search"></i></button>
+                    </div>
+                </div>
             </div>
-            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
-                <i class="fa fa-arrow-left"></i> Back
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+        </div>
+        <div class="row">
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+            <div class="small-7 medium-7 text-left columns" id="search-examples">Example: John Doe; Doe, John; Esplanade Avenue; 70119</div>
+            <div class="small-5 medium-3 text-right columns" id="advanced-search"><a>Advanced search</a></div>
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+        </div>
+        <div id="filters">
+            <div class="row">
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-6 medium-4 text-center columns search-range-title">Amount</div>
+                <div class="small-6 medium-4 text-center columns search-range-title">Date</div>
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
-            <div class="small-4 text-center current-page columns">
-                Page {{ page }} of {{ totalpages }}
+            <div class="row">
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-6 medium-4 columns">
+                    <label><span class="low-break-hack"><br></span>Low:
+                        <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
+                    </label>
+                </div>
+                <div class="small-6 medium-4 columns">
+                    <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):
+                        <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
+                    </label>
+                </div>
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
-            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
-                Forward <i class="fa fa-arrow-right"></i>
-            </div>
-            <div class="medium-1 visible-for-medium-only columns">
-                &nbsp;
+            <div class="row">
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-6 medium-4 columns">
+                    <label>High:
+                        <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
+                    </label>
+                </div>
+                <div class="small-6 medium-4 columns">
+                    <label>To:
+                        <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
+                    </label>
+                </div>
+                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
         </div>
-    </div>
-</div>
+        <div id="map-table-wrapper" class="map-table-wrapper">
+            <div class="row" id="results-found">
+                <div class="small-5 text-left columns">
+                    <div><span id="qlength">{{ qlength }}</span> <span id="plural_or_not">{{ plural_or_not }}</span> found...</div>
+                </div>
+                <div class="small-7 text-right columns">
+                    <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">What do these mean?</a>
+                </div>
+            </div>
+            <div class="row">
+                <div class="small-12 large-8 columns map-wrapper">
+                    <div id="map"></div>
+                    <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
+                </div>
+                <div class="small-12 large-4 columns" id="table-footer-wrapper">
+                    <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
+                        <table id="myTable" class="tablesorter">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Location</th>
+                                    <th>Sellers</th>
+                                    <th>Buyers</th>
+                                    <th>Instrument Number</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbody">
+                                {% for newrow in newrows %}
+                                    <tr id="{{ newrow.instrument_no }}">
+                                        <td class="document_date no-wrap">{{ newrow.document_date }}</td>
+                                        <td class="amount no-wrap">{{ newrow.amount }}</td>
+                                        <td class="location"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location }}</a></td>
+                                        <td class="sellers">{{ newrow.sellers }}</td>
+                                        <td class="buyers">{{ newrow.buyers }}</td>
+                                        <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="row" id="footer">
+                        <div class="medium-1 visible-for-medium-only columns">
+                            &nbsp;
+                        </div>
+                        <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
+                            <i class="fa fa-arrow-left"></i> Back
+                        </div>
+                        <div class="small-4 text-center current-page columns">
+                            Page <span id="page">{{ page }}</span> of <span id="totalpages">{{ totalpages }}</span>
+                        </div>
+                        <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
+                            Forward <i class="fa fa-arrow-right"></i>
+                        </div>
+                        <div class="medium-1 visible-for-medium-only columns">
+                            &nbsp;
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="foot">
+            <div class="row">
+                <div class="small-12 columns">
+                    <div class="row">
+                        <div id="tailend"></div>
+                    </div>
+                </div>
+                <div id="lens-about" class="small-12 columns">
+                    <div id="about-title">About</div>
+                    <p>Source: Orleans Parish Civil District Court, <a href="http://www.orleanscivilclerk.com/lr_home.html" target="_blank">Land Records Division</a> records since Feb. 18, 2014. <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">Read more</a> about this project and find other public records and databases in <a href="http://thelensnola.org/thevault/" target="_blank">The Vault</a>.</p>
+                    <p>*Properties with an asterisk are not on the map because we are still working to verify their locations.</p>
+                </div>
+                <div id="credit" class="small-12 columns">
+                    <div id="credit-title">Credits</div>
+                    <div>Produced by Thomas Thoren</div>
+                    <div>Published Sept. 13, 2014. Updated {{ yesterday_date }}.</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal" id="modal"></div>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+        <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+        <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
+        <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.pager.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/modernizr.js"></script>
+        <script>
+            $(document).foundation();
+        </script>
+        <script type="text/javascript" src={{ searchjs }}></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/lens.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
+        <script type="text/javascript">
+            if ({{ parameters|tojson }} !== 'None') {
+                console.log('parameters');
+                //Populate search parameters
+                populateSearchParameters({{ parameters|tojson }})
+            }
+            if ({{ jsdata|tojson }} !== 'None') {
+                console.log('jsdata');
+                //Load map, table, et al
+                initialMapFunction({{ jsdata|tojson }});
+            }
+        </script>
+    </body>
+</html>

@@ -72,15 +72,32 @@
           </div>
         <div class="row">
             <div class="small-12 columns">
-                <h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4>
+                <a href="/realestate/"><h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4></a>
             </div>
         </div>
-        <div class="row">
-            <div class="small-12 text-left columns">
-                <= Back
+        <div class="map-table-wrapper" id="map-table-wrapper">
+            <div class="row">
+                <div class="small-12 medium-7 columns">
+                    <div class="row">
+                        <div class="small-12 columns" style="margin: 15px 0;">
+                            {% for newrow in newrows %}
+                                <div class="document_date no-wrap">{{ newrow.document_date }}</div>
+                                <div class="amount no-wrap">{{ newrow.amount }}</div>
+                                <div class="location">{{ newrow.location }}</div>
+                                <div class="sellers">{{ newrow.sellers }}</div>
+                                <div class="buyers">{{ newrow.buyers }}</div>
+                                <div class="instrument_no no-wrap">{{ newrow.instrument_no }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="small-12 columns" id="assessor">
+                            <a href="http://qpublic9.qpublic.net/la_orleans_display.php?KEY={{url_param}}" target="_blank">Read more about this property on the Assessor's Office's website.</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="small-12 medium-5 columns map-wrapper">
+                    <div id="map"></div>
+                </div>
             </div>
-        </div>
-        <div class="map-table-wrapper" id="map-table-wrapper" style="display:none;">
         </div>
         <div id="foot">
             <div class="row">
@@ -118,12 +135,11 @@
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/lens.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
         <script type="text/javascript">
-            var getsaledata;
-            console.log('ello');
-            if ({{ incomingdata|tojson }} !== 'None') {
-                console.log('incomingdata');
-                getsaledata = {{ incomingdata|tojson }};
+            if ({{ jsdata|tojson }} !== 'None') {
+                console.log('jsdata');
+                initialMapFunction({{ jsdata|tojson }});
             }
+        </script>
         </script>
     </body>
 </html>

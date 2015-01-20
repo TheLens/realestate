@@ -72,7 +72,7 @@
           </div>
         <div class="row">
             <div class="small-12 columns">
-                <h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4>
+                <a href="/realestate/"><h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4></a>
             </div>
         </div>
         <div class="row slim">
@@ -148,8 +148,7 @@
         <script type="text/javascript">
             try { _402_Show(); } catch(e) {}
         </script>
-        <div class="map-table-wrapper" id="map-table-wrapper" style="display:none;"></div>
-        <div id="foot">
+        <div id="foot" style="dislay: none;">
             <div class="row">
                 <div class="small-12 columns">
                     <div class="row">
@@ -181,24 +180,8 @@
         <script>
             $(document).foundation();
         </script>
-        <script type="text/javascript" src={{ js }}></script>
+        <script type="text/javascript" src={{ indexjs }}></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/lens.js"></script>
         <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
-        <script type="text/javascript">
-            var getdata;
-            console.log('ello');
-            if ({{ incomingdata|tojson }} !== 'None') {
-                console.log('incomingdata');
-                getdata = {{ incomingdata|tojson }};
-            }
-            //console.log(data);
-            //$("#map-table-wrapper").html(info.template1);
-            //$("#map-table-wrapper").trigger("updateAll");
-            //$("#foot").html(info.template2);
-            //document.getElementById('map-table-wrapper').style.display = 'block';
-            //document.getElementById('foot').style.display = 'block';
-
-            //initialMapFunction(info.jsdata);
-        </script>
     </body>
 </html>

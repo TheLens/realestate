@@ -12,8 +12,8 @@ from sqlalchemy import create_engine, desc
 from sqlalchemy.ext.declarative import declarative_base
 from databasemaker import Cleaned
 from sqlalchemy.orm import sessionmaker
-from datetime import date, datetime, timedelta
-from app_config import server_connection, server_engine, js, salejs, css, development_username, development_password
+from datetime import datetime, timedelta
+from app_config import server_connection, server_engine, indexjs, searchjs, salejs, css, development_username, development_password
 from flask.ext.cache import Cache
 from functools import wraps
 
@@ -55,9 +55,8 @@ def base():
     return render_template(
         'index.html',
         yesterday_date = yesterday_date,
-        js = js,
-        css = css,
-        incomingdata = 'None'
+        indexjs = indexjs,
+        css = css
         )
 
 #@cache.memoize(timeout=5000)
@@ -83,101 +82,88 @@ def search():
             if incomingdata[key] == None:
                 incomingdata[key] = ''
 
-        yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-        yesterday_date = MonthCheck(yesterday_date)
-        return render_template(
-            'index.html',
-            yesterday_date = yesterday_date,
-            js = js,
-            css = css,
-            incomingdata = incomingdata
-        )
+        name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
 
-        # '''
-        # Has not loaded index.html or lens.js yet, so no HTML to append to
-        # and no JS AJAX call to send response to. 
-        # '''
-        # yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-        # yesterday_date = MonthCheck(yesterday_date)
-        # return render_template(
-        #     'index.html',
-        #     yesterday_date = yesterday_date,
-        #     js = js,
-        #     css = css
-        #     )
+        amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
 
-        # print 'response: '
-        # print response
-        # return response.template1
+        response = query_db(name_address, amountlow, amounthigh, begindate, enddate)
+
+        return response
 
     if request.method == 'POST':
+        # Formerly /realestate/mapsearch
         print 'POST'
         incomingdata = request.get_json()
 
-    name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
+        name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
 
-    amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
+        bounds = incomingdata['bounds']
+        mapbuttonstate = incomingdata['mapbuttonstate']
+        page = incomingdata['page']
+        totalpages = incomingdata['totalpages']
+        page_direction = incomingdata['direction']
 
-    response = query_db(name_address, amountlow, amounthigh, begindate, enddate)
+        amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
 
-    return response
+        response = mapquery_db(name_address, amountlow, amounthigh, begindate, 
+            enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
+
+        return response
+
+def formAssessorURL(location):
+    location = location.upper()
+
+    address_number = re.match(r"[^ \-]*", location).group(0)#todo: need to then remove "-xx" if a range of homes
+
+    assessor_abbreviations = [
+        ['GENERAL', 'GEN'],
+        ['ST.', 'ST']
+    ]
+    street = re.match(r"\S+\s([^\,]*)", location).group(1)
+
+    street_type = street.split(' ')[-1]
+
+    #todo: check for abbreviations for each street type: http://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
+    abbreviations = [
+        ['STREET', 'ST'],
+        ['DRIVE', 'DR'],
+        ['BOULEVARD', 'BLVD'], 
+        ['HIGHWAY', 'HWY'], 
+        ['ROAD', 'RD'],
+        ['COURT', 'CT'], 
+        ['AVENUE', 'AVE'],
+        ['LANE', 'LN']
+    ]
+    street_type_abbr = street_type
+    for abbreviation in abbreviations:
+        abbr0 = abbreviation[0]
+        abbr1 = abbreviation[1]
+        street_type_abbr = re.sub(abbr0, abbr1, street_type_abbr)
+
+    unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location).group(1)
+
+    street = " ".join(street.split()[0:-1])
+    for assessor_abbr in assessor_abbreviations:
+        abbr0 = assessor_abbr[0]
+        abbr1 = assessor_abbr[1]
+        street = re.sub(abbr0, abbr1, street)
+    street = "".join(street.split())#remove spaces
+
+    url_param = address_number + unit + '-' + street + street_type_abbr
+    return url_param
 
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/mapsearch", methods=['POST'])
-def mapsearch():
-
-    incomingdata = request.get_json()
-
-    name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
-
-    bounds = incomingdata['bounds']
-    mapbuttonstate = incomingdata['mapbuttonstate']
-    page = incomingdata['page']
-    totalpages = incomingdata['totalpages']
-    page_direction = incomingdata['direction']
-
-    amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
-
-    mapresponse = mapquery_db(name_address, amountlow, amounthigh, begindate, 
-        enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
-
-    return mapresponse
-
-#@cache.memoize(timeout=5000)
-@app.route("/realestate/sale/<instrument_no>", methods=['GET', 'POST'])
+@app.route("/realestate/sale/<instrument_no>", methods=['GET'])
 def sale(instrument_no = None):
 
     search_term = instrument_no
     instrument_no = urllib.unquote(search_term).decode('utf8')
-    # print 'instrument_no'
-    # print instrument_no
 
     if request.method == 'GET':
-
-        incomingdata = {}
-        incomingdata['instrument_no'] = instrument_no
-
-        yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-        yesterday_date = MonthCheck(yesterday_date)
-
-        return render_template(
-            'sale.html',
-            yesterday_date = yesterday_date,
-            salejs = salejs,
-            css = css,
-            incomingdata = incomingdata
-        )
-
-    if request.method == 'POST':
 
         '''
         Assign query string parameters to incomingdata dictionary.
         '''
-
-        search_term = instrument_no
-        instrument_no = urllib.unquote(search_term).decode('utf8')
-        # print 'instrument_no'
-        # print instrument_no
 
         Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
@@ -190,8 +176,6 @@ def sale(instrument_no = None):
             ).filter(
                 (Cleaned.instrument_no.ilike('%%%s%%' % instrument_no))
             ).all()
-        # print 'q:'
-        # print q
 
         location = ''
         
@@ -199,54 +183,32 @@ def sale(instrument_no = None):
             u.amount = Currency(u.amount)
             u.document_date = RewriteDate(u.document_date)
             location = u.location
-        # print 'q:'
-        # print q
 
         features = loopThing(q)
-        # print 'features:'
-        # print features
 
         jsdata = {
             "type": "FeatureCollection", 
             "features": features
         }
-        # print 'jsdata:'
-        # print jsdata
 
         yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
         yesterday_date = MonthCheck(yesterday_date)
 
-        print 'location:'
-        print location
+        url_param = formAssessorURL(location)#todo: need way to return nothing and not display URL if there is no street address, aka if only a lot.
 
-        address_number = re.match("[^ \-]*", location).group(0)
-
-        print 'address_number:'
-        print address_number
-
-        street = re.match("\S+\s([^\,]*)", location).group(1)
-        print 'street:'
-        print street
-
-        #unit = re.match(, location)
-        print 'unit:'
-        #print unit
-
-        url_param = location
-            
-        template1 = render_template(
-            'sale2.html',
+        template1 =  render_template(
+            'sale.html',
+            yesterday_date = yesterday_date,
+            salejs = salejs,
+            css = css,
             newrows = q,
-            url_param =  url_param
+            url_param = url_param,
+            jsdata = jsdata
         )
 
         session.close()
 
-        return jsonify(
-            template1 = template1,
-            jsdata = jsdata
-        )
-
+        return template1
 
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/input", methods=['GET', 'POST'])
@@ -323,79 +285,6 @@ def input():
         response = response
         )
 
-    
-    '''
-    search_term = request.args.get('q')
-    print 'search_term:'
-    print search_term
-
-    decoded_names = urllib.unquote(search_term).decode('utf8')
-    names = decoded_names.strip(" $!.,-")
-    names = decoded_names.split(" ")
-    shorties = []
-
-    for x in range(0, len(names)):
-        names[x] = names[x].strip(" $!.,-")
-        if len(names[x]) <= 1:
-            shorties.append(x)
-    for i in reversed(shorties): #So deleting row won't affect index position
-        del names[i]
-
-    #Run names through location, then buyers, then sellers.
-    
-    location_conditions = []
-    buyers_conditions = []
-    sellers_conditions = []
-
-    for name in names:
-        location_conditions.append(
-            (Cleaned.location.ilike('%%%s%%' % name))
-        )
-        buyers_conditions.append(
-            (Cleaned.buyers.ilike('%%%s%%' % name))
-        )
-        sellers_conditions.append(
-            (Cleaned.sellers.ilike('%%%s%%' % name))
-        )
-        #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    q_locations = session.query(
-            Cleaned
-        ).filter(
-            and_(*location_conditions)
-        ).all()
-
-    q_buyers = session.query(
-            Cleaned
-        ).filter(
-            and_(*buyers_conditions)
-        ).all()
-
-    q_sellers = session.query(
-            Cleaned
-        ).filter(
-            and_(*sellers_conditions)
-        ).all()
-
-    response = []
-    for u in q_locations:
-        response.append(u.location)
-
-    for u in q_buyers:
-        response.append(u.buyers)
-
-    for u in q_sellers:
-        response.append(u.sellers)
-
-    return jsonify(
-        response = response
-        )
-    '''
-
 #@cache.memoize(timeout=5000)
 def query_db(name_address, amountlow, amounthigh, begindate, enddate):
     Base.metadata.create_all(engine)
@@ -435,30 +324,34 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate):
     if qlength == 0:
         page = 0
 
-    # template0 = render_template(
-    #     'index.html',
-    #     yesterday_date = yesterday_date,
-    #     js = js,
-    #     css = css,
-    #     newjs = 'hi'
-    # )
+    amountlow, amounthigh, begindate, enddate = revertEntries(amountlow, amounthigh, begindate, enddate)
+
+    parameters = {}
+    parameters['name_address'] = name_address
+    parameters['amountlow'] = amountlow
+    parameters['amounthigh'] = amounthigh
+    parameters['begindate'] = begindate
+    parameters['enddate'] = enddate
+
+    pp.pprint(parameters)
         
     template1 = render_template(
         'search.html',
+        searchjs = searchjs,
+        css = css,
         newrows = q,
+        jsdata = jsdata,
         qlength = NumberWithCommas(qlength),
         plural_or_not = plural_or_not,
         page = page,
         totalpages = totalpages,
-        pagelength = pagelength
+        pagelength = pagelength,
+        parameters = parameters
     )
 
     session.close()
 
-    return jsonify(
-        template1 = template1, 
-        jsdata = jsdata
-    )
+    return template1
 
 #@cache.memoize(timeout=5000)
 def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages):
@@ -540,36 +433,24 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds,
         page = 0
     tabletemplate = render_template(
         'table.html',
-        newrows = q,
-        page = page,
-        totalpages = totalpages,
-        pagelength = pagelength
+        newrows = q
     )
-    resultstemplate = render_template(
-        'results.html',
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not
-    )
+
     session.close()
+
     return jsonify(
         tabletemplate = tabletemplate,
         jsdata = jsdata,
-        resultstemplate = resultstemplate
+        qlength = NumberWithCommas(qlength),
+        plural_or_not = plural_or_not,
+        page = page,
+        totalpages = totalpages,
+        pagelength = pagelength
     )
 
 def assignData(incomingdata):
     search_term = incomingdata['name_address']
     name_address = urllib.unquote(search_term).decode('utf8')
-    # names = decoded_names.strip(" $!.,-")
-    # names = decoded_names.split(" ")
-    # shorties = []
-
-    # for x in range(0, len(names)):
-    #     names[x] = names[x].strip(" $!.,-")
-    #     if len(names[x]) <= 1:
-    #         shorties.append(x)
-    # for i in reversed(shorties): #So deleting row won't affect index position
-    #     del names[i]
 
     amountlow = incomingdata['amountlow']
     amounthigh = incomingdata['amounthigh']
@@ -796,21 +677,18 @@ def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, 
         plural_or_not = "results"
     tabletemplate = render_template(
         'table.html',
-        newrows = q,
-        page = page,
-        totalpages = totalpages,
-        pagelength = pagelength
-    )
-    resultstemplate = render_template(
-        'results.html',
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not
+        newrows = q
     )
     session.close()
+
     return jsonify(
         tabletemplate = tabletemplate,
         jsdata = jsdata,
-        resultstemplate = resultstemplate
+        qlength = NumberWithCommas(qlength),
+        plural_or_not = plural_or_not,
+        page = page,
+        totalpages = totalpages,
+        pagelength = pagelength
     )
 
 @app.route("/realestate/dashboard", methods=['GET'])
@@ -904,7 +782,19 @@ def CheckEntry(amountlow, amounthigh, begindate, enddate):
     if begindate == '':
         begindate = "1900-01-01"
     if enddate == '':
-        enddate = date.today()
+        enddate = (datetime.today()).strftime('%Y-%m-%d')
+
+    return (amountlow, amounthigh, begindate, enddate)
+
+def revertEntries(amountlow, amounthigh, begindate, enddate):
+    if amountlow == 0:
+        amountlow = ''
+    if amounthigh == 9999999:
+        amounthigh = ''
+    if begindate == '1900-01-01':
+        begindate = ''
+    if enddate == (datetime.today()).strftime('%Y-%m-%d'):
+        enddate = ''
 
     return (amountlow, amounthigh, begindate, enddate)
 
