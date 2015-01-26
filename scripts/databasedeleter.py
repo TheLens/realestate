@@ -9,7 +9,8 @@ from sqlalchemy.schema import (
     ForeignKeyConstraint,
     DropConstraint,
     )
-from app_config import server_engine
+from app_config import server_engine, backup_directory
+from subprocess import call
 
 engine = create_engine('%s' % (server_engine))
 
@@ -29,6 +30,9 @@ metadata = MetaData()
 
 tbs = []
 all_fks = []
+
+# Backup dashboard table
+call('pg_dump -Fc landrecords -t dashboard > ' + backup_directory + '/dashboard_table_$(date +%Y-%m-%d).sql', shell=True)
 
 for table_name in inspector.get_table_names():
     fks = []

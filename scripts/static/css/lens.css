@@ -30,7 +30,30 @@ body {
 select {
 	height: 100%;
 }
+#preview {
+	display: none;
+	z-index: 1001; /*z-index for Leaflet controls is 1000*/
+	position: fixed;
+    max-width: 275px;
+    max-height: 325px;
+    padding: 10px;
+    font-size: 15px;
+    box-shadow: 0 0 5px #888888;;
+    background-color: #FFF;
+    color: #000;
+    overflow: auto;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
 
+    margin: auto;
+}
+.editable {
+	border: 1px solid #c3c3c3;
+	padding: 2px;
+	line-height: 26px;
+}
 li.ui-autocomplete-category {
 	font-weight: bold;
 	font-size: 13px;
@@ -48,6 +71,26 @@ ul.ui-autocomplete {
 
 .leaflet-control {
 	z-index: 7;
+}
+#tooltip {
+    /*width: 235px;*/
+    max-width: 275px;
+    max-height: 325px;
+    padding: 10px;
+    font-size: 15px;
+    box-shadow: 0 0 5px #888888;;
+    background-color: #FFF;
+    color: #000;
+    position: absolute;
+    display: none;
+    z-index: 1001; /*z-index for Leaflet controls is 1000*/
+    pointer-events: none;/*So hovering doesn't cause stuttering*/
+    overflow: auto;
+}
+.popup {
+    width: 100%;
+    height: 100%;
+    /*pointer-events: auto;*//*To allow for popup div to scroll*/
 }
 
 .centered {
@@ -67,10 +110,6 @@ a:hover {
 }
 .small-break {
 	line-height: 2px;
-}
-#results-found {
-	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
-	font-size: 14px;
 }
 .has-tip {
 	font-weight: normal;
@@ -223,13 +262,6 @@ body.loading {
    modal element will be visible */
 body.loading .modal {
     display: block;
-}
-.popup p {
-    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-    font-size: 14px;
-}
-.popup p strong {
-	font-size: 14px;
 }
 #amount1, #amount2, #date1, #date2, #name_address_box  {
 	width: 100% !important;

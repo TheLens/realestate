@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, String, Numeric, Date, Float, ForeignKey
+from sqlalchemy import Column, Integer, BigInteger, String, Numeric, Date, Float, ForeignKey, Boolean
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from geoalchemy2 import Geometry
@@ -27,7 +27,7 @@ class Location(Base):
 	weeks = Column(String)
 	cancel_stat = Column(String)
 	freeform_legal = Column(String)
-	document_id = Column(String, ForeignKey("details.document_id"), nullable=False) #TODO: should be actual date at some point
+	document_id = Column(String, ForeignKey("details.document_id"), nullable=False)
 	full_address = Column(String)
 	latitude = Column(Float) 
 	longitude = Column(Float) 
@@ -66,14 +66,14 @@ class Location(Base):
 class Cleaned(Base):
 	__tablename__ = 'cleaned'
 
-	id = Column(Integer, primary_key=True)
+	#id = Column(Integer, primary_key=True)
+	instrument_no = Column(String, primary_key=True)
 	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
 	location = Column(String)
 	sellers = Column(String)
 	buyers = Column(String)
-	instrument_no = Column(String)
 	latitude = Column(Float) 
 	longitude = Column(Float)
 	zip_code = Column(String)
@@ -81,8 +81,8 @@ class Cleaned(Base):
 	location_publish = Column(String)
 	neighborhood = Column(String)
 
-	def __init__(self, id, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood):
-		self.id=id,
+	def __init__(self, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood):
+		#self.id=id,
 		self.amount=amount,
 		self.document_date=document_date,
 		self.document_recorded=document_recorded,
@@ -99,7 +99,47 @@ class Cleaned(Base):
 		pass
 
 	def __repr__(self):
-		return "<Cleaned(id='%s', amount='%s', document_date='%s', location='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.id, self.amount, self.document_date, self.location, self.sellers, self.buyers, self.instrument_no)
+		return "<Cleaned(amount='%s', document_date='%s', location='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.amount, self.document_date, self.location, self.sellers, self.buyers, self.instrument_no)
+
+class Dashboard(Base):
+	__tablename__ = 'dashboard'
+
+	id = Column(Integer, primary_key=True)
+	amount = Column(BigInteger)
+	document_date = Column(Date, nullable=True)
+	document_recorded = Column(Date, nullable=True)
+	location = Column(String)
+	sellers = Column(String)
+	buyers = Column(String)
+	instrument_no = Column(String, ForeignKey("cleaned.instrument_no"), nullable=False)
+	latitude = Column(Float) 
+	longitude = Column(Float)
+	zip_code = Column(String)
+	detail_publish = Column(String)
+	location_publish = Column(String)
+	neighborhood = Column(String)
+	fixed = Column(Boolean)
+
+	def __init__(self, id, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood, fixed):
+		self.id=id,
+		self.amount=amount,
+		self.document_date=document_date,
+		self.document_recorded=document_recorded,
+		self.location=location,
+		self.sellers=sellers,
+		self.buyers=buyers,
+		self.instrument_no=instrument_no,
+		self.latitude=latitude,
+		self.longitude=longitude,
+		self.zip_code=zip_code,
+		self.detail_publish=detail_publish,
+		self.location_publish=location_publish,
+		self.neighborhood = neighborhood,
+		self.fixed = fixed
+		pass
+
+	def __repr__(self):
+		return "<Dashboard(id='%s', fixed='%s', amount='%s', document_date='%s', location='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.id, self.fixed, self.amount, self.document_date, self.location, self.sellers, self.buyers, self.instrument_no)
 
 class Detail(Base):
 	__tablename__ = 'details'

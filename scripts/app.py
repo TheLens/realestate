@@ -8,12 +8,12 @@ import re
 import math
 
 from flask import Flask, render_template, jsonify, request, Response
-from sqlalchemy import create_engine, desc
+from sqlalchemy import create_engine, desc, insert, update
 from sqlalchemy.ext.declarative import declarative_base
-from databasemaker import Cleaned
+from databasemaker import Cleaned, Dashboard
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
-from app_config import server_connection, server_engine, indexjs, searchjs, salejs, css, development_username, development_password
+from app_config import server_connection, server_engine, indexjs, searchjs, salejs, dashboardjs, css, development_username, development_password
 from flask.ext.cache import Cache
 from functools import wraps
 
@@ -110,10 +110,269 @@ def search():
 
         return response
 
+#@cache.memoize(timeout=5000)
+@app.route("/realestate/dashboard", methods=['GET', 'POST'])
+#@requires_auth
+def dashboard():
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    if request.method == 'GET':
+        #http://vault.thelensnola.org/realestate/dashboard?d1={0}&d2={0}
+        print 'GET'
+        incomingdata = {}
+
+        '''
+        Assign query string parameters to incomingdata dictionary.
+        '''
+
+        incomingdata['name_address'] = request.args.get('q')
+        incomingdata['amountlow'] = request.args.get('a1')
+        incomingdata['amounthigh'] = request.args.get('a2')
+        incomingdata['begindate'] = request.args.get('d1')
+        incomingdata['enddate'] = request.args.get('d2')
+
+        # Change any missing parameters to 0-length string
+        for key in incomingdata:
+            if incomingdata[key] == None:
+                incomingdata[key] = ''
+
+        name, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
+
+        amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
+
+        if enddate == (datetime.today()).strftime('%Y-%m-%d'):
+            print 'hi'
+            enddate = '9999-12-31'
+
+        if begindate == '1900-01-01':#at least begindate was not specified
+            if enddate == '9999-12-31':#neither specified
+                q = session.query(
+                    Cleaned
+                ).filter(
+                    (Cleaned.detail_publish == '0') | 
+                    (Cleaned.location_publish == '0')
+                ).filter(
+                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
+                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
+                    (Cleaned.location.ilike('%%%s%%' % name)) |
+                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
+                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
+                    (Cleaned.zip_code == '%s' % name)
+                ).filter(
+                    Cleaned.amount >= '%s' % (amountlow)
+                ).filter(
+                    Cleaned.amount <= '%s' % (amounthigh)
+                ).all()
+            else:#only enddate was specified
+                q = session.query(
+                    Cleaned
+                ).filter(
+                    (Cleaned.detail_publish == '0') | 
+                    (Cleaned.location_publish == '0')
+                ).filter(
+                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
+                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
+                    (Cleaned.location.ilike('%%%s%%' % name)) |
+                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
+                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
+                    (Cleaned.zip_code == '%s' % name)
+                ).filter(
+                    Cleaned.document_date <= '%s' % (enddate)
+                ).filter(
+                    Cleaned.amount >= '%s' % (amountlow)
+                ).filter(
+                    Cleaned.amount <= '%s' % (amounthigh)
+                ).all()
+        else:#at least beginddate was specified...
+            if enddate == '9999-12-31':#only begindate was specified
+                q = session.query(
+                    Cleaned
+                ).filter(
+                    (Cleaned.detail_publish == '0') | 
+                    (Cleaned.location_publish == '0')
+                ).filter(
+                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
+                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
+                    (Cleaned.location.ilike('%%%s%%' % name)) |
+                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
+                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
+                    (Cleaned.zip_code == '%s' % name)
+                ).filter(
+                    Cleaned.document_date >= '%s' % (begindate)
+                ).filter(
+                    Cleaned.amount >= '%s' % (amountlow)
+                ).filter(
+                    Cleaned.amount <= '%s' % (amounthigh)
+                ).all()
+            else:#both specifed
+                q = session.query(
+                    Cleaned
+                ).filter(
+                    (Cleaned.detail_publish == '0') | 
+                    (Cleaned.location_publish == '0')
+                ).filter(
+                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
+                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
+                    (Cleaned.location.ilike('%%%s%%' % name)) |
+                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
+                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
+                    (Cleaned.zip_code == '%s' % name)
+                ).filter(
+                    Cleaned.document_date >= '%s' % (begindate)
+                ).filter(
+                    Cleaned.document_date <= '%s' % (enddate)
+                ).filter(
+                    Cleaned.amount >= '%s' % (amountlow)
+                ).filter(
+                    Cleaned.amount <= '%s' % (amounthigh)
+                ).all()
+
+        num_results = len(q)
+
+        return render_template(
+            'dashboard.html',
+            dashboardjs = dashboardjs,
+            css = css,
+            num_results = num_results,
+            newrows = q
+        )
+
+    if request.method == 'POST':
+        # User submitted a change through dashboard
+        print 'POST'
+
+        incomingdata = request.get_json()
+
+        pp.pprint(incomingdata)
+
+        instrument_no = incomingdata['instrument_no']
+        detail_publish = incomingdata['detail_publish']
+        location_publish = incomingdata['location_publish']
+        
+        document_date = incomingdata['document_date']
+        amount = incomingdata['amount']
+        location = incomingdata['location']
+        sellers = incomingdata['sellers']
+        buyers = incomingdata['buyers']
+        document_recorded = incomingdata['document_recorded']
+        latitude = incomingdata['latitude']
+        longitude = incomingdata['longitude']
+        zip_code = incomingdata['zip_code']
+        neighborhood = incomingdata['neighborhood']
+
+        #flip to false
+        incomingdata['fixed'] = False
+
+        # Temporary corrections to test update/insert code.
+        # todo: make conversion between backend and frontend correct. it should give human-readable format for frontend GET request and retrieve correct value and format in return if not changed so updating the DB does not make any changes not actually made.
+        incomingdata['amount'] = 10
+        incomingdata['latitude'] = 90.0
+        incomingdata['longitude'] = 89.9
+        incomingdata['document_date'] = '2014-02-02'
+        incomingdata['document_recorded'] = '2014-02-03'
+
+        '''
+        Insert/update dashboard log table
+        '''
+
+        q = session.query(
+                Dashboard
+            ).filter(
+                Dashboard.instrument_no == '%s' % (instrument_no)
+            ).all()
+
+        input_length = len(q)
+        print input_length
+
+        if input_length == 0:
+            print 'Adding sale in dashboard table'
+            #This sale has not been entered into dashboard table yet
+            i = insert(Dashboard)
+            i = i.values(incomingdata)
+            session.execute(i)
+            session.commit()
+        else:
+            print 'Updating sale in dashboard table'
+            #This sale has already been entered into dashboard table            
+            u = update(Dashboard)
+            u = u.values(incomingdata)
+            u = u.where(Dashboard.instrument_no == '%s' % instrument_no)
+
+            session.execute(u)
+            session.commit()
+
+        #amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
+
+        #response = mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
+
+        # Update changes in Cleaned table
+        updateCleaned()
+        
+        return 'hi'
+
+def updateCleaned():
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
+    q = session.query(
+            Dashboard
+        ).filter(
+            Dashboard.fixed == False
+        ).all()
+
+    rows = []
+    for row in q:
+        row_dict = {};
+        row_dict['instrument_no'] = row.instrument_no
+        row_dict['detail_publish'] = row.detail_publish
+        row_dict['location_publish'] = row.location_publish
+        row_dict['document_date'] = row.document_date
+        row_dict['amount'] = row.amount
+        row_dict['location'] = row.location
+        row_dict['sellers'] = row.sellers
+        row_dict['buyers'] = row.buyers
+        row_dict['document_recorded'] = row.document_recorded
+        row_dict['latitude'] = row.latitude
+        row_dict['longitude'] = row.longitude
+        row_dict['zip_code'] = row.zip_code
+        row_dict['neighborhood'] = row.neighborhood
+
+        rows.append(row_dict)
+
+    print 'rows:'
+    pp.pprint(rows)
+
+    for row in rows:
+        print 'row:'
+        print row['instrument_no']
+
+        print 'Updating Cleaned sale based on Dashboard entry'
+        #This sale has already been entered into dashboard table            
+        u = update(Cleaned)
+        u = u.values(row)
+        u = u.where(Cleaned.instrument_no == '%s' % row['instrument_no'])
+        session.execute(u)
+        session.commit()
+
+        print 'Changing Dashboard entry fixed field to true'
+        #This sale has already been entered into dashboard table            
+        u = update(Dashboard)
+        u = u.values({"fixed": True})
+        u = u.where(Dashboard.instrument_no == '%s' % row['instrument_no'])
+        session.execute(u)
+        session.commit()
+
 def formAssessorURL(location):
+    #todo: what if multiple addresses. which to use to form assessor's link?
     location = location.upper()
 
-    address_number = re.match(r"[^ \-]*", location).group(0)#todo: need to then remove "-xx" if a range of homes
+    address_number = re.match(r"[^ \-]*", location).group(0)
+
+    if address_number == 'UNIT:':
+        return None
 
     assessor_abbreviations = [
         ['GENERAL', 'GEN'],
@@ -123,7 +382,7 @@ def formAssessorURL(location):
 
     street_type = street.split(' ')[-1]
 
-    #todo: check for abbreviations for each street type: http://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
+    #todo: check for all possible abbreviations for each street type: http://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
     abbreviations = [
         ['STREET', 'ST'],
         ['DRIVE', 'DR'],
@@ -194,15 +453,19 @@ def sale(instrument_no = None):
         yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
         yesterday_date = MonthCheck(yesterday_date)
 
-        url_param = formAssessorURL(location)#todo: need way to return nothing and not display URL if there is no street address, aka if only a lot.
+        url_param = formAssessorURL(location)
 
+        if url_param == None:
+            assessor = ''
+        else:
+            assessor = "<a href='http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s' target='_blank'>Read more about this property on the Assessor's Office's website.</a>" % (url_param)
         template1 =  render_template(
             'sale.html',
             yesterday_date = yesterday_date,
             salejs = salejs,
             css = css,
             newrows = q,
-            url_param = url_param,
+            assessor = assessor,
             jsdata = jsdata
         )
 
@@ -258,6 +521,7 @@ def input():
                 "category": "Locations"
             }
         )
+        # Limit of three options
         if i == 2:
             break
 
@@ -268,6 +532,7 @@ def input():
                 "category": "Buyers"
             }
         )
+        # Limit of three options
         if i == 2:
             break
 
@@ -278,6 +543,7 @@ def input():
                 "category": "Sellers"
             }
         )
+        # Limit of three options
         if i == 2:
             break
 
@@ -691,18 +957,6 @@ def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, 
         pagelength = pagelength
     )
 
-@app.route("/realestate/dashboard", methods=['GET'])
-@requires_auth
-def dashboard():
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    q = session.query(Cleaned).filter(
-            Cleaned.detail_publish == '0'
-        ).all()
-    num_results = len(q)
-    return render_template('dashboard.html', num_results = num_results, q = q)
-
 def loopThing(q):
     features = []
     features_dict = {}
@@ -778,7 +1032,7 @@ def CheckEntry(amountlow, amounthigh, begindate, enddate):
     if amountlow == '':
         amountlow = 0
     if amounthigh == '':
-        amounthigh = 9999999
+        amounthigh = 9999999999999
     if begindate == '':
         begindate = "1900-01-01"
     if enddate == '':

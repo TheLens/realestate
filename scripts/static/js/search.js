@@ -1,4 +1,5 @@
 var map, dataLayer;
+var clicked = 0;
 
 function tablesorterThing() {
   // Not sure about stuff below
@@ -54,6 +55,11 @@ function loadMapTiles() {
     minZoom: 6
   });
 
+  //todo: remove this for production.
+  var temp = stamenLayer;
+  stamenLayer = mapboxLayer;
+  mapboxLayer = temp;
+
   var tileTimeout;
 
   function switchToStamen() {
@@ -95,13 +101,97 @@ function createMap() {
   L.control.zoom({position: 'topleft'}).addTo(map);
 }
 
+function onEachFeature(feature, layer) {
+  /*
+  Leaflet functions to be assigned to each feature on a given layer.
+  */
+  layer.on({
+    click: clickFeature,
+    mouseover: highlightFeature,
+    mouseout: resetHighlight
+  });
+}
+
+var eee;
+
+function clickFeature(e) {
+  /*
+  Clicked on a feature, such as a precinct or parish.
+  */
+
+  var layer = e.target;
+  var feature = e.target.feature;
+  var html;
+  if (!L.Browser.ie && !L.Browser.opera) {
+    layer.bringToFront();
+  }
+  html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
+  $('#tooltip').html(html);
+  var tooltip_height = $('#tooltip').outerHeight(true);
+  $('#tooltip').css({"display": "block", "left": (e.containerPoint.x < (map._size.x / 3) ? e.originalEvent.pageX : (e.containerPoint.x >= (map._size.x / 3) && e.containerPoint.x < (2 * map._size.x / 3) ? e.originalEvent.pageX - 235 / 2 : e.originalEvent.pageX - 235)), "top": (e.containerPoint.y < (map._size.y / 2) ? e.originalEvent.pageY : e.originalEvent.pageY - tooltip_height)});
+  clicked = 1;
+}
+
+function highlightFeature(e) {
+  /*
+  Hover on a feature, such as a precinct or parish.
+  */
+
+  var layer = e.target;
+  var feature = e.target.feature;
+
+  if (clicked === 1) {
+    return;
+  }
+  var html;
+  html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
+  if (!L.Browser.ie && !L.Browser.opera) { // Fix for IE and Opera
+    layer.bringToFront();
+  }
+  $('#tooltip').html(html);
+  var tooltip_height = $('#tooltip').outerHeight(true);
+  $('#tooltip').css({"display": "block",
+    "left": (
+      e.containerPoint.x < (map._size.x / 3) ?
+        e.originalEvent.pageX :
+        (e.containerPoint.x >= (map._size.x / 3) && e.containerPoint.x < (2 * map._size.x / 3) ?
+          e.originalEvent.pageX - 235 / 2 :
+          e.originalEvent.pageX - 235
+        )
+    ),
+    "top": (
+      e.containerPoint.y < (map._size.y / 2) ?
+        e.originalEvent.pageY :
+        e.originalEvent.pageY - tooltip_height
+    )
+  });
+}
+
+function resetHighlight(e) {
+  /*
+  Clicked on a feature, such as a precinct or parish.
+  */
+
+  if (clicked === 1) {
+    return;
+  }
+  $('#tooltip').css({"display": "none"});
+}
+
+function resetClicked() {
+  /*
+  Ensure tooltip's 'clicked' variable is equal to 0.
+  */
+
+  if (clicked === 1) {
+    clicked = 0;
+    resetHighlight();
+  }
+}
+
 function addDataToMap(data) {
   var dataLayer2 = L.geoJson(data, {
-    onEachFeature: function (feature, layer) {
-      layer.on('click', function () {
-        layer.bindPopup("<div class='popup'><p><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "<br><strong></p></div>", {'maxWidth': '250', 'maxHeight': '300', 'autoPanPaddingTopLeft': [40, 12]}).openPopup();
-      });
-    },
+    onEachFeature: onEachFeature,
     pointToLayer: function (feature, layer) {
       return L.circleMarker(layer, {
         radius: 10,
@@ -156,6 +246,9 @@ function initialMapFunction(data) {
       mapSearching();
     }
   });
+  map.on('click', function(e) {
+    resetClicked();
+  });
 }
 
 function mapHover(dataLayer) {
@@ -169,19 +262,6 @@ function mapHover(dataLayer) {
     });
   });
 }
-
-$(document).on('click', "#myTable tbody tr", function (event) {
-  var parent = $(event.target).parent().attr('id');
-  dataLayer.eachLayer(function (layer) {
-    if (layer.feature.properties.instrument_no === parent) {
-      if (layer._map.hasLayer(layer._popup)) {
-        layer.closePopup();
-      } else {
-        layer.bindPopup("<div class='popup'><p><strong>Date: </strong>" + layer.feature.properties.document_date + "<br><strong>Amount: </strong>" + layer.feature.properties.amount + "<br><strong>Location: </strong>" + layer.feature.properties.location + "<br><strong>Sellers: </strong>" + layer.feature.properties.sellers + "<br><strong>Buyers: </strong>" + layer.feature.properties.buyers + "<br><strong>Instrument number: </strong>" + layer.feature.properties.instrument_no + "<br><strong></p></div>", {'maxWidth': '250', 'maxHeight': '300', 'autoPanPaddingTopLeft': [40, 12]}).openPopup();
-      }
-    }
-  });
-});
 
 $(document).on('mouseenter', "#myTable tbody tr td", function (event) {
   var parent = $(event.target).parent().attr('id');
@@ -717,4 +797,3 @@ function populateSearchParameters(parameters) {
     document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search</a>';
   }
 }
-

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>New Orleans property sales</title>
+    <meta name="viewport" content="width=device-width">
+    <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/favicon.ico">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery-ui.css">
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/mapbox.css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/foundation.min.css">
+    <link rel="stylesheet" href={{ css }}>
+  </head>
+  <body>
+    <div class="row">
+        <div class="small-12 columns">
+            <h4 class="subheader" id="page-title">Property sales dashboard</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="small-12 columns">{{ num_results }} results found...</div>
+    </div>
+    <div class="row">
+      <div class="small-12 medium-8 columns">
+      <div class="row">
+        <div class="small-12 columns" style="margin: 15px 0;">
+          {% for newrow in newrows %}
+            {% if loop.index is divisibleby 2 %}
+            <div style="background: #c3c3c3; margin-bottom: 40px;">
+            {% else %}
+            <div style="background: #FFF; margin-bottom: 40px;">
+            {% endif %}
+                <div>
+                  <strong>Instrument #:</strong> <span id="instrument_no_{{loop.index}}">{{ newrow.instrument_no }}</span>
+                </div>
+                <div>
+                  <strong>Publish data?</strong> <span id="detail_publish_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.detail_publish }}</span>
+                </div>
+                <div>
+                  <strong>Publish location?</strong> <span id="location_publish_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.location_publish }}</span>
+                </div>
+
+                <div>
+                  <strong>Sale date:</strong> <span id="document_date_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.document_date }}</span>
+                </div>
+                <div>
+                  <strong>Amount:</strong> <span id="amount_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.amount }}</span>
+                </div>
+                <div>
+                  <strong>Location:</strong> <span id="location_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.location }}</span>
+                </div>
+                <div>
+                  <strong>Sellers:</strong> <span id="sellers_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.sellers }}</span>
+                </div>
+                <div>
+                  <strong>Buyers:</strong> <span id="buyers_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.buyers }}</span>
+                </div>
+                <div>
+                  <strong>Date recorded:</strong> <span id="document_recorded_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.document_recorded }}</span>
+                </div>
+                <div>
+                  <strong>Latitude:</strong> <span id="latitude_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.latitude }}</span>
+                </div>
+                <div>
+                  <strong>Longitude:</strong> <span id="longitude_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.longitude }}</span>
+                </div>
+                <div>
+                  <strong>Zip:</strong> <span id="zip_code_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.zip_code }}</span>
+                </div>
+                <div>
+                  <strong>Neighborhood:</strong> <span id="neighborhood_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.neighborhood }}</span>
+                </div>
+                <button id="{{loop.index}}" class="button searchButton">Update sale</button>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="small-12 columns" id="assessor">
+              {{ assessor|safe }}
+          </div>
+        </div>
+      </div>
+      <div class="small-12 medium-4 columns map-wrapper">
+          <div>Current sale location:</div>
+          <div id="map"></div>
+      </div>
+    </div>
+    <div id="preview">
+      Are you sure you want to update sale #<span id="preview_instrument_no"></span>?
+      <button class="button searchButtonTrue">Yes</button>
+      <button class="button closeDiv">No</button>
+    </div>
+
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+    <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.s/mq-map.js?key=Fmjtd%7Cluur2qa72u%2C7a%3Do5-9abx1y"></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/modernizr.js"></script>
+    <script>
+        $(document).foundation();
+    </script>
+    <script type="text/javascript" src={{ dashboardjs }}></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
+  </body>
+</html>
