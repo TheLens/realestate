@@ -18,72 +18,63 @@
         </div>
     </div>
     <div class="row">
-        <div class="small-12 columns">{{ num_results }} results found...</div>
+        <div class="small-12 columns">{{ num_results }} results found (reverse chronological order)...</div>
     </div>
-    <div class="row">
-      <div class="small-12 medium-8 columns">
-      <div class="row">
-        <div class="small-12 columns" style="margin: 15px 0;">
-          {% for newrow in newrows %}
-            {% if loop.index is divisibleby 2 %}
-            <div style="background: #c3c3c3; margin-bottom: 40px;">
-            {% else %}
-            <div style="background: #FFF; margin-bottom: 40px;">
-            {% endif %}
-                <div>
-                  <strong>Instrument #:</strong> <span id="instrument_no_{{loop.index}}">{{ newrow.instrument_no }}</span>
-                </div>
-                <div>
-                  <strong>Publish data?</strong> <span id="detail_publish_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.detail_publish }}</span>
-                </div>
-                <div>
-                  <strong>Publish location?</strong> <span id="location_publish_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.location_publish }}</span>
-                </div>
 
-                <div>
-                  <strong>Sale date:</strong> <span id="document_date_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.document_date }}</span>
-                </div>
-                <div>
-                  <strong>Amount:</strong> <span id="amount_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.amount }}</span>
-                </div>
-                <div>
-                  <strong>Location:</strong> <span id="location_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.location }}</span>
-                </div>
-                <div>
-                  <strong>Sellers:</strong> <span id="sellers_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.sellers }}</span>
-                </div>
-                <div>
-                  <strong>Buyers:</strong> <span id="buyers_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.buyers }}</span>
-                </div>
-                <div>
-                  <strong>Date recorded:</strong> <span id="document_recorded_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.document_recorded }}</span>
-                </div>
-                <div>
-                  <strong>Latitude:</strong> <span id="latitude_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.latitude }}</span>
-                </div>
-                <div>
-                  <strong>Longitude:</strong> <span id="longitude_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.longitude }}</span>
-                </div>
-                <div>
-                  <strong>Zip:</strong> <span id="zip_code_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.zip_code }}</span>
-                </div>
-                <div>
-                  <strong>Neighborhood:</strong> <span id="neighborhood_{{loop.index}}" class="editable" contentEditable="true">{{ newrow.neighborhood }}</span>
-                </div>
-                <button id="{{loop.index}}" class="button searchButton">Update sale</button>
-              </div>
-            {% endfor %}
-          </div>
-          <div class="small-12 columns" id="assessor">
-              {{ assessor|safe }}
+    {% for newrow in newrows %}
+    <div class="row" id="dashboard-block">
+      <div class="small-12 medium-6 columns" id="index-info">
+        <div class="row">
+          <div class="small-12 columns" style="margin: 15px 0;">
+            <div class="dashboard-row">
+              <strong>Instrument #:</strong> <span id="instrument_no_{{loop.index}}">{{ newrow.instrument_no }}</span>
+            </div>
+            <div class="dashboard-row">
+              <label>Publish data?</label> <input type="search" id="detail_publish_{{loop.index}}" value="{{ newrow.detail_publish }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Publish location?</label> <input type="search" id="location_publish_{{loop.index}}" value="{{ newrow.location_publish }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Location:</label> <input type="search" id="location_{{loop.index}}" value="{{ newrow.location }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Latitude:</label> <input type="search" id="latitude_{{loop.index}}" value="{{ newrow.latitude }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Longitude:</label> <input type="search" id="longitude_{{loop.index}}" value="{{ newrow.longitude }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Sale date:</label> <input type="search" id="document_date_{{loop.index}}" value="{{ newrow.document_date }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Amount:</label> <input type="search" class="currency" id="amount_{{loop.index}}" value="{{ newrow.amount }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Sellers:</label> <input type="search" id="sellers_{{loop.index}}" value="{{ newrow.sellers }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Buyers:</label> <input type="search" id="buyers_{{loop.index}}" value="{{ newrow.buyers }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Date recorded:</label> <input type="search" id="document_recorded_{{loop.index}}" value="{{ newrow.document_recorded }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Zip:</label> <input type="search" id="zip_code_{{loop.index}}" value="{{ newrow.zip_code }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Neighborhood:</label> <input type="search" id="neighborhood_{{loop.index}}" value="{{ newrow.neighborhood }}">
+            </div>
+            <button id="{{loop.index}}" class="button searchButton">Update sale</button>
           </div>
         </div>
       </div>
-      <div class="small-12 medium-4 columns map-wrapper">
-          <div>Current sale location:</div>
-          <div id="map"></div>
+      <div class="small-12 medium-6 columns" id="map-info">
+        <div>Current sale location:</div>
+        <div id="map_{{loop.index}}" class="map"></div>
       </div>
     </div>
+    {% endfor %}
     <div id="preview">
       Are you sure you want to update sale #<span id="preview_instrument_no"></span>?
       <button class="button searchButtonTrue">Yes</button>
@@ -93,13 +84,26 @@
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
     <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
     <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
+    <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
     <script src="http://www.mapquestapi.com/sdk/leaflet/v1.s/mq-map.js?key=Fmjtd%7Cluur2qa72u%2C7a%3Do5-9abx1y"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/modernizr.js"></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/elections.thelensnola.org/resources/topojson.v1.min.js"></script>
     <script>
         $(document).foundation();
     </script>
+    <script type="text/javascript" src={{ neighborhoodstopo }}></script>
+    <script type="text/javascript" src={{ squarestopo }}></script>
     <script type="text/javascript" src={{ dashboardjs }}></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/chartbeat.js"></script>
+    <script type="text/javascript">
+      if (typeof {{ number_of_indexes }} !== 'undefined') {
+        if (typeof {{ jsrows|tojson }} !== 'undefined') {
+          console.log('indexes');
+          //Populate search parameters
+          initialFunction({{ number_of_indexes }}, {{ jsrows|tojson }});
+        }
+      }
+    </script>
   </body>
 </html>

@@ -11,32 +11,6 @@ function tablesorterThing() {
   $("#myTable").tablesorter({widthFixed: true});
 }
 
-function updateMap(data, mapsearching, backforward) {
-  // Not sure about stuff below
-  tablesorterThing();
-
-  var center = map.getCenter();
-  var zoom = map.getZoom();
-
-  addDataToMap(data);
-
-  if (mapsearching === 1) {
-    // If box is checked yes, don't alter user's view 
-    map.setView(center, zoom);
-  } else if (mapsearching === 0) {
-    if (backforward !== 1) {
-      if (Object.keys(dataLayer._layers).length === 0) { //if there aren't any points on the map
-        map.setView(center, zoom);
-      } else {
-        map.fitBounds(dataLayer.getBounds());
-      }
-    }
-  }
-  //$("body").removeClass("loading");
-  //tableHover(dataLayer);
-  //mapHover(dataLayer);
-}
-
 function loadMapTiles() {
   var stamenLayer = new L.StamenTileLayer("toner-lite", {
     minZoom: 6,
@@ -150,12 +124,6 @@ function initialMapFunction(data) {
   //tableHover(dataLayer);
   //mapHover(dataLayer);
 
-  map.on('moveend', function (e) {
-    if (document.getElementById("mapButton").checked === true) {
-      //$("body").addClass("loading");
-      mapSearching();
-    }
-  });
 }
 
 function mapHover(dataLayer) {
@@ -167,70 +135,5 @@ function mapHover(dataLayer) {
     layer.on('mouseout', function (event) {
       layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
     });
-  });
-}
-
-$(document).on('click', "#myTable tbody tr", function (event) {
-  var parent = $(event.target).parent().attr('id');
-  dataLayer.eachLayer(function (layer) {
-    if (layer.feature.properties.instrument_no === parent) {
-      if (layer._map.hasLayer(layer._popup)) {
-        layer.closePopup();
-      } else {
-        layer.bindPopup("<div class='popup'><p><strong>Date: </strong>" + layer.feature.properties.document_date + "<br><strong>Amount: </strong>" + layer.feature.properties.amount + "<br><strong>Location: </strong>" + layer.feature.properties.location + "<br><strong>Sellers: </strong>" + layer.feature.properties.sellers + "<br><strong>Buyers: </strong>" + layer.feature.properties.buyers + "<br><strong>Instrument number: </strong>" + layer.feature.properties.instrument_no + "<br><strong></p></div>", {'maxWidth': '250', 'maxHeight': '300', 'autoPanPaddingTopLeft': [40, 12]}).openPopup();
-      }
-    }
-  });
-});
-
-$(document).on('mouseenter', "#myTable tbody tr td", function (event) {
-  var parent = $(event.target).parent().attr('id');
-  dataLayer.eachLayer(function (layer) {
-    if (layer.feature.properties.instrument_no === parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
-      layer.bringToFront();
-    }
-    if (layer.feature.properties.instrument_no !== parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
-    }
-  });
-});
-$(document).on('mouseleave', "#myTable tbody tr td", function (event) {
-  var parent = $(event.target).parent().attr('id');
-  dataLayer.eachLayer(function (layer) {
-    if (layer.feature.properties.instrument_no === parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
-    }
-    if (layer.feature.properties.instrument_no !== parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
-    }
-  });
-});
-
-function mapSearching() {
-  var data = preparePOST();
-
-  var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
-  data.page = page;
-  data.totalpages = totalpages;
-  data.direction = 'none';
-
-  data.bounds = map.getBounds();
-  data.mapbuttonstate = true;
-
-  var request = JSON.stringify(data);
-
-  $.ajax({
-    url: "/realestate/mapsearch",
-    type: "POST",
-    data: request,
-    contentType: "application/json; charset=utf-8",
-    success: function (info) {
-      $("#table-footer-wrapper").html(info.tabletemplate);
-      $("#table-footer-wrapper").trigger("updateAll");
-      $("#results-found").html(info.resultstemplate);
-      updateMap(info.jsdata, 1);
-    }
   });
 }

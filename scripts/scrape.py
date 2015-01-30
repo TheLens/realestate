@@ -1,18 +1,45 @@
 import mechanize
-from bs4 import BeautifulSoup
 import time
 import random
-from datetime import datetime, timedelta
+import logging
+import logging.handlers
 import os
+
+from bs4 import BeautifulSoup
+from datetime import datetime, timedelta
+
 from app_config import username, password
 
 '''
 Downloads and stores HTML from Land Records Division
 '''
 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Create file handler which logs debug messages or higher
+fh = logging.FileHandler('logs/land-records_%s.log' % (datetime.now().strftime('%m-%d-%Y')))
+fh.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(lineno)d - %(message)s')
+fh.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(fh)
+
+# # Application code
+# logger.debug('debug message')
+# logger.info('info message')
+# logger.warn('warn message')
+# logger.error('error message')
+# logger.critical('critical message')
+
 absolute_link = "/apps/land-records/repo/data"
 
 def gimme_login(username, password):
+	logger.info('gimme_login')
+
 	base_url = "http://onlinerecords.orleanscivilclerk.com/"
 	
 	# Navigate browser:
@@ -46,9 +73,11 @@ def gimme_login(username, password):
 	br.submit()
 	rand_no = random.randint(1, 10)
 	time.sleep(1 + rand_no)
+	logger.info('end gimme_login')
 	return br
 
 def gimme_results(br, year, month, day):
+	logger.info('gimme_results', year, month, day)
 	search_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchEntry.aspx"
 	
 	beg_year = year # four digits
@@ -95,9 +124,11 @@ def gimme_results(br, year, month, day):
 	# Get forms HTML from page 1
 	rows = soup.find_all('td', class_="igede12b9e")
 	print "page1"
+	logger.info('page1')
 	for x in range(0, len(rows)):
 		code = rows[x].string
 		print code
+		logger.info(code)
 		form_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?global_id=%s&type=dtl" % (code)
 		response = br.open(form_url)
 		data = response.read()
@@ -118,6 +149,7 @@ def gimme_results(br, year, month, day):
 
 		for page in range(2, no_of_pages+1):
 			print page
+			logger.info(page)
 			page_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?pg=%d" % (page)
 			response = br.open(page_url)
 			data = response.read()
@@ -130,6 +162,7 @@ def gimme_results(br, year, month, day):
 			for x in range(0, len(rows)):
 				code = rows[x].string
 				print code
+				logger.info(code)
 				form_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?global_id=%s&type=dtl" % (code)
 				response = br.open(form_url)
 				data = response.read()
@@ -142,6 +175,7 @@ def gimme_results(br, year, month, day):
 			# Take a break
 			rand_no = random.randint(1, 10)
 			time.sleep(1 + rand_no)
+	logger.info('end gimme_results')
 
 def gimme_everything():
 
@@ -165,5 +199,32 @@ def gimme_everything():
 	login = gimme_login(username, password)
 	gimme_results(login, year, month, day)
 
-gimme_everything()
-#gimme_everything_ever()
+def gimme_everything_ever():
+
+	original_date = datetime(2014, 2, 18)
+	present_date = datetime.now()
+
+	login = gimme_login(username, password)
+
+	while original_date != present_date:
+		year = (original_date).strftime('%Y') # "2014"
+		month = (original_date).strftime('%m') # "09"
+		day = (original_date).strftime('%d') # "09"
+
+		# Check if folder for this day exists. if not, then make one
+		pagedir = "%s/%s-%s-%s/page-html" % (absolute_link, year, month, day)
+		formdir = "%s/%s-%s-%s/form-html" % (absolute_link, year, month, day)
+
+		if not os.path.exists(pagedir):
+			os.makedirs(pagedir)
+		if not os.path.exists(formdir):
+			os.makedirs(formdir)
+
+		gimme_results(login, year, month, day)
+
+		original_date = original_date + timedelta(days=1)
+
+#gimme_everything()
+gimme_everything_ever()
+
+logging.close()

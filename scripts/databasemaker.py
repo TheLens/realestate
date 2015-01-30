@@ -1,15 +1,15 @@
-from sqlalchemy import Column, Integer, BigInteger, String, Numeric, Date, Float, ForeignKey, Boolean
-from sqlalchemy import create_engine
-from sqlalchemy.ext.declarative import declarative_base
-from geoalchemy2 import Geometry
-from fabric.api import local
-from app_config import server_engine, server_connection
+
 import psycopg2
 
-Base = declarative_base()
+from sqlalchemy import create_engine
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, BigInteger, String, Numeric, Date, Float, ForeignKey, Boolean
+from geoalchemy2 import Geometry
+from fabric.api import local
 
-conn = psycopg2.connect("%s" % (server_connection))
-cur = conn.cursor()
+from app_config import server_engine, server_connection
+
+Base = declarative_base()
 
 class Location(Base):
 	__tablename__ = 'locations'
@@ -257,7 +257,8 @@ class Neighborhood(Base):
     shape_area = Column(Numeric)
     geom = Column(Geometry('POLYGON'))
 
-    def __init__(self, gid, objectid, gnocdc_lab, lup_lab, neigh_id, shape_leng, shape_area, geom):
+    def __init__(self, id, gid, objectid, gnocdc_lab, lup_lab, neigh_id, shape_leng, shape_area, geom):
+        self.id = id,
         self.gid = gid,
         self.objectid = objectid,
         self.gnocdc_lab = gnocdc_lab,
@@ -318,6 +319,20 @@ def remakeDB():
 	engine = create_engine('%s' % (server_engine), implicit_returning=True)
 	Base.metadata.create_all(engine)
 
+def neighborhoodsJSON():
+	local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/neighborhoods/102682.prj -t_srs EPSG:4326 neighborhoods.json ../data/neighborhoods/Neighborhood_Statistical_Areas.shp")
+	local("topojson -o neighborhoods-topo.json --properties name=gnocdc_lab neighborhoods.json")
+	#cp neighborhoods-topo.json static/js/neigbhorhoods-topo.js
+	#vim neighborhoods-topo.js: var neighborhoods = {...};
+	#minify: yuicompressor neighborhoods-topo.js -o neighborhoods-topo.min.js
+
+def squaresJSON():
+	local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/squares/102682.prj -t_srs EPSG:4326 squares.json ../data/squares/NOLA_Squares_20140221.shp")
+	local("topojson -o squares-topo.json --properties square=SQUARE --properties dist=MUN_DST squares.json")
+	#cp squares-topo.json static/js/squares-topo.js
+	#vim squares-topo.js: var squares = {...};
+	#too big to be minified
+
 def importNeighorhoods():
 	local("shp2pgsql -I ../data/neighborhoods/Neighborhood_Statistical_Areas neighborhoods | psql -d landrecords")
 	cur.execute("select updategeometrysrid('neighborhoods','geom',3452);")
@@ -330,9 +345,13 @@ def importSquares():
 	cur.execute("ALTER TABLE squares ALTER COLUMN geom TYPE geometry(MultiPolygon,4326) USING ST_Transform(geom,4326);")
 	conn.commit()
 
-#importNeighorhoods()
-#importSquares()
-remakeDB()
+if __name__ == '__main__':
+	conn = psycopg2.connect("%s" % (server_connection))
+	cur = conn.cursor()
 
-cur.close()
-conn.close()
+	importNeighorhoods()
+	importSquares()
+	remakeDB()
+
+	cur.close()
+	conn.close()

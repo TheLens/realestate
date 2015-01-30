@@ -7,15 +7,16 @@ import urllib
 import re
 import math
 
+from flask.ext.cache import Cache
 from flask import Flask, render_template, jsonify, request, Response
 from sqlalchemy import create_engine, desc, insert, update
+from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from databasemaker import Cleaned, Dashboard
-from sqlalchemy.orm import sessionmaker
 from datetime import datetime, timedelta
-from app_config import server_connection, server_engine, indexjs, searchjs, salejs, dashboardjs, css, development_username, development_password
-from flask.ext.cache import Cache
 from functools import wraps
+
+from app_config import server_connection, server_engine, indexjs, searchjs, salejs, dashboardjs, neighborhoodstopo, squarestopo, css, development_username, development_password
 
 Base = declarative_base()
 app = Flask(__name__)
@@ -164,7 +165,7 @@ def dashboard():
                     Cleaned.amount >= '%s' % (amountlow)
                 ).filter(
                     Cleaned.amount <= '%s' % (amounthigh)
-                ).all()
+                ).order_by(Cleaned.document_recorded.desc()).all()
             else:#only enddate was specified
                 q = session.query(
                     Cleaned
@@ -184,7 +185,7 @@ def dashboard():
                     Cleaned.amount >= '%s' % (amountlow)
                 ).filter(
                     Cleaned.amount <= '%s' % (amounthigh)
-                ).all()
+                ).order_by(Cleaned.document_recorded.desc()).all()
         else:#at least beginddate was specified...
             if enddate == '9999-12-31':#only begindate was specified
                 q = session.query(
@@ -205,7 +206,7 @@ def dashboard():
                     Cleaned.amount >= '%s' % (amountlow)
                 ).filter(
                     Cleaned.amount <= '%s' % (amounthigh)
-                ).all()
+                ).order_by(Cleaned.document_recorded.desc()).all()
             else:#both specifed
                 q = session.query(
                     Cleaned
@@ -227,16 +228,37 @@ def dashboard():
                     Cleaned.amount >= '%s' % (amountlow)
                 ).filter(
                     Cleaned.amount <= '%s' % (amounthigh)
-                ).all()
+                ).order_by(Cleaned.document_recorded.desc()).all()
 
         num_results = len(q)
+
+        for u in q: 
+            u.amount = Currency(u.amount)
+            u.document_date = RewriteDate(u.document_date)
+            u.document_recorded = RewriteDate(u.document_recorded)
+            u.detail_publish = publishConversion(u.detail_publish)
+            u.location_publish = publishConversion(u.location_publish)
+
+        rows = []
+        for row in q:
+            row_dict = {};
+            row_dict['detail_publish'] = row.detail_publish
+            row_dict['location_publish'] = row.location_publish
+            row_dict['latitude'] = row.latitude
+            row_dict['longitude'] = row.longitude
+
+            rows.append(row_dict)
 
         return render_template(
             'dashboard.html',
             dashboardjs = dashboardjs,
+            neighborhoodstopo = neighborhoodstopo,
+            squarestopo = squarestopo,
             css = css,
             num_results = num_results,
-            newrows = q
+            newrows = q,
+            jsrows = rows,
+            number_of_indexes = len(q)
         )
 
     if request.method == 'POST':
@@ -245,33 +267,13 @@ def dashboard():
 
         incomingdata = request.get_json()
 
-        pp.pprint(incomingdata)
+        for key in incomingdata:
+            incomingdata[key] = incomingdata[key].strip()
 
-        instrument_no = incomingdata['instrument_no']
-        detail_publish = incomingdata['detail_publish']
-        location_publish = incomingdata['location_publish']
-        
-        document_date = incomingdata['document_date']
-        amount = incomingdata['amount']
-        location = incomingdata['location']
-        sellers = incomingdata['sellers']
-        buyers = incomingdata['buyers']
-        document_recorded = incomingdata['document_recorded']
-        latitude = incomingdata['latitude']
-        longitude = incomingdata['longitude']
-        zip_code = incomingdata['zip_code']
-        neighborhood = incomingdata['neighborhood']
-
-        #flip to false
+        #Set fixed to false
         incomingdata['fixed'] = False
 
-        # Temporary corrections to test update/insert code.
-        # todo: make conversion between backend and frontend correct. it should give human-readable format for frontend GET request and retrieve correct value and format in return if not changed so updating the DB does not make any changes not actually made.
-        incomingdata['amount'] = 10
-        incomingdata['latitude'] = 90.0
-        incomingdata['longitude'] = 89.9
-        incomingdata['document_date'] = '2014-02-02'
-        incomingdata['document_recorded'] = '2014-02-03'
+        pp.pprint(incomingdata)
 
         '''
         Insert/update dashboard log table
@@ -280,7 +282,7 @@ def dashboard():
         q = session.query(
                 Dashboard
             ).filter(
-                Dashboard.instrument_no == '%s' % (instrument_no)
+                Dashboard.instrument_no == '%s' % (incomingdata['instrument_no'])
             ).all()
 
         input_length = len(q)
@@ -292,20 +294,16 @@ def dashboard():
             i = insert(Dashboard)
             i = i.values(incomingdata)
             session.execute(i)
-            session.commit()
+            #session.commit()
         else:
             print 'Updating sale in dashboard table'
             #This sale has already been entered into dashboard table            
             u = update(Dashboard)
             u = u.values(incomingdata)
-            u = u.where(Dashboard.instrument_no == '%s' % instrument_no)
+            u = u.where(Dashboard.instrument_no == '%s' % incomingdata['instrument_no'])
 
             session.execute(u)
-            session.commit()
-
-        #amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
-
-        #response = mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
+            #session.commit()
 
         # Update changes in Cleaned table
         updateCleaned()
@@ -341,9 +339,6 @@ def updateCleaned():
         row_dict['neighborhood'] = row.neighborhood
 
         rows.append(row_dict)
-
-    print 'rows:'
-    pp.pprint(rows)
 
     for row in rows:
         print 'row:'
@@ -1024,6 +1019,25 @@ def RewriteDate(value):
 
 def Currency(value):
     return "${:,}".format(value)
+
+def publishConversion(bit):
+    bit = int(bit)
+    conversion_dict = {
+        0: "No",
+        1: "Yes"
+    }
+    english = conversion_dict[bit]
+    #print english
+    return english
+
+def publishReversion(english):
+    english = english[0].title()#Accepts Yes, Y, yeah, yes sir, etc.
+    conversion_dict = {
+        "N": 0,
+        "Y": 1
+    }
+    bit = conversion_dict[english]
+    return bit
 
 def NumberWithCommas(value):
     return "{:,}".format(value)
