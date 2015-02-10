@@ -374,6 +374,7 @@ function mapSearching() {
     data: request,
     contentType: "application/json; charset=utf-8",
     success: function (info) {
+      console.log('hello?');
       document.getElementById('page').innerHTML = info.page;
       document.getElementById('totalpages').innerHTML = info.totalpages;
       $('#table-wrapper').data('page', info.page);
@@ -598,6 +599,11 @@ $("body").on("click", ".pageforward", function () {
     data.pagelength = pagelength;
     data.direction = 'forward';
 
+    console.log('data.page:', data.page);
+    console.log('data.totalpages:', data.totalpages);
+    console.log('data.pagelength:', data.pagelength);
+    console.log('data.direction:', data.direction);
+
     // No query string because no need to update URL when flipping between pages. URL doesn't specify this level of searching detail, yet.
 
     var maprequest = JSON.stringify(data);
@@ -607,8 +613,67 @@ $("body").on("click", ".pageforward", function () {
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
+        //todo: are these still up to date?
         document.getElementById('page').innerHTML = info.page;
+        document.querySelector('#table-wrapper').dataset.page = info.page;
+
         document.getElementById('totalpages').innerHTML = info.totalpages;
+        document.querySelector('#table-wrapper').dataset.totalpages = info.totalpages;
+
+        $("#tbody").html(info.tabletemplate);
+        $("#table-footer-wrapper").trigger("updateAll");
+        document.getElementById('qlength').innerHTML = info.qlength;
+        document.getElementById('plural_or_not').innerHTML = info.plural_or_not;
+        updateMap(info.jsdata, 0, 1);
+      }
+    });
+  }
+});
+
+$("body").on("click", ".pageback", function () {
+  var page = $('#table-wrapper').attr('data-page');
+  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  if (page !== "1") {
+    //$("body").addClass("loading");
+
+    var data = preparePOST();
+
+    data.bounds = map.getBounds(); // Why get bounds if "Search" hit with map filtering turned off?
+
+    var mapbuttonstate = document.getElementById("mapButton").checked;
+    data.mapbuttonstate = mapbuttonstate;
+
+    //Find pagination details
+
+    page = $('#table-wrapper').attr('data-page');
+    totalpages = $('#table-wrapper').attr('data-totalpages');
+    var pagelength = $('#table-wrapper').attr('data-pagelength');
+    data.page = page;
+    data.totalpages = totalpages;
+    data.pagelength = pagelength;
+    data.direction = 'back';
+
+    console.log('data.page:', data.page);
+    console.log('data.totalpages:', data.totalpages);
+    console.log('data.pagelength:', data.pagelength);
+    console.log('data.direction:', data.direction);
+
+    // todo: No query string because no need to update URL when flipping between pages. URL doesn't specify this level of searching detail, yet.
+
+    var maprequest = JSON.stringify(data);
+
+    $.ajax({
+      url: "/realestate/search",
+      type: "POST",
+      data: maprequest,
+      contentType: "application/json; charset=utf-8",
+      success: function (info) {
+        document.getElementById('page').innerHTML = info.page;
+        document.querySelector('#table-wrapper').dataset.page = info.page;
+
+        document.getElementById('totalpages').innerHTML = info.totalpages;
+        document.querySelector('#table-wrapper').dataset.totalpages = info.totalpages;
+        
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
         document.getElementById('qlength').innerHTML = info.qlength;
@@ -662,51 +727,6 @@ function preparePOST() {
 
   return data;
 }
-
-$("body").on("click", ".pageback", function () {
-  var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
-  if (page !== "1") {
-    //$("body").addClass("loading");
-
-    var data = preparePOST();
-
-    data.bounds = map.getBounds(); // Why get bounds if "Search" hit with map filtering turned off?
-
-    var mapbuttonstate = document.getElementById("mapButton").checked;
-    data.mapbuttonstate = mapbuttonstate;
-
-    //Find pagination details
-
-    page = $('#table-wrapper').attr('data-page');
-    totalpages = $('#table-wrapper').attr('data-totalpages');
-    var pagelength = $('#table-wrapper').attr('data-pagelength');
-    data.page = page;
-    data.totalpages = totalpages;
-    data.pagelength = pagelength;
-    data.direction = 'back';
-
-    // No query string because no need to update URL when flipping between pages. URL doesn't specify this level of searching detail, yet.
-
-    var maprequest = JSON.stringify(data);
-
-    $.ajax({
-      url: "/realestate/search",
-      type: "POST",
-      data: maprequest,
-      contentType: "application/json; charset=utf-8",
-      success: function (info) {
-        document.getElementById('page').innerHTML = info.page;
-        document.getElementById('totalpages').innerHTML = info.totalpages;
-        $("#tbody").html(info.tabletemplate);
-        $("#table-footer-wrapper").trigger("updateAll");
-        document.getElementById('qlength').innerHTML = info.qlength;
-        document.getElementById('plural_or_not').innerHTML = info.plural_or_not;
-        updateMap(info.jsdata, 0, 1);
-      }
-    });
-  }
-});
 
 $("#advanced-search").on("click", function () {
   if ($('#filters').css('display') === 'none') {

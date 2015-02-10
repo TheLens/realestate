@@ -6,6 +6,7 @@ import pprint
 import urllib
 import re
 import math
+import check_assessor_urls
 
 from flask.ext.cache import Cache
 from flask import Flask, render_template, jsonify, request, Response
@@ -51,13 +52,31 @@ def requires_auth(f):
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/", methods=['GET'])
 def base():
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind=engine)
+    session = Session()
+
     yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
     yesterday_date = MonthCheck(yesterday_date)
+
+    q = session.query(Neighborhood).all()
+
+    neighborhoods = []
+    for hood in q:
+        #print hood.gnocdc_lab
+        neighborhoods.append((hood.gnocdc_lab).title())
+
+    neighborhoods.sort()
+
+    zip_codes = [70112, 70113, 70114, 70115, 70116, 70117, 70118, 70119, 70121, 70122, 70123, 70124, 70125, 70126, 70127, 70128, 70129, 70130, 70131, 70139, 70140, 70141, 70142, 70143, 70145, 70146, 70148, 70149, 70150, 70151, 70152, 70153, 70154, 70156, 70157, 70158, 70159, 70160, 70161, 70162, 70163, 70164, 70165, 70166, 70167, 70170, 70172, 70174, 70175, 70176, 70177, 70178, 70179, 70181, 70182, 70183, 70184, 70185, 70186, 70187, 70189, 70190, 70195]
+
     return render_template(
         'index.html',
         yesterday_date = yesterday_date,
         indexjs = indexjs,
-        css = css
+        css = css,
+        neighborhoods = neighborhoods,
+        zip_codes = zip_codes
         )
 
 #@cache.memoize(timeout=5000)
@@ -142,8 +161,8 @@ def dashboard():
 
         for u in q: 
             u.amount = Currency(u.amount)
-            u.document_date = RewriteDate(u.document_date)
-            u.document_recorded = RewriteDate(u.document_recorded)
+            u.document_date = readableDate(u.document_date)
+            u.document_recorded = readableDate(u.document_recorded)
             u.detail_publish = publishConversion(u.detail_publish)
             u.location_publish = publishConversion(u.location_publish)
 
@@ -271,52 +290,6 @@ def updateCleaned():
         session.execute(u)
         session.commit()
 
-def formAssessorURL(location):
-    #todo: what if multiple addresses. which to use to form assessor's link?
-    location = location.upper()
-
-    address_number = re.match(r"[^ \-]*", location).group(0)
-
-    if address_number == 'UNIT:':
-        return None
-
-    assessor_abbreviations = [
-        ['GENERAL', 'GEN'],
-        ['ST.', 'ST']
-    ]
-    street = re.match(r"\S+\s([^\,]*)", location).group(1)
-
-    street_type = street.split(' ')[-1]
-
-    #todo: check for all possible abbreviations for each street type: http://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
-    abbreviations = [
-        ['STREET', 'ST'],
-        ['DRIVE', 'DR'],
-        ['BOULEVARD', 'BLVD'], 
-        ['HIGHWAY', 'HWY'], 
-        ['ROAD', 'RD'],
-        ['COURT', 'CT'], 
-        ['AVENUE', 'AVE'],
-        ['LANE', 'LN']
-    ]
-    street_type_abbr = street_type
-    for abbreviation in abbreviations:
-        abbr0 = abbreviation[0]
-        abbr1 = abbreviation[1]
-        street_type_abbr = re.sub(abbr0, abbr1, street_type_abbr)
-
-    unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location).group(1)
-
-    street = " ".join(street.split()[0:-1])
-    for assessor_abbr in assessor_abbreviations:
-        abbr0 = assessor_abbr[0]
-        abbr1 = assessor_abbr[1]
-        street = re.sub(abbr0, abbr1, street)
-    street = "".join(street.split())#remove spaces
-
-    url_param = address_number + unit + '-' + street + street_type_abbr
-    return url_param
-
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/sale/<instrument_no>", methods=['GET'])
 def sale(instrument_no = None):
@@ -343,11 +316,13 @@ def sale(instrument_no = None):
             ).all()
 
         location = ''
+        assessor_publish = ''
         
         for u in q: 
             u.amount = Currency(u.amount)
-            u.document_date = RewriteDate(u.document_date)
+            u.document_date = readableDate(u.document_date)
             location = u.location
+            assessor_publish = u.assessor_publish
 
         features = loopThing(q)
 
@@ -359,12 +334,12 @@ def sale(instrument_no = None):
         yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
         yesterday_date = MonthCheck(yesterday_date)
 
-        url_param = formAssessorURL(location)
-
-        if url_param == None:
-            assessor = ''
+        if assessor_publish == '0':
+            assessor = "Could not find this location in the assessor's database. <a href='http://www.qpublic.net/la/orleans/search1.html' target='_blank'>Search based on other criteria.</a>"
         else:
-            assessor = "<a href='http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s' target='_blank'>Read more about this property on the Assessor's Office's website.</a>" % (url_param)
+            url_param = check_assessor_urls.formAssessorURL(location)
+            assessor_url = "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s" % (url_param)
+            assessor = "<a href='%s' target='_blank'>Read more about this property on the Assessor's Office's website.</a>" % (assessor_url)
         template1 =  render_template(
             'sale.html',
             yesterday_date = yesterday_date,
@@ -552,7 +527,7 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
         pagelength = pagelength,
         parameters = parameters,
         neighborhoods = neighborhoods,
-        zip_code = zip_codes
+        zip_codes = zip_codes
     )
 
     session.close()
@@ -572,10 +547,16 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
         bounds['_southWest']['lng']
     ]
 
+    print 'mapbuttonstate:', mapbuttonstate
+    print 'page direction:', page_direction
+    print 'page:', page
+    #print 'totalpages:', totalpages
+
     if mapbuttonstate == True: #map filtering is on        
         q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate)
         qlength = len(q) # number of records
         totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
+        print 'totalpages:', totalpages
 
         if page_direction == None:
             page = 1
@@ -906,6 +887,7 @@ def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighbor
         ).all()
     return q
 
+'''
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/pageflip", methods=['POST'])
 def pageflip():
@@ -923,7 +905,8 @@ def pageflip():
 
     return page_query(name_address, amountlow, amounthigh, begindate, 
         enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
-
+'''
+'''
 #@cache.memoize(timeout=5000)
 def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages):
 
@@ -1008,6 +991,7 @@ def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, 
         totalpages = totalpages,
         pagelength = pagelength
     )
+'''
 
 def loopThing(q):
     features = []
@@ -1074,6 +1058,14 @@ def RewriteDate(value):
     # Receive yyyy-mm-dd. Return mm-dd-yyyy
     if (value != None):
         return value.strftime("%m-%d-%Y")
+    else:
+        return "None"
+
+def readableDate(value):
+    # Receive yyyy-mm-dd. Return Day, Month Date, Year
+    if (value != None):
+        return value.strftime('%A, %b. %-d, %Y')
+
     else:
         return "None"
 

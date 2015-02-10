@@ -70,12 +70,17 @@ function checkDates(begindate, enddate) {
 $("#advanced-search").on("click", function () {
   if ($('#filters').css('display') === 'none') {
     document.getElementById('filters').style.display = 'block';
-    document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search</a>';
+    document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
   }
   else {
     document.getElementById('filters').style.display = 'none';
-    document.getElementById('advanced-search').innerHTML = '<a>Show advanced search</a>';
+    document.getElementById('advanced-search').innerHTML = '<a>Show advanced search <i class="fa fa-caret-down"></i></a>';
   }
+});
+
+$("#search-note").on("click", function () {
+  document.getElementById('filters').style.display = 'block';
+  document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
 });
 
 /*
@@ -278,6 +283,20 @@ function buildQueryString(data) {
     map_query_string = map_query_string + "d2=" + data.enddate;
   }
 
+  if (data.neighborhood !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "nbhd=" + data.neighborhood;
+  }
+
+  if (data.zip_code !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "zip=" + data.zip_code;
+  }
+
   if (map_query_string == '?') {
     map_query_string = "?q=&a1=&a2=&d1=&d2=";
   }
@@ -312,6 +331,8 @@ function prepareGET() {
   var amounthigh = amounthigh1.replace(/[,$]/g, '');
   var begindate = $('#date1').val();
   var enddate = $('#date2').val();
+  var neighborhood = encodeURIComponent($('#neighborhood-dropdown').val());
+  var zip_code = $('#zip-dropdown').val();
 
   var data = {};
 
@@ -338,6 +359,9 @@ function prepareGET() {
   data.amounthigh = amounthigh;
   data.begindate = begindate;
   data.enddate = enddate;
+
+  data.neighborhood = neighborhood;
+  data.zip_code = zip_code;
 
   return data;
 }

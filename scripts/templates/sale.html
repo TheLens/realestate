@@ -61,8 +61,8 @@
                         <div class="small-12 columns" style="margin: 15px 0;">
                             {% for newrow in newrows %}
                                 <div class="document_date no-wrap">{{ newrow.document_date }}</div>
-                                <div class="amount no-wrap">{{ newrow.amount }}</div>
-                                <div class="location">{{ newrow.location }}</div>
+                                <div class="location no-wrap">{{ newrow.amount }}</div>
+                                <div class="location"><strong>Location</strong><br>{{ newrow.location }}</div>
                                 <div class="sellers">{{ newrow.sellers }}</div>
                                 <div class="buyers">{{ newrow.buyers }}</div>
                                 <div class="instrument_no no-wrap">{{ newrow.instrument_no }}</div>

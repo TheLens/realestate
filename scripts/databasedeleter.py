@@ -31,12 +31,12 @@ all_fks = []
 try:
     local('pg_dump -Fc landrecords -t dashboard > ' + backup_directory + '/dashboard_table_$(date +%Y-%m-%d).sql')
 except:
-    print 'could not dump dashboard table'
+    print 'Could not dump dashboard table.'
 
 try:
     local('psql landrecords -c "VACUUM;"')
 except:
-    print 'Could not vacuum'
+    print 'Could not vacuum.'
 
 for table_name in inspector.get_table_names():
     fks = []

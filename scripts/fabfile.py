@@ -28,6 +28,12 @@ def staticfiles():
     local('scp %stemplates/search.html      tom@162.243.152.217:%s/templates' % (local_absolute_path, server_absolute_path))
     local('scp %stemplates/table.html       tom@162.243.152.217:%s/templates' % (local_absolute_path, server_absolute_path))
 
+    local('aws s3 cp %sstatic/css/lens.css                        %scss/lens.css --acl public-read' % (local_absolute_path, s3_path))
+    local('aws s3 cp %sstatic/js/dashboard.js                     %sjs/dashboard.js --acl public-read' % (local_absolute_path, s3_path))
+    local('aws s3 cp %sstatic/js/sale.js                          %sjs/sale.js --acl public-read' % (local_absolute_path, s3_path))
+    local('aws s3 cp %sstatic/js/search.js                        %sjs/search.js --acl public-read' % (local_absolute_path, s3_path))
+    local('aws s3 cp %sstatic/js/index.js                         %sjs/index.js --acl public-read' % (local_absolute_path, s3_path))
+
 def s3():
     local('aws s3 cp %sstatic/css/font-awesome.css                %scss/font-awesome.css --acl public-read' % (local_absolute_path, s3_path))
     local('aws s3 cp %sstatic/css/foundation.css                  %scss/foundation.css --acl public-read' % (local_absolute_path, s3_path))
@@ -84,7 +90,7 @@ def s3():
 def essentials():
     local('scp %sapp.py                 tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
     #local('scp %sapp_config.py          tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
-    local('scp %sbuild_assessor_urls.py tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
+    local('scp %scheck_assessor_urls.py tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
     local('scp %sCleanup.py             tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
     local('scp %sdatabasedeleter.py     tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))
     local('scp %sdatabasemaker.py       tom@162.243.152.217:%s' % (local_absolute_path, server_absolute_path))

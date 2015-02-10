@@ -3,11 +3,15 @@
 
 import glob
 import re
+import urllib2
 import psycopg2
 import Cleanup
 import pprint
 import logging
 import logging.handlers
+import random
+import time
+
 from fabric.api import local
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
@@ -15,7 +19,7 @@ from sqlalchemy import create_engine, insert, func, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-import gmail
+import gmail, check_assessor_urls
 from databasemaker import Detail, Location, Vendor, Vendee, Cleaned, Neighborhood, Square, Dashboard
 from app_config import server_engine, server_connection, backup_directory
 
@@ -407,9 +411,10 @@ def Clean(initial_date = None, until_date = None):
           SELECT document_id, longitude, latitude
           FROM locations
         ), neighborhood AS (
-          SELECT document_id, gnocdc_lab AS neighborhood
+          SELECT document_id, mode(gnocdc_lab) AS neighborhood
           FROM neighborhoods, hood
           WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
+          GROUP BY document_id
         )
         SELECT details.amount, details.document_date, details.document_recorded, location.location, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
         FROM details
@@ -961,6 +966,79 @@ def sendEmail():
 def updateCleanedGeom():
     local('psql landrecords -c "UPDATE cleaned SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);"')
 
+def getErrorPageHtml(url):
+    error_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'})
+    error_con = urllib2.urlopen(error_req)
+    error_html = error_con.read()
+    error_con.close()
+
+    return error_html
+
+def testUrl(url, error_html):
+    req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'})
+    con = urllib2.urlopen(req)
+    html = con.read()
+    con.close()
+
+    if html == error_html:
+        return url
+    else:
+        return None
+
+def checkAssessorLinks(initial_date = None, until_date = None):
+    q = session.query(
+            Cleaned
+        ).filter(
+            Cleaned.document_recorded >= '%s' % (initial_date)
+        ).filter(
+            Cleaned.document_recorded <= '%s' % (until_date)
+        ).all()
+    
+    error_html = getErrorPageHtml("http://qpublic9.qpublic.net/la_orleans_display.php?KEY=7724-BURTHESTt")
+
+    num_records = len(q)
+    print '%d records to check.' % num_records
+
+    for i, u in enumerate(q):
+        print '%d records left.' % num_records
+        num_records = num_records - 1
+        location = u.location
+        instrument_no = u.instrument_no
+        url_param = check_assessor_urls.formAssessorURL(location)
+
+        if url_param == None:
+            session.query(Cleaned).filter(
+                Cleaned.instrument_no == '%s' % (instrument_no)
+            ).update({
+                "assessor_publish": "0"
+            })
+            session.commit()
+            continue
+        
+        assessor_url = "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s" % (url_param)
+
+        response = testUrl(assessor_url, error_html)
+
+        if response == None:#No error page
+            session.query(Cleaned).filter(
+                Cleaned.instrument_no == '%s' % (instrument_no)
+            ).update({
+                "assessor_publish": "1"
+            })
+            session.commit()
+        else:#Error page
+            session.query(Cleaned).filter(
+                Cleaned.instrument_no == '%s' % (instrument_no)
+            ).update({
+                "assessor_publish": "0"
+            })
+            session.commit()
+
+        # if i == 5:
+        #     break
+
+        time.sleep(random.randint(3,5) + random.uniform(1.0, 2.0))
+
 def doItAll(initial_date = '2014-02-18', until_date = None):
     print "Building tables..."
     Build(initial_date = initial_date, until_date = until_date)
@@ -987,11 +1065,13 @@ def doItAll(initial_date = '2014-02-18', until_date = None):
     updateCleanedGeom()
 
     print "Sending email summary..."
-    sendEmail()
+    #sendEmail()#todo: need dates?
+
+    checkAssessorLinks(initial_date = initial_date, until_date = until_date)
 
 if __name__ == '__main__':
     # From scratch:
-    doItAll(initial_date = '2014-02-18', until_date = '2014-02-19')#Default is to run through entire archive, from 2014-02-18 through most recent
+    doItAll(initial_date = '2014-02-18', until_date = '2014-03-18')#Default is to run through entire archive, from 2014-02-18 through most recent
 
     # Just yesterday:
     #doItAll(initial_date = yesterday_date, until_date = yesterday_date)

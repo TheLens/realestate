@@ -128,7 +128,7 @@ a:hover {
 	font-weight: normal;
 }
 #filters {
-	display: block;/*none*/
+	display: none;
 }
 #advanced-search {
 	font-size: 12px;
