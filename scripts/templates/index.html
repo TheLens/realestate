@@ -21,27 +21,27 @@
         <meta name="twitter:creator" content="@TheLensNOLA">
         <meta name="twitter:title" content="New Orleans property sales">
         <meta name="twitter:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map.">
-        <meta name="twitter:image:src" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png">
+        <meta name="twitter:image:src" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/realestate-promo.png">
 
         <meta property="og:title" content="New Orleans property sales" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="http://vault.thelensnola.org/realestate"/>
         <meta property="og:description" content="Daily New Orleans property sales, including buyers, sellers, amounts and locations on a map." />      
         <meta property="og:site_name" content="The Lens" />
-        <meta property="og:image" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records/realestate-promo.png" />
+        <meta property="og:image" content="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/realestate-promo.png" />
         <meta property="article:publisher" content="https://www.facebook.com/thelensnola" />
 
         <link rel="apple-touch-icon" href="http://lensnola.wpengine.netdna-cdn.com/wp-content/uploads/2013/01/TheLens-400x400_icon.png"/>   
         <link rel="canonical" href="http://vault.thelensnola.org/realestate" />
 
-        <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/favicon.ico">
-        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery-ui.css">
+        <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/images/favicon.ico">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/jquery-ui.css">
         <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
-        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/lenstablesorter.css">
-        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/mapbox.css">
-        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery.tablesorter.pager.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/lenstablesorter.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/mapbox.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/jquery.tablesorter.pager.css">
         <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
-        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/foundation.min.css">
+        <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/foundation.min.css">
         <link rel="stylesheet" href={{ css }}>        
     </head>
     <body>
@@ -70,8 +70,15 @@
           </div>
         <div class="row">
             <div class="small-12 columns">
-                <a href="/realestate/"><h4 id="page-title">New Orleans <span class="no-wrap">property sales</span></h4></a>
+                <h4 id="page-title"><a href="/realestate/">New Orleans <span class="no-wrap">property sales</span></a></h4>
             </div>
+        </div>
+        <div class="row">
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+            <div class="small-12 medium-10 text-left columns" id="search-note">
+                *New* Search by neighborhood name.
+            </div>
+            <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
         </div>
         <div class="row slim">
             <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
@@ -95,38 +102,58 @@
         </div>
         <div id="filters">
             <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 text-center columns search-range-title">Amount</div>
-                <div class="small-6 medium-4 text-center columns search-range-title">Date</div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-4 medium-3 text-center columns search-range-title">Amount</div>
+                <div class="small-4 medium-3 text-center columns search-range-title">Date</div>
+                <div class="small-2 medium-2 text-center columns search-range-title">Neighborhood</div>
+                <div class="small-2 medium-2 text-center columns search-range-title">Zip code</div>
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
             <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 columns">
-                    <label><span class="low-break-hack"><br></span>Low:
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-4 medium-3 columns">
+                    <label><span class="low-break-hack"><br></span>Low:</label>
                         <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
-                    </label>
                 </div>
-                <div class="small-6 medium-4 columns">
-                    <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):
-                        <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
-                    </label>
+                <div class="small-4 medium-3 columns">
+                    <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):</label>
+                    <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
                 </div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-2 medium-2 columns">
+                    <label>&nbsp;</label>
+                    <select id="neighborhood-dropdown">
+                        <option selected value="">Select</option>
+                        {% for neighborhood in neighborhoods %}
+                        <option value="{{ neighborhood }}">{{ neighborhood }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="small-2 medium-2 columns">
+                    <label>&nbsp;</label>
+                    <select id="zip-dropdown">
+                        <option selected value="">Select</option>
+                        {% for zip_code in zip_code %}
+                        <option value="{{ zip_code }}">{{ zip_code }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
             <div class="row">
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-                <div class="small-6 medium-4 columns">
-                    <label>High:
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-4 medium-3 columns">
+                    <label>High:</label>
                         <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
-                    </label>
                 </div>
-                <div class="small-6 medium-4 columns">
-                    <label>To:
+                <div class="small-4 medium-3 columns">
+                    <label>To:</label>
                         <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
-                    </label>
                 </div>
-                <div class="small-0 medium-2 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+                <div class="small-4 medium-2 columns">
+                    <label>&nbsp;</label>
+                    <button class="button postfix" id="geosearch-button">Search near me</button>
+                </div>
+                <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
             </div>
         </div>
         <div class="p402_premium">
@@ -171,10 +198,10 @@
         <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
         <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
         <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.3.0"></script>
-        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.min.js"></script>
-        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/jquery.tablesorter.pager.min.js"></script>
-        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
-        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/modernizr.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/jquery.tablesorter.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/jquery.tablesorter.pager.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/foundation.min.js"></script>
+        <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/modernizr.js"></script>
         <script>
             $(document).foundation();
         </script>

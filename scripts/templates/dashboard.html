@@ -3,12 +3,12 @@
   <head>
     <title>New Orleans property sales</title>
     <meta name="viewport" content="width=device-width">
-    <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/favicon.ico">
-    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/jquery-ui.css">
+    <link rel="shortcut icon" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/images/favicon.ico">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/jquery-ui.css">
     <link rel="stylesheet" href="http://code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
-    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/mapbox.css">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/mapbox.css">
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
-    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/foundation.min.css">
+    <link rel="stylesheet" href="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/foundation.min.css">
     <link rel="stylesheet" href={{ css }}>
   </head>
   <body>
@@ -48,6 +48,9 @@
               <label>Sale date:</label> <input type="search" id="document_date_{{loop.index}}" value="{{ newrow.document_date }}">
             </div>
             <div class="dashboard-row">
+              <label>Date recorded:</label> <input type="search" id="document_recorded_{{loop.index}}" value="{{ newrow.document_recorded }}">
+            </div>
+            <div class="dashboard-row">
               <label>Amount:</label> <input type="search" class="currency" id="amount_{{loop.index}}" value="{{ newrow.amount }}">
             </div>
             <div class="dashboard-row">
@@ -55,9 +58,6 @@
             </div>
             <div class="dashboard-row">
               <label>Buyers:</label> <input type="search" id="buyers_{{loop.index}}" value="{{ newrow.buyers }}">
-            </div>
-            <div class="dashboard-row">
-              <label>Date recorded:</label> <input type="search" id="document_recorded_{{loop.index}}" value="{{ newrow.document_recorded }}">
             </div>
             <div class="dashboard-row">
               <label>Zip:</label> <input type="search" id="zip_code_{{loop.index}}" value="{{ newrow.zip_code }}">
@@ -86,8 +86,8 @@
     <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
     <script src="http://www.mapquestapi.com/sdk/leaflet/v1.s/mq-map.js?key=Fmjtd%7Cluur2qa72u%2C7a%3Do5-9abx1y"></script>
-    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/foundation.min.js"></script>
-    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records/js/modernizr.js"></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/foundation.min.js"></script>
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/modernizr.js"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/elections.thelensnola.org/resources/topojson.v1.min.js"></script>
     <script>
         $(document).foundation();

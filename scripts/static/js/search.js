@@ -54,11 +54,12 @@ function loadMapTiles() {
     detectRetina: true,
     minZoom: 6
   });
-
-  //todo: remove this for production.
-  var temp = stamenLayer;
-  stamenLayer = mapboxLayer;
-  mapboxLayer = temp;
+  var satelliteLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m6noin/{z}/{x}/{y}.png', {
+    attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
+    scrollWheelZoom: false,
+    detectRetina: true,
+    minZoom: 6
+  });
 
   var tileTimeout;
 
@@ -69,8 +70,14 @@ function loadMapTiles() {
     map.addLayer(stamenLayer);
   }
 
-  //map.addLayer(osm);
+  var baseMaps = {
+    "Color": mapboxLayer,
+    "Satellite": satelliteLayer
+  };
+
   map.addLayer(mapboxLayer);
+  L.control.layers(baseMaps).addTo(map);
+  
   tileTimeout = setTimeout(switchToStamen, 10000);
 
   mapboxLayer.on('tileload', function(e) {
@@ -82,7 +89,7 @@ function addLensLogoToMap() {
   var logo = L.control({position: 'bottomleft'});
   logo.onAdd = function () {
     var div = L.DomUtil.create('div');
-    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo.png' alt='Lens logo' >";
+    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/images/lens-logo.png' alt='Lens logo' >";
     return div;
   };
   logo.addTo(map);
@@ -91,7 +98,7 @@ function addLensLogoToMap() {
 function createMap() {
   map = new L.Map("map", {
     minZoom: 6,
-    maxZoom: 15,
+    maxZoom: 17,
     scrollWheelZoom: false,
     fadeAnimation: false,
     zoomControl: false
@@ -112,24 +119,27 @@ function onEachFeature(feature, layer) {
   });
 }
 
-var eee;
-
 function clickFeature(e) {
   /*
   Clicked on a feature, such as a precinct or parish.
   */
 
-  var layer = e.target;
-  var feature = e.target.feature;
-  var html;
-  if (!L.Browser.ie && !L.Browser.opera) {
-    layer.bringToFront();
-  }
-  html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
-  $('#tooltip').html(html);
-  var tooltip_height = $('#tooltip').outerHeight(true);
-  $('#tooltip').css({"display": "block", "left": (e.containerPoint.x < (map._size.x / 3) ? e.originalEvent.pageX : (e.containerPoint.x >= (map._size.x / 3) && e.containerPoint.x < (2 * map._size.x / 3) ? e.originalEvent.pageX - 235 / 2 : e.originalEvent.pageX - 235)), "top": (e.containerPoint.y < (map._size.y / 2) ? e.originalEvent.pageY : e.originalEvent.pageY - tooltip_height)});
-  clicked = 1;
+  instrument_no = e.target.feature.properties.instrument_no;
+  console.log('e.target.feature.properties.instrument_no:', e.target.feature.properties.instrument_no);
+
+  window.location.href = "/realestate/sale/" + instrument_no;
+
+  // var layer = e.target;
+  // var feature = e.target.feature;
+  // var html;
+  // if (!L.Browser.ie && !L.Browser.opera) {
+  //   layer.bringToFront();
+  // }
+  // html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
+  // $('#tooltip').html(html);
+  // var tooltip_height = $('#tooltip').outerHeight(true);
+  // $('#tooltip').css({"display": "block", "left": (e.containerPoint.x < (map._size.x / 3) ? e.originalEvent.pageX : (e.containerPoint.x >= (map._size.x / 3) && e.containerPoint.x < (2 * map._size.x / 3) ? e.originalEvent.pageX - 235 / 2 : e.originalEvent.pageX - 235)), "top": (e.containerPoint.y < (map._size.y / 2) ? e.originalEvent.pageY : e.originalEvent.pageY - tooltip_height)});
+  // clicked = 1;
 }
 
 function highlightFeature(e) {
@@ -195,7 +205,8 @@ function addDataToMap(data) {
     pointToLayer: function (feature, layer) {
       return L.circleMarker(layer, {
         radius: 10,
-        color: '#B33125',
+        color: 'white',
+        opacity: 0.8,
         fillColor: '#B33125',
         fillOpacity: 0.5
       });
@@ -210,11 +221,11 @@ function addDataToMap(data) {
 
   dataLayer.eachLayer(function (layer) {
     layer.on('mouseover', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
       layer.bringToFront();
     });
     layer.on('mouseout', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     });
   });
 
@@ -254,11 +265,11 @@ function initialMapFunction(data) {
 function mapHover(dataLayer) {
   dataLayer.eachLayer(function (layer) {
     layer.on('mouseover', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
       layer.bringToFront();
     });
     layer.on('mouseout', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     });
   });
 }
@@ -267,11 +278,11 @@ $(document).on('mouseenter', "#myTable tbody tr td", function (event) {
   var parent = $(event.target).parent().attr('id');
   dataLayer.eachLayer(function (layer) {
     if (layer.feature.properties.instrument_no === parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
       layer.bringToFront();
     }
     if (layer.feature.properties.instrument_no !== parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
     }
   });
 });
@@ -279,10 +290,10 @@ $(document).on('mouseleave', "#myTable tbody tr td", function (event) {
   var parent = $(event.target).parent().attr('id');
   dataLayer.eachLayer(function (layer) {
     if (layer.feature.properties.instrument_no === parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     }
     if (layer.feature.properties.instrument_no !== parent) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     }
   });
 });
@@ -314,7 +325,7 @@ function resetDates(begindate, enddate) {
 function checkAmounts(amountlow, amounthigh) {
   if (isValidAmountRange(amountlow, amounthigh) === false) {
     //$("body").removeClass("loading");
-    console.log('false');
+    //console.log('false');
     document.getElementById('amount1').value = "Please enter a valid amount range.";
     document.getElementById('amount2').value = "Please enter a valid amount range.";
     return false;
@@ -348,7 +359,7 @@ function mapSearching() {
   var totalpages = $('#table-wrapper').attr('data-totalpages');
   data.page = page;
   data.totalpages = totalpages;
-  data.direction = 'none';
+  data.direction = null;
 
   data.bounds = map.getBounds();
   data.mapbuttonstate = true;
@@ -413,6 +424,20 @@ function buildQueryString(data) {
     map_query_string = map_query_string + "d2=" + data.enddate;
   }
 
+  if (data.neighborhood !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "nbhd=" + data.neighborhood;
+  }
+
+  if (data.zip_code !== '') {
+    if (map_query_string !== '?') {
+      map_query_string = map_query_string + '&';
+    }
+    map_query_string = map_query_string + "zip=" + data.zip_code;
+  }
+
   if (map_query_string == '?') {
     map_query_string = "?q=&a1=&a2=&d1=&d2=";
   }
@@ -420,9 +445,92 @@ function buildQueryString(data) {
   return map_query_string;
 }
 
-$(document).on("click", '.searchButton', function () {
+function success(position) {
+  var coord = position.coords;
+  console.log('Your position:', coord);
+  return coord;
+}
+
+function error(err) {
+  console.log('err:', err);
+  return null;
+}
+
+function getLocation(data) {
+  var position;
+  var options = {
+    enableHighAccuracy: true,
+    timeout: 5000,
+    maximumAge: 0
+  };
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      function(position) {
+        data.latitude = position.coords.latitude;
+        data.longitude = position.coords.longitude;
+        console.log('Your lat:', position.coords.latitude);
+        geoSearch(data);
+      },
+      function(err) {
+        console.log('err:', err);
+        return null;
+      },
+      options);
+  } else {
+    alert("Geolocation is not supported by this browser.");
+    return null;
+  }
+}
+
+function geoSearch(data) {
+  var bounds = map.getBounds(); // Why get bounds if "Search" hit with map filtering turned off?
+  data.bounds = bounds;
+  var mapbuttonstate = document.getElementById("mapButton").checked;
+  data.mapbuttonstate = mapbuttonstate;
+
+  var page = $('#table-wrapper').attr('data-page');
+  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  data.page = page;
+  data.totalpages = totalpages;
+  data.direction = null;
+
+  var georequest = JSON.stringify(data);
+  var query_string = buildQueryString(data);//todo: add query parameter for 'search near me'?
+
+  $.ajax({
+    url: "/realestate/search",
+    type: "POST",
+    data: georequest,
+    contentType: "application/json; charset=utf-8",
+    success: function (info) {
+      window.history.pushState(null,'hi','search' + query_string);
+      document.getElementById('page').innerHTML = info.page;
+      document.getElementById('totalpages').innerHTML = info.totalpages;
+
+      $('#table-wrapper').data('page', info.page);
+      $('#table-wrapper').data('totalpages', info.totalpages);
+      $('#table-wrapper').data('pagelength', info.pagelength);
+
+      $("#tbody").html(info.tabletemplate);
+      $("#table-footer-wrapper").trigger("updateAll");
+      //console.log('info.qlength: ', info.qlength);
+      document.getElementById('qlength').innerHTML = info.qlength;
+      document.getElementById('plural_or_not').innerHTML = info.plural_or_not;
+      updateMap(info.jsdata, 0);
+    }
+  });
+}
+
+$(document).on("click", '.searchButton', function (e) {
+  //console.log('e:', e);
+
   var data = preparePOST();
-  if (data === false) {
+  if (data === false) {//todo: why?
+    return;
+  }
+
+  if (e.target.id === 'geosearch-button') {
+    getLocation(data);
     return;
   }
 
@@ -436,7 +544,7 @@ $(document).on("click", '.searchButton', function () {
     var totalpages = $('#table-wrapper').attr('data-totalpages');
     data.page = page;
     data.totalpages = totalpages;
-    data.direction = 'none';
+    data.direction = null;
 
     var maprequest = JSON.stringify(data);
 
@@ -459,7 +567,7 @@ $(document).on("click", '.searchButton', function () {
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
-        console.log('info.qlength: ', info.qlength);
+        //console.log('info.qlength: ', info.qlength);
         document.getElementById('qlength').innerHTML = info.qlength;
         document.getElementById('plural_or_not').innerHTML = info.plural_or_not;
         updateMap(info.jsdata, 0);
@@ -521,6 +629,8 @@ function preparePOST() {
   var amounthigh = amounthigh1.replace(/[,$]/g, '');
   var begindate = $('#date1').val();
   var enddate = $('#date2').val();
+  var neighborhood = encodeURIComponent($('#neighborhood-dropdown').val());
+  var zip_code = $('#zip-dropdown').val();
 
   var data = {};
 
@@ -547,6 +657,8 @@ function preparePOST() {
   data.amounthigh = amounthigh;
   data.begindate = begindate;
   data.enddate = enddate;
+  data.neighborhood = neighborhood;
+  data.zip_code = zip_code;
 
   return data;
 }
@@ -599,12 +711,17 @@ $("body").on("click", ".pageback", function () {
 $("#advanced-search").on("click", function () {
   if ($('#filters').css('display') === 'none') {
     document.getElementById('filters').style.display = 'block';
-    document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search</a>';
+    document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
   }
   else {
     document.getElementById('filters').style.display = 'none';
-    document.getElementById('advanced-search').innerHTML = '<a>Show advanced search</a>';
+    document.getElementById('advanced-search').innerHTML = '<a>Show advanced search <i class="fa fa-caret-down"></i></a>';
   }
+});
+
+$("#search-note").on("click", function () {
+  document.getElementById('filters').style.display = 'block';
+  document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
 });
 
 
@@ -701,7 +818,7 @@ function isValidAmountRange(amount1, amount2) {
 }
 
 function doPostBack(data) {
-  console.log('doPostBack');
+  //console.log('doPostBack');
   var searchrequest = JSON.stringify(data);
   var query_string = buildQueryString(data);
   $.ajax({
@@ -724,7 +841,7 @@ function doPostBack(data) {
 document.onload = checkForChanges();
 
 function checkForChanges() {
-  console.log('gcs');
+  //console.log('gcs');
   var gcsTimeout;
   if ($('button.t402-elided').length) {
     gcsTimeout = setTimeout(checkForChanges, 500);

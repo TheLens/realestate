@@ -1,6 +1,6 @@
 var dataLayer;
 
-function initializeMap(loop_index, latitude, longitude, location_publish, detail_publish) {
+function initializeMap(loop_index, latitude, longitude, location_publish, detail_publish, amount, document_date, document_recorded) {
   var map_container = "map_" + loop_index;
   //console.log('map_container: ', map_container);
   //console.log('location_publish: ', location_publish);
@@ -13,6 +13,8 @@ function initializeMap(loop_index, latitude, longitude, location_publish, detail
     center: [latitude, longitude],
     zoom: 17
   });
+
+  console.log('amount:', amount);
 
   //Change input borders depending on good or not
   if (location_publish === 'No') {
@@ -29,6 +31,21 @@ function initializeMap(loop_index, latitude, longitude, location_publish, detail
   } else {
     document.getElementById('detail_publish_' + loop_index).style.border = "2px solid green";
     document.getElementById('detail_publish_' + loop_index).style.boxShadow = "0 0 10px green";
+  }
+
+  if (amount === '$0' || parseInt($('#amount_1').val().replace(/[$,]/g, ''), 10) >= 20000000) {
+    document.getElementById('amount_' + loop_index).style.border = "2px solid red";
+    document.getElementById('amount_' + loop_index).style.boxShadow = "0 0 10px red";
+  }
+
+  if (document_date === 'None') {
+    document.getElementById('document_date_' + loop_index).style.border = "2px solid red";
+    document.getElementById('document_date_' + loop_index).style.boxShadow = "0 0 10px red";
+  }
+
+  if (document_recorded === 'None') {
+    document.getElementById('document_recorded_' + loop_index).style.border = "2px solid red";
+    document.getElementById('document_recorded_' + loop_index).style.boxShadow = "0 0 10px red";
   }
 
   L.circleMarker([latitude, longitude], {
@@ -50,7 +67,7 @@ function initializeMap(loop_index, latitude, longitude, location_publish, detail
   });
   map.addLayer(mapboxLayer);
 
-  console.log('map:', map);
+  //console.log('map:', map);
 
   return map;
 }
@@ -259,7 +276,7 @@ function initialFunction(number_of_indexes, jsrows) {
   //console.log("jsrows:", jsrows);
   for (var i = 1; i < number_of_indexes + 1; i++) {
     console.log('Index: ', i);
-    var map = initializeMap(i, jsrows[i - 1].latitude, jsrows[i - 1].longitude, jsrows[i - 1].location_publish, jsrows[i - 1].detail_publish);
+    var map = initializeMap(i, jsrows[i - 1].latitude, jsrows[i - 1].longitude, jsrows[i - 1].location_publish, jsrows[i - 1].detail_publish, jsrows[i - 1].amount, jsrows[i - 1].document_date, jsrows[i - 1].document_recorded);
     //addDataToMap(map, neighborhoods, squares);
   }
 }

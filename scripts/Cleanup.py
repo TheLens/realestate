@@ -13,13 +13,19 @@ def CleanNew(rows):
 		sellers = row['sellers']
 		buyers = row['buyers']
 		location = row['location']
+		neighborhood = row['neighborhood']
+
 		sellers = sellers.title() # Capitalizes the first letter in each word. Great, except for words like "LLC" (Llc)
 		buyers = buyers.title()
 		location = location.title()
+		neighborhood = neighborhood.title()
+
 		# Write over this rows values with newer, cleaner values
 		rows[i]['sellers'] = sellers
 		rows[i]['buyers'] = buyers
 		rows[i]['location'] = location
+		rows[i]['neighborhood'] = neighborhood
+
 	# Accumulate all problematic words and give substitutions
 	acronyms = [
 		[' Iii ', ' III '],
@@ -90,7 +96,8 @@ def CleanNew(rows):
 		['Ct', 'Court'], 
 		['Ave,', 'Ave.,'], 
 		['Blvd,', 'Blvd.,'], 
-		[' To ', ' to '], 
+		[' To ', ' to '],
+		
 		['1St', '1st'], 
 		['2Nd', '2nd'], 
 		['3Rd', '3rd'], 
@@ -130,6 +137,10 @@ def CleanNew(rows):
 		[' Y ', ' Y. '], 
 		[' Z ', ' Z. ']
 	]
+	neighborhood_names = [
+		['B. W.', 'B.W.'],
+		['St.  A', 'St. A']
+	]
 	# This loop scans for the above problem words and replaces them with their substitutes:
 	for i, row in enumerate(rows):
 		# Read the current rows values
@@ -137,6 +148,7 @@ def CleanNew(rows):
 		buyers = row['buyers']
 		location = row['location']
 		amt = row['amount']
+		neighborhood = row['neighborhood']
 		# Check for occurences of problematic acronyms
 		for acronym in acronyms:
 			acronym0 = acronym[0] # Problem acronym
@@ -169,6 +181,12 @@ def CleanNew(rows):
 			middle_initial1 = middle_initial[1]
 			sellers = re.sub(middle_initial0, middle_initial1, sellers)
 			buyers = re.sub(middle_initial0, middle_initial1, buyers)
+
+		for neighborhood_name in neighborhood_names:
+			name0 = neighborhood_name[0]
+			name1 = neighborhood_name[1]
+			neighborhood = re.sub(name0, name1, neighborhood)
+
 		# Must do regex for "St" and others. Imagine "123 Star St". Scanning for " St" in the above loop 
 		# would catch the start of the street name here. "St " wouldn't work either.
 		location = re.sub(r"St$",r"St.",location) #Check for "St" followed by end-of-line character
@@ -192,4 +210,5 @@ def CleanNew(rows):
 		rows[i]['buyers'] = buyers.strip()
 		rows[i]['location'] = location.strip(" ,")
 		rows[i]['amount'] = amt
+		rows[i]['neighborhood'] = neighborhood
 	return rows

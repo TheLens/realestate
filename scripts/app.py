@@ -9,10 +9,10 @@ import math
 
 from flask.ext.cache import Cache
 from flask import Flask, render_template, jsonify, request, Response
-from sqlalchemy import create_engine, desc, insert, update
+from sqlalchemy import create_engine, desc, insert, update, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from databasemaker import Cleaned, Dashboard
+from databasemaker import Cleaned, Dashboard, Neighborhood
 from datetime import datetime, timedelta
 from functools import wraps
 
@@ -63,7 +63,6 @@ def base():
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/search", methods=['GET', 'POST'])
 def search():
-
     if request.method == 'GET':
         print 'GET'
         incomingdata = {}
@@ -77,17 +76,21 @@ def search():
         incomingdata['amounthigh'] = request.args.get('a2')
         incomingdata['begindate'] = request.args.get('d1')
         incomingdata['enddate'] = request.args.get('d2')
+        incomingdata['neighborhood'] = request.args.get('nbhd')
+        incomingdata['zip_code'] = request.args.get('zip')
 
         # Change any missing parameters to 0-length string
         for key in incomingdata:
             if incomingdata[key] == None:
                 incomingdata[key] = ''
 
-        name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
+        name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code = assignData(incomingdata)
 
         amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
 
-        response = query_db(name_address, amountlow, amounthigh, begindate, enddate)
+        #print amountlow, amounthigh, begindate, enddate
+
+        response = query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
 
         return response
 
@@ -96,7 +99,7 @@ def search():
         print 'POST'
         incomingdata = request.get_json()
 
-        name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
+        name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code = assignData(incomingdata)
 
         bounds = incomingdata['bounds']
         mapbuttonstate = incomingdata['mapbuttonstate']
@@ -106,129 +109,34 @@ def search():
 
         amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
 
-        response = mapquery_db(name_address, amountlow, amounthigh, begindate, 
-            enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
+        # If a geo query (search near me)
+        if 'latitude' in incomingdata and 'longitude' in incomingdata:
+            latitude = incomingdata['latitude']
+            longitude = incomingdata['longitude']
+            response = geoquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude)
+        else:
+            response = mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, page_direction, page, totalpages)
 
         return response
 
 #@cache.memoize(timeout=5000)
 @app.route("/realestate/dashboard", methods=['GET', 'POST'])
-#@requires_auth
+#@requires_auth#todo: turn back on
 def dashboard():
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
     if request.method == 'GET':
-        #http://vault.thelensnola.org/realestate/dashboard?d1={0}&d2={0}
         print 'GET'
-        incomingdata = {}
 
-        '''
-        Assign query string parameters to incomingdata dictionary.
-        '''
-
-        incomingdata['name_address'] = request.args.get('q')
-        incomingdata['amountlow'] = request.args.get('a1')
-        incomingdata['amounthigh'] = request.args.get('a2')
-        incomingdata['begindate'] = request.args.get('d1')
-        incomingdata['enddate'] = request.args.get('d2')
-
-        # Change any missing parameters to 0-length string
-        for key in incomingdata:
-            if incomingdata[key] == None:
-                incomingdata[key] = ''
-
-        name, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
-
-        amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
-
-        if enddate == (datetime.today()).strftime('%Y-%m-%d'):
-            print 'hi'
-            enddate = '9999-12-31'
-
-        if begindate == '1900-01-01':#at least begindate was not specified
-            if enddate == '9999-12-31':#neither specified
-                q = session.query(
-                    Cleaned
-                ).filter(
-                    (Cleaned.detail_publish == '0') | 
-                    (Cleaned.location_publish == '0')
-                ).filter(
-                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
-                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
-                    (Cleaned.location.ilike('%%%s%%' % name)) |
-                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-                    (Cleaned.zip_code == '%s' % name)
-                ).filter(
-                    Cleaned.amount >= '%s' % (amountlow)
-                ).filter(
-                    Cleaned.amount <= '%s' % (amounthigh)
-                ).order_by(Cleaned.document_recorded.desc()).all()
-            else:#only enddate was specified
-                q = session.query(
-                    Cleaned
-                ).filter(
-                    (Cleaned.detail_publish == '0') | 
-                    (Cleaned.location_publish == '0')
-                ).filter(
-                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
-                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
-                    (Cleaned.location.ilike('%%%s%%' % name)) |
-                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-                    (Cleaned.zip_code == '%s' % name)
-                ).filter(
-                    Cleaned.document_date <= '%s' % (enddate)
-                ).filter(
-                    Cleaned.amount >= '%s' % (amountlow)
-                ).filter(
-                    Cleaned.amount <= '%s' % (amounthigh)
-                ).order_by(Cleaned.document_recorded.desc()).all()
-        else:#at least beginddate was specified...
-            if enddate == '9999-12-31':#only begindate was specified
-                q = session.query(
-                    Cleaned
-                ).filter(
-                    (Cleaned.detail_publish == '0') | 
-                    (Cleaned.location_publish == '0')
-                ).filter(
-                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
-                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
-                    (Cleaned.location.ilike('%%%s%%' % name)) |
-                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-                    (Cleaned.zip_code == '%s' % name)
-                ).filter(
-                    Cleaned.document_date >= '%s' % (begindate)
-                ).filter(
-                    Cleaned.amount >= '%s' % (amountlow)
-                ).filter(
-                    Cleaned.amount <= '%s' % (amounthigh)
-                ).order_by(Cleaned.document_recorded.desc()).all()
-            else:#both specifed
-                q = session.query(
-                    Cleaned
-                ).filter(
-                    (Cleaned.detail_publish == '0') | 
-                    (Cleaned.location_publish == '0')
-                ).filter(
-                    (Cleaned.sellers.ilike('%%%s%%' % name)) |
-                    (Cleaned.buyers.ilike('%%%s%%' % name)) |
-                    (Cleaned.location.ilike('%%%s%%' % name)) |
-                    (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-                    #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-                    (Cleaned.zip_code == '%s' % name)
-                ).filter(
-                    Cleaned.document_date >= '%s' % (begindate)
-                ).filter(
-                    Cleaned.document_date <= '%s' % (enddate)
-                ).filter(
-                    Cleaned.amount >= '%s' % (amountlow)
-                ).filter(
-                    Cleaned.amount <= '%s' % (amounthigh)
-                ).order_by(Cleaned.document_recorded.desc()).all()
+        q = session.query(
+                Cleaned
+            ).filter(
+                (Cleaned.detail_publish == '0') | 
+                (Cleaned.location_publish == '0')
+            ).order_by(Cleaned.document_recorded.desc()).limit(20).all()
+        #todo: paginate, because loading many maps takes a while
 
         num_results = len(q)
 
@@ -246,6 +154,9 @@ def dashboard():
             row_dict['location_publish'] = row.location_publish
             row_dict['latitude'] = row.latitude
             row_dict['longitude'] = row.longitude
+            row_dict['amount'] = row.amount
+            row_dict['document_recorded'] = row.document_recorded
+            row_dict['document_date'] = row.document_date
 
             rows.append(row_dict)
 
@@ -484,6 +395,12 @@ def input():
     Session = sessionmaker(bind=engine)
     session = Session()
 
+    q_neighborhoods = session.query(
+            Neighborhood
+        ).filter(
+            (Neighborhood.gnocdc_lab.ilike('%%%s%%' % search_term))
+        ).all()
+
     q_locations = session.query(
             Cleaned
         ).filter(
@@ -509,6 +426,20 @@ def input():
         ).all()
 
     response = []
+
+    print len(q_neighborhoods)
+
+    for i, u in enumerate(q_neighborhoods):
+        response.append(
+            {
+                "label": (u.gnocdc_lab).title(),
+                "category": "Neighborhoods"
+            }
+        )
+        # Limit of three options
+        if i == 2:
+            break
+
     for i, u in enumerate(q_locations):
         response.append(
             {
@@ -542,32 +473,44 @@ def input():
         if i == 2:
             break
 
+    pp.pprint(response)
+
     return jsonify(
         response = response
         )
 
 #@cache.memoize(timeout=5000)
-def query_db(name_address, amountlow, amounthigh, begindate, enddate):
+def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code):
     Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind = engine)
     session = Session()
 
-    #conditions = conditionsAppend(names)
+    print 'query_db'
 
-    q = mapQuery2(session, name_address, amountlow, amounthigh, begindate, enddate)
+    q = session.query(Neighborhood).all()
+
+    neighborhoods = []
+    for hood in q:
+        #print hood.gnocdc_lab
+        neighborhoods.append((hood.gnocdc_lab).title())
+
+    neighborhoods.sort()
+
+    q = mapQuery2(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
 
     qlength = len(q) # number of records
     totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
     page = 1 # start on first page
     recordsoffset = (page - 1) * pagelength # Page 1 offsets 0
 
-    q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, recordsoffset)
+    q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset)
     
     for u in q: 
         u.amount = Currency(u.amount)
         u.document_date = RewriteDate(u.document_date)
 
     features = loopThing(q)
+    newrows = q
 
     jsdata = {
         "type": "FeatureCollection", 
@@ -594,20 +537,22 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate):
     parameters['begindate'] = begindate
     parameters['enddate'] = enddate
 
-    pp.pprint(parameters)
-        
+    zip_codes = [70112, 70113, 70114, 70115, 70116, 70117, 70118, 70119, 70121, 70122, 70123, 70124, 70125, 70126, 70127, 70128, 70129, 70130, 70131, 70139, 70140, 70141, 70142, 70143, 70145, 70146, 70148, 70149, 70150, 70151, 70152, 70153, 70154, 70156, 70157, 70158, 70159, 70160, 70161, 70162, 70163, 70164, 70165, 70166, 70167, 70170, 70172, 70174, 70175, 70176, 70177, 70178, 70179, 70181, 70182, 70183, 70184, 70185, 70186, 70187, 70189, 70190, 70195]
+
     template1 = render_template(
         'search.html',
         searchjs = searchjs,
         css = css,
-        newrows = q,
+        newrows = newrows,
         jsdata = jsdata,
         qlength = NumberWithCommas(qlength),
         plural_or_not = plural_or_not,
         page = page,
         totalpages = totalpages,
         pagelength = pagelength,
-        parameters = parameters
+        parameters = parameters,
+        neighborhoods = neighborhoods,
+        zip_code = zip_codes
     )
 
     session.close()
@@ -615,7 +560,7 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate):
     return template1
 
 #@cache.memoize(timeout=5000)
-def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages):
+def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, page_direction, page, totalpages):
 
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -626,13 +571,13 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds,
         bounds['_southWest']['lat'], 
         bounds['_southWest']['lng']
     ]
-    #conditions = conditionsAppend(names)
+
     if mapbuttonstate == True: #map filtering is on        
-        q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate)
+        q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate)
         qlength = len(q) # number of records
         totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
 
-        if page_direction == 'none':
+        if page_direction == None:
             page = 1
             recordsoffset = (page - 1) * pagelength
         elif page_direction == 'back' or page_direction == 'forward':
@@ -649,14 +594,14 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds,
                     page = int(page) - 1
                 recordsoffset = (page - 1) * pagelength
 
-        q = mapQuery1(session, name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, recordsoffset)
+        q = mapQuery1(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, recordsoffset)
 
     if mapbuttonstate == False: # map filtering is off
-        q = mapQuery2(session, name_address, amountlow, amounthigh, begindate, enddate)
+        q = mapQuery2(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
         qlength = len(q) # number of records
         totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
 
-        if page_direction == 'none':
+        if page_direction == None:
             page = 1
             recordsoffset = (page - 1) * pagelength
         elif page_direction == 'back' or page_direction == 'forward':
@@ -673,7 +618,7 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds,
                     page = int(page) - 1
                 recordsoffset = (page - 1) * pagelength
 
-        q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, recordsoffset)
+        q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset)
 
     for u in q: 
         u.amount = Currency(u.amount)
@@ -709,6 +654,119 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, bounds,
         pagelength = pagelength
     )
 
+#@cache.memoize(timeout=5000)
+def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude):
+    Base.metadata.create_all(engine)
+    Session = sessionmaker(bind = engine)
+    session = Session()
+
+    print 'geoquery_db'
+
+    q = mapQuery2(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
+
+    qlength = len(q) # number of records
+    totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
+    page = 1 # start on first page
+    recordsoffset = (page - 1) * pagelength # Page 1 offsets 0
+
+    '''
+    todo: make these changes to cleaned in databasemaker
+
+    ALTER TABLE cleaned ADD COLUMN geom geometry(POINT,4326);
+    UPDATE cleaned SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
+    CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);
+
+    example query:
+    SELECT count(*) FROM cleaned WHERE ST_Distance_Sphere(geom, ST_MakePoint(-90.1016, 29.9684)) <= 1 * 1609.34;
+    '''
+
+    '''
+    qq = session.query(
+                func.ST_Y(
+                    func.ST_Centroid(Square.geom)
+                ).label('ST_Y')
+            ).all()
+    '''
+
+    print 'Latitude:', latitude
+    print type(latitude)
+    print 'Longitude:', longitude
+    print type(longitude)
+
+    # Near me query
+    q = session.query(
+            Cleaned
+        ).filter(
+            func.ST_Distance_Sphere(
+                Cleaned.geom, func.ST_MakePoint('%f' % longitude, '%f' % latitude)
+                ) <= 1 * 1609.34
+        ).filter(
+            Cleaned.detail_publish == '1'
+        ).filter(
+            (Cleaned.sellers.ilike('%%%s%%' % name)) |
+            (Cleaned.buyers.ilike('%%%s%%' % name)) |
+            (Cleaned.location.ilike('%%%s%%' % name)) |
+            (Cleaned.instrument_no.ilike('%%%s%%' % name))
+        ).filter(
+            Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % zip_code)
+        ).filter(
+            Cleaned.document_date >= '%s' % (begindate)
+        ).filter(
+            Cleaned.document_date <= '%s' % (enddate)
+        ).filter(
+            Cleaned.amount >= '%s' % (amountlow)
+        ).filter(
+            Cleaned.amount <= '%s' % (amounthigh)
+        ).order_by(
+            desc(Cleaned.document_date)
+        ).offset(
+            '%d' % recordsoffset
+        ).limit(
+            '%d' % pagelength
+        ).all()
+
+    for u in q: 
+        u.amount = Currency(u.amount)
+        u.document_date = RewriteDate(u.document_date)
+
+    features = loopThing(q)
+
+    jsdata = {
+        "type": "FeatureCollection", 
+        "features": features
+    }
+
+    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    yesterday_date = MonthCheck(yesterday_date)
+
+    if qlength == 1:
+        plural_or_not = "result"
+    else:
+        plural_or_not = "results"
+
+    if qlength == 0:
+        page = 0
+    tabletemplate = render_template(
+        'table.html',
+        newrows = q
+    )
+
+    amountlow, amounthigh, begindate, enddate = revertEntries(amountlow, amounthigh, begindate, enddate)
+
+    session.close()
+
+    return jsonify(
+        tabletemplate = tabletemplate,
+        jsdata = jsdata,
+        qlength = NumberWithCommas(qlength),
+        plural_or_not = plural_or_not,
+        page = page,
+        totalpages = totalpages,
+        pagelength = pagelength
+    )
+
 def assignData(incomingdata):
     search_term = incomingdata['name_address']
     name_address = urllib.unquote(search_term).decode('utf8')
@@ -718,22 +776,14 @@ def assignData(incomingdata):
     begindate = incomingdata['begindate']
     enddate = incomingdata['enddate']
 
-    return (name_address, amountlow, amounthigh, begindate, enddate)
+    neighborhood = incomingdata['neighborhood']
+    neighborhood = urllib.unquote(neighborhood).decode('utf8')
 
-def conditionsAppend(names):
-    conditions = []
-    for name in names:
-        conditions.append(
-            (Cleaned.sellers.ilike('%%%s%%' % name)) |
-            (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
-            (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-            #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-            (Cleaned.zip_code == '%s' % name)
-        )
-    return conditions
+    zip_code = incomingdata['zip_code']
 
-def mapQueryLength(session, name, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate):
+    return (name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
+
+def mapQueryLength(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate):
     q = session.query(
             Cleaned
         ).filter(
@@ -742,9 +792,11 @@ def mapQueryLength(session, name, amountlow, amounthigh, begindate, enddate, bou
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
             (Cleaned.location.ilike('%%%s%%' % name)) |
-            (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-            #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-            (Cleaned.zip_code == '%s' % name)
+            (Cleaned.instrument_no.ilike('%%%s%%' % name))
+        ).filter(
+            Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % zip_code)
         ).filter(
             Cleaned.document_date >= '%s' % (begindate)
         ).filter(
@@ -761,7 +813,8 @@ def mapQueryLength(session, name, amountlow, amounthigh, begindate, enddate, bou
         ).all()
     return q
 
-def mapQuery1(session, name, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, recordsoffset):
+# For when map filtering is turned on
+def mapQuery1(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, recordsoffset):
     q = session.query(
             Cleaned
         ).filter(
@@ -770,9 +823,11 @@ def mapQuery1(session, name, amountlow, amounthigh, begindate, enddate, bounds, 
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
             (Cleaned.location.ilike('%%%s%%' % name)) |
-            (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-            #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-            (Cleaned.zip_code == '%s' % name)
+            (Cleaned.instrument_no.ilike('%%%s%%' % name))
+        ).filter(
+            Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % zip_code)
         ).filter(
             Cleaned.document_date >= '%s' % (begindate)
         ).filter(
@@ -795,7 +850,7 @@ def mapQuery1(session, name, amountlow, amounthigh, begindate, enddate, bounds, 
         ).all()
     return q
 
-def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate):
+def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code):
     q = session.query(
             Cleaned
         ).filter(
@@ -803,10 +858,12 @@ def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate):
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
-            (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-            #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-            (Cleaned.zip_code == '%s' % name)
+            (Cleaned.location.ilike('%%%s%%' % name))|
+            (Cleaned.instrument_no.ilike('%%%s%%' % name))
+        ).filter(
+            Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % zip_code)
         ).filter(
             Cleaned.document_date >= '%s' % (begindate)
         ).filter(
@@ -818,7 +875,7 @@ def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate):
         ).all()
     return q
 
-def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, recordsoffset):
+def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset):
     q = session.query(
             Cleaned
         ).filter(
@@ -827,9 +884,11 @@ def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, recordso
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
             (Cleaned.location.ilike('%%%s%%' % name)) |
-            (Cleaned.instrument_no.ilike('%%%s%%' % name)) |
-            #(Cleaned.neighborhood.ilike('%%%s%%' % name)) |
-            (Cleaned.zip_code == '%s' % name)
+            (Cleaned.instrument_no.ilike('%%%s%%' % name))
+        ).filter(
+            Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % zip_code)
         ).filter(
             Cleaned.document_date >= '%s' % (begindate)
         ).filter(
@@ -877,8 +936,6 @@ def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, 
         bounds['_southWest']['lat'], 
         bounds['_southWest']['lng']
     ]
-
-    #conditions = conditionsAppend(names)
 
     if mapbuttonstate == True: #map filtering is on
         q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate)
@@ -1015,7 +1072,10 @@ def MonthCheck(yesterday_date):
     
 def RewriteDate(value):
     # Receive yyyy-mm-dd. Return mm-dd-yyyy
-    return value.strftime("%m-%d-%Y")
+    if (value != None):
+        return value.strftime("%m-%d-%Y")
+    else:
+        return "None"
 
 def Currency(value):
     return "${:,}".format(value)
@@ -1057,7 +1117,7 @@ def CheckEntry(amountlow, amounthigh, begindate, enddate):
 def revertEntries(amountlow, amounthigh, begindate, enddate):
     if amountlow == 0:
         amountlow = ''
-    if amounthigh == 9999999:
+    if amounthigh == 9999999999999:
         amounthigh = ''
     if begindate == '1900-01-01':
         begindate = ''

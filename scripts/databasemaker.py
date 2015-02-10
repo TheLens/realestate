@@ -68,6 +68,7 @@ class Cleaned(Base):
 
 	#id = Column(Integer, primary_key=True)
 	instrument_no = Column(String, primary_key=True)
+	geom = Column(Geometry(geometry_type='POINT', srid=4326, spatial_index=True))
 	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
@@ -79,10 +80,12 @@ class Cleaned(Base):
 	zip_code = Column(String)
 	detail_publish = Column(String)
 	location_publish = Column(String)
+	assessor_publish = Column(String)
 	neighborhood = Column(String)
 
-	def __init__(self, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood):
+	def __init__(self, geom, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, neighborhood):
 		#self.id=id,
+		self.geom=geom,
 		self.amount=amount,
 		self.document_date=document_date,
 		self.document_recorded=document_recorded,
@@ -95,6 +98,7 @@ class Cleaned(Base):
 		self.zip_code=zip_code,
 		self.detail_publish=detail_publish,
 		self.location_publish=location_publish,
+		self.assessor_publish=assessor_publish,
 		self.neighborhood = neighborhood
 		pass
 
@@ -204,7 +208,7 @@ class Vendor(Base):
 	vendor_cancel_status = Column(String)
 	document_id = Column(String, ForeignKey("details.document_id"), nullable=False)
 
-	def __init__(self, document_id, vendor_blank, vendor_p_c, vendor_lastname, vendor_firstname, vendor_relator, vendor_cancel_status):
+	def __init__(self, id, document_id, vendor_blank, vendor_p_c, vendor_lastname, vendor_firstname, vendor_relator, vendor_cancel_status):
 		self.id=id,
 		self.document_id=document_id,
 		self.vendor_blank=vendor_blank,
@@ -230,7 +234,7 @@ class Vendee(Base):
 	vendee_cancel_status = Column(String)
 	document_id = Column(String, ForeignKey("details.document_id"), nullable=False)
 
-	def __init__(self, document_id, vendee_blank, vendee_p_c, vendee_lastname, vendee_firstname, vendee_relator, vendee_cancel_status):
+	def __init__(self, id, document_id, vendee_blank, vendee_p_c, vendee_lastname, vendee_firstname, vendee_relator, vendee_cancel_status):
 		self.id=id,
 		self.document_id=document_id,
 		self.vendee_blank=vendee_blank,
@@ -257,8 +261,7 @@ class Neighborhood(Base):
     shape_area = Column(Numeric)
     geom = Column(Geometry('POLYGON'))
 
-    def __init__(self, id, gid, objectid, gnocdc_lab, lup_lab, neigh_id, shape_leng, shape_area, geom):
-        self.id = id,
+    def __init__(self, gid, objectid, gnocdc_lab, lup_lab, neigh_id, shape_leng, shape_area, geom):
         self.gid = gid,
         self.objectid = objectid,
         self.gnocdc_lab = gnocdc_lab,
@@ -335,15 +338,18 @@ def squaresJSON():
 
 def importNeighorhoods():
 	local("shp2pgsql -I ../data/neighborhoods/Neighborhood_Statistical_Areas neighborhoods | psql -d landrecords")
-	cur.execute("select updategeometrysrid('neighborhoods','geom',3452);")
+	cur.execute("SELECT updategeometrysrid('neighborhoods','geom',3452);")
 	cur.execute("ALTER TABLE neighborhoods ALTER COLUMN geom TYPE geometry(MultiPolygon,4326) USING ST_Transform(geom,4326);")
 	conn.commit()
 
 def importSquares():
-	local("shp2pgsql -I ../data/squares/squares squares | psql -d landrecords")
-	cur.execute("select updategeometrysrid('squares','geom',3452);")
+	local("shp2pgsql -I ../data/squares/NOLA_Squares_20140221 squares | psql -d landrecords")
+	cur.execute("SELECT updategeometrysrid('squares','geom',3452);")
 	cur.execute("ALTER TABLE squares ALTER COLUMN geom TYPE geometry(MultiPolygon,4326) USING ST_Transform(geom,4326);")
 	conn.commit()
+
+def spatialIndexOnCleanedGeom():
+    local('psql landrecords -c "CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);"')
 
 if __name__ == '__main__':
 	conn = psycopg2.connect("%s" % (server_connection))
@@ -351,7 +357,10 @@ if __name__ == '__main__':
 
 	importNeighorhoods()
 	importSquares()
+
 	remakeDB()
+
+	spatialIndexOnCleanedGeom()
 
 	cur.close()
 	conn.close()

@@ -54,7 +54,7 @@ def CreateMessage(sender = None, to = None):
     Returns:
     An object containing a base64url encoded email object.
     """
-    stats_file = "land-records-sales-statistics-%s.txt" % datetime.now().strftime('%Y-%m-%d')
+    stats_file = "email-%s.txt" % datetime.now().strftime('%Y-%m-%d')
     stats_dir = "logs/" + stats_file
     f_stats = open(stats_dir, 'r')
 
@@ -72,9 +72,10 @@ def CreateMessage(sender = None, to = None):
 
     message['to'] = to
     message['from'] = sender
-    message['subject'] = "Land records summary for " + datetime.now().strftime('%Y-%m-%d')
+    message['subject'] = "Land records summary for " + datetime.now().strftime('%A, %b. %-d, %Y')
+    
 
-    msg = MIMEText(message_text)
+    msg = MIMEText(message_text, 'html')
     message.attach(msg)
 
     if to == 'Thomas Thoren <tthoren@thelensnola.org>':

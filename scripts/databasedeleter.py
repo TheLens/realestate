@@ -28,13 +28,15 @@ all_fks = []
 
 # Backup dashboard table, if it exists
 # Might need to full VACUUM to get rid of deleted rows
-while True:
-    try:
-        local('pg_dump -Fc landrecords -t dashboard > ' + backup_directory + '/dashboard_table_$(date +%Y-%m-%d).sql')
-    except:
-        break
-    else:
-        break
+try:
+    local('pg_dump -Fc landrecords -t dashboard > ' + backup_directory + '/dashboard_table_$(date +%Y-%m-%d).sql')
+except:
+    print 'could not dump dashboard table'
+
+try:
+    local('psql landrecords -c "VACUUM;"')
+except:
+    print 'Could not vacuum'
 
 for table_name in inspector.get_table_names():
     fks = []

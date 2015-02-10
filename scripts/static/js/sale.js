@@ -1,15 +1,5 @@
 var map, dataLayer;
-
-function tablesorterThing() {
-  // Not sure about stuff below
-  $("#myTable thead th:eq(0)").data("sorter", false);
-  $("#myTable thead th:eq(1)").data("sorter", false);
-  $("#myTable thead th:eq(2)").data("sorter", false);
-  $("#myTable thead th:eq(3)").data("sorter", false);
-  $("#myTable thead th:eq(4)").data("sorter", false);
-  $("#myTable thead th:eq(5)").data("sorter", false);
-  $("#myTable").tablesorter({widthFixed: true});
-}
+var clicked = 0;
 
 function loadMapTiles() {
   var stamenLayer = new L.StamenTileLayer("toner-lite", {
@@ -27,6 +17,12 @@ function loadMapTiles() {
     detectRetina: true,
     minZoom: 6
   });
+  var satelliteLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m6noin/{z}/{x}/{y}.png', {
+    attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
+    scrollWheelZoom: false,
+    detectRetina: true,
+    minZoom: 6
+  });
 
   var tileTimeout;
 
@@ -37,8 +33,14 @@ function loadMapTiles() {
     map.addLayer(stamenLayer);
   }
 
-  //map.addLayer(osm);
+  var baseMaps = {
+    "Color": mapboxLayer,
+    "Satellite": satelliteLayer
+  };
+
   map.addLayer(mapboxLayer);
+  L.control.layers(baseMaps).addTo(map);
+
   tileTimeout = setTimeout(switchToStamen, 10000);
 
   mapboxLayer.on('tileload', function(e) {
@@ -50,7 +52,7 @@ function addLensLogoToMap() {
   var logo = L.control({position: 'bottomleft'});
   logo.onAdd = function () {
     var div = L.DomUtil.create('div');
-    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo.png' alt='Lens logo' >";
+    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/images/lens-logo.png' alt='Lens logo' >";
     return div;
   };
   logo.addTo(map);
@@ -69,17 +71,25 @@ function createMap() {
   L.control.zoom({position: 'topleft'}).addTo(map);
 }
 
+function onEachFeature(feature, layer) {
+  /*
+  Leaflet functions to be assigned to each feature on a given layer.
+  */
+  layer.on({
+    click: clickFeature,
+    mouseover: highlightFeature,
+    mouseout: resetHighlight
+  });
+}
+
 function addDataToMap(data) {
   var dataLayer2 = L.geoJson(data, {
-    onEachFeature: function (feature, layer) {
-      layer.on('click', function () {
-        layer.bindPopup("<div class='popup'><p><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "<br><strong></p></div>", {'maxWidth': '250', 'maxHeight': '300', 'autoPanPaddingTopLeft': [40, 12]}).openPopup();
-      });
-    },
+    //onEachFeature: onEachFeature,
     pointToLayer: function (feature, layer) {
       return L.circleMarker(layer, {
         radius: 10,
-        color: '#B33125',
+        color: 'white',
+        opacity: 0.8,
         fillColor: '#B33125',
         fillOpacity: 0.5
       });
@@ -94,11 +104,11 @@ function addDataToMap(data) {
 
   dataLayer.eachLayer(function (layer) {
     layer.on('mouseover', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
       layer.bringToFront();
     });
     layer.on('mouseout', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     });
   });
 
@@ -107,8 +117,6 @@ function addDataToMap(data) {
 }
 
 function initialMapFunction(data) {
-  // Not sure what this is
-  tablesorterThing();
 
   createMap();
   loadMapTiles();
@@ -129,11 +137,11 @@ function initialMapFunction(data) {
 function mapHover(dataLayer) {
   dataLayer.eachLayer(function (layer) {
     layer.on('mouseover', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
       layer.bringToFront();
     });
     layer.on('mouseout', function (event) {
-      layer.setStyle({radius: 10, color: '#B33125', colorOpacity: 1.0, fillColor: '#B33125', fillOpacity: 0.5});
+      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
     });
   });
 }

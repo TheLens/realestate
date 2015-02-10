@@ -115,8 +115,11 @@ a:hover {
 .leaflet-control-attribution {
 	text-align: right;
 }
-.leaflet-container .leaflet-control-attribution {
+.leaflet-container .leaflet-control-attribution,
+.leaflet-container .leaflet-control-attribution a,
+.leaflet-container .leaflet-control-attribution a:hover {
 	background-color: rgba(255,255,255,0);
+	color: #3887BE;
 }
 .small-break {
 	line-height: 2px;
@@ -125,7 +128,7 @@ a:hover {
 	font-weight: normal;
 }
 #filters {
-	display: none;
+	display: block;/*none*/
 }
 #advanced-search {
 	font-size: 12px;
@@ -205,9 +208,14 @@ table {
 .fa:hover {
 	color: #7A7A7A;
 }
+.fa-caret-down, .fa-caret-up {
+	/*vertical-align: text-top;*/
+}
 #banner {
 	z-index: 9999;
-	position: fixed;
+	/*position: fixed;*/
+	position: relative;
+	margin-bottom: 20px;
 	width: 100%;
 	height: 40px;
 	overflow: hidden;
@@ -222,10 +230,11 @@ table {
 }
 #banner-title {
 	float: left;
-	margin: 5px 10px 0px;
+	margin: 8px 15px 0px 20px;
 	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
-	font-size: 18px;
+	font-size: 20px;
 }
+#
 #banner-social {
 	float: right;
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
@@ -234,6 +243,9 @@ table {
 	float: right;
 	font-size: 26px;
 	margin: 5px 15px 0px 0px;
+}
+#banner-social-email {
+	display: none;
 }
 #banner-support {
 	font-size: 14px;
@@ -248,6 +260,9 @@ table {
 }
 #banner-logo:hover, #banner-social-twitter:hover, #banner-social-facebook:hover, #banner-social-email:hover, #banner-title:hover, #banner-support:hover {
 	opacity: 0.7;
+}
+#banner-title:hover, #banner-support:hover {
+	text-decoration: underline;
 }
 
 .modal {
@@ -304,7 +319,7 @@ li.button, li.button:hover, li.button:active, li.button:focus, li.button:visited
 a.greybutton {
 	color: #4e4c4d;
 }
-#page-title {
+#page-title, #page-title a {
 	text-align: center;
 	position: relative;
 	padding: 50px 0 30px 0;
@@ -314,6 +329,9 @@ a.greybutton {
 	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
   	font-weight: bold;
 }
+#page-title a:hover {
+	text-decoration: none;
+}
 .initial-daterange {
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 	padding: 0 0 4px 0;
@@ -321,7 +339,8 @@ a.greybutton {
 }
 .table-wrapper {
 	height: 400px;
-	/*border: 1px solid #c3c3c3;*/
+	border-top: 1px solid #E0E0E0;
+	border-bottom: 1px solid #E0E0E0;
 	overflow: auto;
 }
 .map {
@@ -352,6 +371,13 @@ a.greybutton {
 #name_address_box {
 	margin-bottom: 0;
 	font-size: 14px;
+}
+#search-note {
+	color: #B33125;
+	font-size: 12px;
+	line-height: 12px;
+	padding-left: 15px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 #search-examples {
 	font-size: 12px;
@@ -457,8 +483,6 @@ button.button:hover {
 	white-space: nowrap;
 }
 
-
-
 /*
  * Single-sale page styles
  */
@@ -539,14 +563,6 @@ div.instrument_no:before {
 div.instrument_no:before {
     content: "Instrument Number";
 }
-
-
-
-
-
-
-
-
 
 @media screen and (min-width: 1025px) {	
 	.map-wrapper {
@@ -687,7 +703,16 @@ div.instrument_no:before {
 
 }
 
+/* Mobile view */
 @media screen and (max-width: 500px) {	
+
+	#banner-title {
+		font-size: 14px;
+		margin: 8px 12px 0px 12px;
+	}
+	#search-note {
+		padding-bottom: 4px;
+	}
 
 	.table-wrapper {
 		height: auto;
@@ -825,11 +850,18 @@ div.instrument_no:before {
 	}
 }
 
+/* Medium-view */
 @media screen and (min-width: 641px) and (max-width: 1024px) {
 	#page-title {
 		padding: 50px 0 20px 0;
 		font-size: 36px;
 		line-height: 36px;
+	}
+	.zip {
+		padding-top: 0px;
+	}
+	.zip-label {
+		display: none;
 	}
 }
 
