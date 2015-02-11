@@ -233,7 +233,7 @@ $('#name_address_box').catcomplete({//autocomplete({
     $('#name_address_box').val(ui.item.value);
     $('.searchButton').click();
   },
-  minLength: 2,
+  minLength: 1,
   delay: 0,
   open: function() {
     var input_width = $('#input-div').width();

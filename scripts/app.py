@@ -259,7 +259,8 @@ def updateCleaned():
         row_dict['location_publish'] = row.location_publish
         row_dict['document_date'] = row.document_date
         row_dict['amount'] = row.amount
-        row_dict['location'] = row.location
+        row_dict['address'] = row.address
+        row_dict['location_info'] = row.location_info
         row_dict['sellers'] = row.sellers
         row_dict['buyers'] = row.buyers
         row_dict['document_recorded'] = row.document_recorded
@@ -312,16 +313,16 @@ def sale(instrument_no = None):
             ).filter(
                 Cleaned.detail_publish == '1'
             ).filter(
-                (Cleaned.instrument_no.ilike('%%%s%%' % instrument_no))
+                Cleaned.instrument_no == '%s' % (instrument_no)
             ).all()
 
-        location = ''
         assessor_publish = ''
         
         for u in q: 
             u.amount = Currency(u.amount)
             u.document_date = readableDate(u.document_date)
-            location = u.location
+            address = u.address
+            location_info = u.location_info
             assessor_publish = u.assessor_publish
 
         features = loopThing(q)
@@ -334,10 +335,10 @@ def sale(instrument_no = None):
         yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
         yesterday_date = MonthCheck(yesterday_date)
 
-        if assessor_publish == '0':
+        if assessor_publish == '0' or assessor_publish == None or assessor_publish == '':
             assessor = "Could not find this location in the assessor's database. <a href='http://www.qpublic.net/la/orleans/search1.html' target='_blank'>Search based on other criteria.</a>"
         else:
-            url_param = check_assessor_urls.formAssessorURL(location)
+            url_param = check_assessor_urls.formAssessorURL(address, location_info)
             assessor_url = "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s" % (url_param)
             assessor = "<a href='%s' target='_blank'>Read more about this property on the Assessor's Office's website.</a>" % (assessor_url)
         template1 =  render_template(
@@ -381,7 +382,7 @@ def input():
         ).filter(
             Cleaned.detail_publish == '1'
         ).filter(
-            (Cleaned.location.ilike('%%%s%%' % search_term))
+            (Cleaned.address.ilike('%%%s%%' % search_term))
         ).all()
 
     q_buyers = session.query(
@@ -418,8 +419,8 @@ def input():
     for i, u in enumerate(q_locations):
         response.append(
             {
-                "label": u.location,
-                "category": "Locations"
+                "label": u.address,
+                "category": "Addresses"
             }
         )
         # Limit of three options
@@ -516,6 +517,7 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
 
     template1 = render_template(
         'search.html',
+        yesterday_date = yesterday_date,
         searchjs = searchjs,
         css = css,
         newrows = newrows,
@@ -611,6 +613,10 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
         "type": "FeatureCollection",
         "features": features
     }
+
+    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    yesterday_date = MonthCheck(yesterday_date)
+
     if qlength == 1:
         plural_or_not = "result"
     else:
@@ -627,6 +633,7 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
 
     return jsonify(
         tabletemplate = tabletemplate,
+        yesterday_date = yesterday_date,
         jsdata = jsdata,
         qlength = NumberWithCommas(qlength),
         plural_or_not = plural_or_not,
@@ -686,7 +693,7 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
+            (Cleaned.address.ilike('%%%s%%' % name)) |
             (Cleaned.instrument_no.ilike('%%%s%%' % name))
         ).filter(
             Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
@@ -740,6 +747,7 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
 
     return jsonify(
         tabletemplate = tabletemplate,
+        yesterday_date = yesterday_date,
         jsdata = jsdata,
         qlength = NumberWithCommas(qlength),
         plural_or_not = plural_or_not,
@@ -772,7 +780,7 @@ def mapQueryLength(session, name, amountlow, amounthigh, begindate, enddate, nei
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
+            (Cleaned.address.ilike('%%%s%%' % name)) |
             (Cleaned.instrument_no.ilike('%%%s%%' % name))
         ).filter(
             Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
@@ -803,7 +811,7 @@ def mapQuery1(session, name, amountlow, amounthigh, begindate, enddate, neighbor
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
+            (Cleaned.address.ilike('%%%s%%' % name)) |
             (Cleaned.instrument_no.ilike('%%%s%%' % name))
         ).filter(
             Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
@@ -839,7 +847,7 @@ def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate, neighbor
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name))|
+            (Cleaned.address.ilike('%%%s%%' % name))|
             (Cleaned.instrument_no.ilike('%%%s%%' % name))
         ).filter(
             Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
@@ -864,7 +872,7 @@ def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighbor
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % name)) |
             (Cleaned.buyers.ilike('%%%s%%' % name)) |
-            (Cleaned.location.ilike('%%%s%%' % name)) |
+            (Cleaned.address.ilike('%%%s%%' % name)) |
             (Cleaned.instrument_no.ilike('%%%s%%' % name))
         ).filter(
             Cleaned.neighborhood.ilike('%%%s%%' % neighborhood)
@@ -1003,8 +1011,9 @@ def loopThing(q):
         features_dict = { 
             "type": "Feature", 
             "properties": { 
-            "document_date": u.document_date, 
-            "location": u.location, 
+            "document_date": u.document_date,
+            "address": u.address,
+            "location_info": u.location_info, 
             "amount": u.amount, 
             "buyers": u.buyers, 
             "sellers": u.sellers, 
@@ -1017,28 +1026,6 @@ def loopThing(q):
         features.append(features_dict)
 
     return features
-
-def currentsort2model(x):
-    x = x[0] # Assuming one column with sorting
-    sortfield = x[0]
-    if sortfield == 0:
-        sortfield = 'document_date'
-    if sortfield == 1:
-        sortfield = 'amount'
-    if sortfield == 2:
-        sortfield = 'location'
-    if sortfield == 3:
-        sortfield = 'sellers'
-    if sortfield == 4:
-        sortfield = 'buyers'
-    if sortfield == 5:
-        sortfield = 'instrument_no'
-    sortorder = x[1]
-    if sortorder == 0:
-        sortorder = 'asc()'
-    if sortorder == 1:
-        sortorder = 'desc()'
-    return sortfield, sortorder
 
 def MonthCheck(yesterday_date):
     yesterday_date = re.sub(r"Jan",r"Jan.", yesterday_date)
@@ -1064,6 +1051,14 @@ def RewriteDate(value):
 def readableDate(value):
     # Receive yyyy-mm-dd. Return Day, Month Date, Year
     if (value != None):
+        readable_date = value.strftime('%A, %b. %-d, %Y')
+
+        readable_date = readable_date.replace('Mar.', 'March')
+        readable_date = readable_date.replace('Apr.', 'April')
+        readable_date = readable_date.replace('May.', 'May')
+        readable_date = readable_date.replace('Jun.', 'June')
+        readable_date = readable_date.replace('Jul.', 'July')
+
         return value.strftime('%A, %b. %-d, %Y')
 
     else:

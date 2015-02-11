@@ -135,7 +135,7 @@ function clickFeature(e) {
   // if (!L.Browser.ie && !L.Browser.opera) {
   //   layer.bringToFront();
   // }
-  // html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
+  // html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Address: </strong>" + feature.properties.address + "<br><strong>Location info: </strong>" + feature.properties.location_info + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
   // $('#tooltip').html(html);
   // var tooltip_height = $('#tooltip').outerHeight(true);
   // $('#tooltip').css({"display": "block", "left": (e.containerPoint.x < (map._size.x / 3) ? e.originalEvent.pageX : (e.containerPoint.x >= (map._size.x / 3) && e.containerPoint.x < (2 * map._size.x / 3) ? e.originalEvent.pageX - 235 / 2 : e.originalEvent.pageX - 235)), "top": (e.containerPoint.y < (map._size.y / 2) ? e.originalEvent.pageY : e.originalEvent.pageY - tooltip_height)});
@@ -154,7 +154,7 @@ function highlightFeature(e) {
     return;
   }
   var html;
-  html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Location: </strong>" + feature.properties.location + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
+  html = "<div class='popup'><strong>Date: </strong>" + feature.properties.document_date + "<br><strong>Amount: </strong>" + feature.properties.amount + "<br><strong>Address: </strong>" + feature.properties.address + "<br><strong>Location info: </strong>" + feature.properties.location_info + "<br><strong>Sellers: </strong>" + feature.properties.sellers + "<br><strong>Buyers: </strong>" + feature.properties.buyers + "<br><strong>Instrument number: </strong>" + feature.properties.instrument_no + "</div>";
   if (!L.Browser.ie && !L.Browser.opera) { // Fix for IE and Opera
     layer.bringToFront();
   }
@@ -673,7 +673,7 @@ $("body").on("click", ".pageback", function () {
 
         document.getElementById('totalpages').innerHTML = info.totalpages;
         document.querySelector('#table-wrapper').dataset.totalpages = info.totalpages;
-        
+
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
         document.getElementById('qlength').innerHTML = info.qlength;
@@ -911,7 +911,7 @@ $('#name_address_box').catcomplete({//autocomplete({
     $('#name_address_box').val(ui.item.value);
     $('.searchButton').click();
   },
-  minLength: 2,
+  minLength: 1,
   delay: 0,
   open: function() {
     var input_width = $('#input-div').width();

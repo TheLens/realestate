@@ -72,7 +72,8 @@ class Cleaned(Base):
 	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
-	location = Column(String)
+	address = Column(String)
+	location_info = Column(String)
 	sellers = Column(String)
 	buyers = Column(String)
 	latitude = Column(Float) 
@@ -83,13 +84,14 @@ class Cleaned(Base):
 	assessor_publish = Column(String)
 	neighborhood = Column(String)
 
-	def __init__(self, geom, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, neighborhood):
+	def __init__(self, geom, amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, neighborhood):
 		#self.id=id,
 		self.geom=geom,
 		self.amount=amount,
 		self.document_date=document_date,
 		self.document_recorded=document_recorded,
-		self.location=location,
+		self.location=address,
+		self.location_info=location_info,
 		self.sellers=sellers,
 		self.buyers=buyers,
 		self.instrument_no=instrument_no,
@@ -103,7 +105,7 @@ class Cleaned(Base):
 		pass
 
 	def __repr__(self):
-		return "<Cleaned(amount='%s', document_date='%s', location='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.amount, self.document_date, self.location, self.sellers, self.buyers, self.instrument_no)
+		return "<Cleaned(amount='%s', document_date='%s', address='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.amount, self.document_date, self.address, self.sellers, self.buyers, self.instrument_no)
 
 class Dashboard(Base):
 	__tablename__ = 'dashboard'

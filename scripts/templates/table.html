@@ -2,7 +2,8 @@
     <tr id="{{ newrow.instrument_no }}">
         <td class="document_date no-wrap">{{ newrow.document_date }}</td>
         <td class="amount no-wrap">{{ newrow.amount }}</td>
-        <td class="location"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location }}</a></td>
+        <td class="address"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.address }}</a></td>
+        <td class="location_info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
         <td class="sellers">{{ newrow.sellers }}</td>
         <td class="buyers">{{ newrow.buyers }}</td>
         <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td>

@@ -1,0 +1,91 @@
+<div class="row">
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+    <div class="small-12 medium-10 text-left columns" id="search-note">
+        <a>*New* Advanced search using neighborhood name and zip code.</a>
+    </div>
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+</div>
+<div class="row slim">
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+    <div class="small-12 medium-10 columns slim">
+        <div class="row collapse slim">
+            <div class="small-10 columns" id="input-div">
+                <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address or instrument number">
+            </div>
+            <div class="small-2 columns">
+                <button class="button postfix"><i class="fa fa-search"></i></button>
+            </div>
+        </div>
+    </div>
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+</div>
+<div class="row">
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+    <div class="small-7 medium-7 text-left columns" id="search-examples">Example: John Doe; Doe, John; Esplanade Avenue; 2014-06854</div>
+    <div class="small-5 medium-3 text-right columns" id="advanced-search"><a>Advanced search <i class="fa fa-caret-down"></i></a></div>
+    <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
+</div>
+<div id="filters">
+    <div class="row">
+        <div class="small-0 medium-1 large-1 columns">&nbsp;</div>
+
+        <!-- Amount -->
+        <div class="small-6 medium-3 large-3 columns">
+            <div class="search-range-title">Amount</div>
+            <label><span class="low-break-hack"><br></span>Low:</label>
+                <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
+            <label>High:</label>
+                <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
+        </div>
+        <!-- end amount -->
+
+        <!-- Date -->
+        <div class="small-6 medium-4 large-3 columns">
+            <div class="search-range-title">Date</div>
+            <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):</label>
+            <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
+            <label>To:</label>
+                <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
+        </div>
+        <!-- End date -->
+
+        <!-- <div class="small-0 medium-2 large-0 columns"><span class="show-for-medium-only">&nbsp;</span></div>
+        <div class="small-0 medium-2 large-0 columns"><span class="show-for-medium-only">&nbsp;</span></div> -->
+
+        <!-- Neighborhood -->
+        <div class="small-12 medium-3 large-4 columns">
+            <div class="row">
+                <div class="small-6 medium-12 large-6 columns">
+                    <div class="search-range-title">Neighborhood</div>
+                        <label>&nbsp;</label>
+                        <select id="neighborhood-dropdown">
+                            <option selected value="">Select</option>
+                            {% for neighborhood in neighborhoods %}
+                            <option value="{{ neighborhood }}">{{ neighborhood }}</option>
+                            {% endfor %}
+                            <!-- <label>&nbsp;</label>
+                            <button class="button postfix" id="geosearch-button">Search near me</button> -->
+                        </select>
+                    </div>
+                    <!-- End Neighborhood -->
+
+                    <!-- Zip -->
+                    <div class="small-6 medium-12 large-6 columns">
+                        <div class="search-range-title zip">Zip code</div>
+                        <label class="zip-label">&nbsp;</label>
+                        <select id="zip-dropdown">
+                            <option selected value="">Select</option>
+                            {% for zip_code in zip_codes %}
+                            <option value="{{ zip_code }}">{{ zip_code }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- end zip -->
+
+            </div>
+        </div>
+
+        <div class="small-0 medium-1 large-1 columns">&nbsp;</div>
+
+    </div>
+</div>

@@ -37,7 +37,7 @@ def figureOutRecordedDate():
 
     document_recorded = ''
 
-    # Assuming we wanted to tweet a Friday sale on Sunday and Monday.
+    # Assuming we wanted to tweet a Friday sale on Sunday and Monday, which we don't.
     '''
     if today_date.strftime('%A') == 'Sunday':
         document_recorded = (today_date - timedelta(days = 2)).strftime('%Y-%m-%d')
@@ -85,7 +85,7 @@ def getHighestAmountDetails(document_recorded):
     return (amount, instrument_no, document_recorded, document_date)
 
 def formURL(instrument_no):
-    url = 'http://vault.thelensnola.org/sale/' + instrument_no
+    url = 'http://vault.thelensnola.org/realestate/sale/' + instrument_no
     return url
 
 def formMessage(amount, url, document_recorded, document_date):
@@ -98,7 +98,7 @@ def formMessage(amount, url, document_recorded, document_date):
     # High amounts
     if amount >= 1000000:
         #options = []
-        options.append("We're moving on up! This property sale on %s went for %s. %s" % (document_date, amount, url))
+        options.append("We're moving on up! A property sale on %s went for %s. %s" % (document_date, amount, url))
         options.append("Let them have it! This property sold for %s on %s. %s" % (amount, document_date, url))
 
     option = random.choice(options)
@@ -114,7 +114,6 @@ def sendTweet(message, image):
     #twitter.update_status_with_media(status = message, media = image)
     print 'Characters left over: ', 140 - len(message.split('.')[0] + '. ') - 22 - 23
     print message
-    return 'hi'
 
 if __name__ == '__main__':
     document_recorded = figureOutRecordedDate()

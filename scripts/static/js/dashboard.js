@@ -204,7 +204,8 @@ function preparePOST(loop_index) {
   data.amount = $('#amount_' + loop_index).val();
   data.amount = data.amount.replace(/[,$]/g, '');
 
-  data.location = $('#location_' + loop_index).val();
+  data.address = $('#address_' + loop_index).val();
+  data.location_info = $('#location_info_' + loop_index).val();
   data.sellers = $('#sellers_' + loop_index).val();
   data.buyers = $('#buyers_' + loop_index).val();
   data.document_recorded = $('#document_recorded_' + loop_index).val();

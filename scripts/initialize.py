@@ -404,7 +404,7 @@ def Clean(initial_date = None, until_date = None):
           FROM vendors
           GROUP BY document_id
         ), location AS (
-          SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text || ', Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
+          SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text, '; ') AS address, string_agg('Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location_info, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
           FROM locations
           GROUP BY document_id
         ), hood AS (
@@ -416,7 +416,7 @@ def Clean(initial_date = None, until_date = None):
           WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
           GROUP BY document_id
         )
-        SELECT details.amount, details.document_date, details.document_recorded, location.location, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
+        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
         FROM details
         JOIN location ON details.document_id = location.document_id
         JOIN vendor ON details.document_id = vendor.document_id
@@ -590,7 +590,8 @@ def Clean(initial_date = None, until_date = None):
         message = message + 'Amount: $' + format(row['amount'], ',') + '<br>\n'
         message = message + 'Buyers: ' + row['buyers'] + '<br>\n'
         message = message + 'Sellers: ' + row['sellers'] + '<br>\n'
-        message = message + 'Location: ' + row['location'] + '<br>\n'
+        message = message + 'Address: ' + row['address'] + '<br>\n'
+        message = message + 'Location info: ' + row['location_info'] + '<br>\n'
         message = message + 'Zip: ' + row['zip_code'] + '<br>\n'
         message = message + 'Neighborhood: ' + row['neighborhood'] + '</p>\n'
         #message = message + row['document_date'] + '\n'
@@ -632,7 +633,8 @@ def copyDashboardToCleaned():
         row_dict['location_publish'] = row.location_publish
         row_dict['document_date'] = row.document_date
         row_dict['amount'] = row.amount
-        row_dict['location'] = row.location
+        row_dict['address'] = row.address
+        row_dict['location_info'] = row.location_info
         row_dict['sellers'] = row.sellers
         row_dict['buyers'] = row.buyers
         row_dict['document_recorded'] = row.document_recorded
@@ -787,9 +789,7 @@ def Neighborhoods(initial_date = None, until_date = None):
       FROM vendors
       GROUP BY document_id
     ), location AS (
-      SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text || ', Unit: ' || unit::text || ', Con
-    do: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::t
-    ext || ', Lot: ' || lot::text, '; ') AS location, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
+      SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text, '; ') AS address, string_agg('Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location_info, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
       FROM locations
       GROUP BY document_id
     ), hood AS (
@@ -801,10 +801,10 @@ def Neighborhoods(initial_date = None, until_date = None):
       WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
     )
     INSERT INTO cleaned (
-        amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood
+        amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood
     )
     (
-        SELECT details.amount, details.document_date, details.document_recorded, location.location, vendor.sellers, vendee.buyers, details.instrument_no, location.la
+        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.la
         titude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
         FROM details
         JOIN location ON details.document_id = location.document_id
@@ -1002,9 +1002,10 @@ def checkAssessorLinks(initial_date = None, until_date = None):
     for i, u in enumerate(q):
         print '%d records left.' % num_records
         num_records = num_records - 1
-        location = u.location
+        address = u.address
+        location_info = u.location_info
         instrument_no = u.instrument_no
-        url_param = check_assessor_urls.formAssessorURL(location)
+        url_param = check_assessor_urls.formAssessorURL(address, location_info)
 
         if url_param == None:
             session.query(Cleaned).filter(
@@ -1065,13 +1066,14 @@ def doItAll(initial_date = '2014-02-18', until_date = None):
     updateCleanedGeom()
 
     print "Sending email summary..."
-    #sendEmail()#todo: need dates?
+    sendEmail()#todo: need dates?
 
     checkAssessorLinks(initial_date = initial_date, until_date = until_date)
 
 if __name__ == '__main__':
     # From scratch:
-    doItAll(initial_date = '2014-02-18', until_date = '2014-03-18')#Default is to run through entire archive, from 2014-02-18 through most recent
+    #doItAll(initial_date = '2014-02-18', until_date = '2014-02-19')#Default is to run through entire archive, from 2014-02-18 through most recent
+    doItAll()
 
     # Just yesterday:
     #doItAll(initial_date = yesterday_date, until_date = yesterday_date)

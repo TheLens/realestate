@@ -38,6 +38,9 @@ textarea {
 	width: auto;
 	padding: 5px;
 }
+#assessor {
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
 #preview {
 	display: none;
 	z-index: 1001; /*z-index for Leaflet controls is 1000*/
@@ -87,7 +90,8 @@ ul.ui-autocomplete {
     max-width: 275px;
     max-height: 325px;
     padding: 10px;
-    font-size: 15px;
+    font-size: 14px;
+    line-height: 18px;
     box-shadow: 0 0 5px #888888;;
     background-color: #FFF;
     color: #000;
@@ -106,11 +110,12 @@ ul.ui-autocomplete {
 .centered {
 	text-align: center;
 }
-a, a:hover, a:focus, a:visited, a:active {
+a, a:focus, a:visited, a:active {
 	color: #B43018;
 }
 a:hover {
 	text-decoration: underline;
+	color: #000;
 }
 .leaflet-control-attribution {
 	text-align: right;
@@ -374,7 +379,7 @@ a.greybutton {
 }
 #search-note {
 	color: #B33125;
-	font-size: 12px;
+	font-size: 14px;
 	line-height: 12px;
 	padding-left: 15px;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
@@ -503,9 +508,19 @@ div.document_date {
 div.amount {
     text-align: right;
     margin-left: 0;
-    color: #B43018;
+    /*color: #B43018;*/
 }
-div.location {
+div.address {
+    font-size: 14px;
+    width: 100%;
+    display: block;
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+    color: #000;
+    padding: 0px;
+    margin: 0;
+    font-weight: normal;
+}
+div.location_info {
     font-size: 14px;
     width: 100%;
     display: block;
@@ -621,9 +636,19 @@ div.instrument_no:before {
 	#myTable td.amount {
 		text-align: right;
 		margin-left: 0;
-		color: #B43018;
+		/*color: #B43018;*/
 	}
-	#myTable td.location {
+	#myTable td.address {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.location_info {
 		font-size: 14px;
 		width: 100%;
 		display: block;
@@ -746,6 +771,9 @@ div.instrument_no:before {
 		width: 100%;
 		height: auto;
 		padding: 4px 0;
+		border-top: none;
+		border-right: none;
+		border-left: none;
 		border-bottom: 1px solid #A8A299;
 	}
 	#myTable td {
@@ -772,9 +800,19 @@ div.instrument_no:before {
 	#myTable td.amount {
 		text-align: right;
 		margin-left: 0;
-		color: #B43018;
+		/*color: #B43018;*/
 	}
-	#myTable td.location {
+	#myTable td.address {
+		font-size: 14px;
+		width: 100%;
+		display: block;
+		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+		color: #000;
+		padding: 4px 0 8px;
+		margin: 0;
+		font-weight: normal;
+	}
+	#myTable td.location_info {
 		font-size: 14px;
 		width: 100%;
 		display: block;

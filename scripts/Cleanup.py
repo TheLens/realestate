@@ -12,18 +12,21 @@ def CleanNew(rows):
 		# Read this row's values
 		sellers = row['sellers']
 		buyers = row['buyers']
-		location = row['location']
+		address = row['address']
+		location_info = row['location_info']
 		neighborhood = row['neighborhood']
 
 		sellers = sellers.title() # Capitalizes the first letter in each word. Great, except for words like "LLC" (Llc)
 		buyers = buyers.title()
-		location = location.title()
+		address = address.title()
+		location_info = location_info.title()
 		neighborhood = neighborhood.title()
 
 		# Write over this rows values with newer, cleaner values
 		rows[i]['sellers'] = sellers
 		rows[i]['buyers'] = buyers
-		rows[i]['location'] = location
+		rows[i]['address'] = address
+		rows[i]['location_info'] = location_info
 		rows[i]['neighborhood'] = neighborhood
 
 	# Accumulate all problematic words and give substitutions
@@ -146,7 +149,8 @@ def CleanNew(rows):
 		# Read the current rows values
 		sellers = row['sellers']
 		buyers = row['buyers']
-		location = row['location']
+		address = row['address']
+		location_info = row['location_info']
 		amt = row['amount']
 		neighborhood = row['neighborhood']
 		# Check for occurences of problematic acronyms
@@ -156,26 +160,30 @@ def CleanNew(rows):
 			# If find problem acronym (acronym0) in a string, replace with solution acronym (acronym1) 
 			sellers = re.sub(acronym0,acronym1, sellers)
 			buyers = re.sub(acronym0,acronym1, buyers)
-			location = re.sub(acronym0,acronym1, location)
+			address = re.sub(acronym0,acronym1, address)
+			location_info = re.sub(acronym0, acronym1, location_info)
 		# Check for occurences of problematic "Mc" names. Corrections assume that the letter after should be capitalized:
 		for mcname in mcnames:
 			mcname0 = mcname[0]
 			mcname1 = mcname[1]
 			sellers = re.sub(mcname0,mcname1, sellers)
 			buyers = re.sub(mcname0,mcname1, buyers)
-			location = re.sub(mcname0,mcname1, location)
+			address = re.sub(mcname0, mcname1, address)
+			location_info = re.sub(mcname0,mcname1, location_info)
 		# Check for problematic abbreviations:
 		for abbreviation in abbreviations:
 			abbreviation0 = abbreviation[0]
 			abbreviation1 = abbreviation[1]
 			sellers = re.sub(abbreviation0, abbreviation1, sellers)
 			buyers = re.sub(abbreviation0, abbreviation1, buyers)
-			location = re.sub(abbreviation0, abbreviation1, location)
+			address = re.sub(abbreviation0, abbreviation1, address)
+			location_info = re.sub(abbreviation0, abbreviation1, location_info)
 		# Fix address abbreviations (for AP style purposes)
 		for address_abbreviation in address_abbreviations:
 			address0 = address_abbreviation[0]
 			address1 = address_abbreviation[1]
-			location = re.sub(address0, address1, location)
+			address = re.sub(address0, address1, address)
+			location_info = re.sub(address0, address1, location_info)
 		for middle_initial in middle_initials:
 			middle_initial0 = middle_initial[0]
 			middle_initial1 = middle_initial[1]
@@ -189,13 +197,13 @@ def CleanNew(rows):
 
 		# Must do regex for "St" and others. Imagine "123 Star St". Scanning for " St" in the above loop 
 		# would catch the start of the street name here. "St " wouldn't work either.
-		location = re.sub(r"St$",r"St.",location) #Check for "St" followed by end-of-line character
-		location = re.sub(r"Ave$",r"Ave.",location)
-		location = re.sub(r"Dr$",r"Dr.",location)
-		location = re.sub(r" N ",r" N. ",location)
-		location = re.sub(r" S ",r" S. ",location)
-		location = re.sub(r" E ",r" E. ",location)
-		location = re.sub(r" W ",r" W. ",location)
+		address = re.sub(r"St$",r"St.",address) #Check for "St" followed by end-of-line character
+		address = re.sub(r"Ave$",r"Ave.",address)
+		address = re.sub(r"Dr$",r"Dr.",address)
+		address = re.sub(r" N ",r" N. ",address)
+		address = re.sub(r" S ",r" S. ",address)
+		address = re.sub(r" E ",r" E. ",address)
+		address = re.sub(r" W ",r" W. ",address)
 		sellers = re.sub(r"Inc$",r"Inc.", sellers)
 		buyers = re.sub(r"Inc$",r"Inc.", buyers)
 		amt = str(amt)
@@ -205,10 +213,41 @@ def CleanNew(rows):
 		amt = round(amt) # round to nearest dollar
 		amt = int(amt) 
 
+		#Get rid of empty fields in location_info
+		#print 'Get rid of empty fields.\n'
+		#print '\n', location_info
+		location_info = location_info.replace(';', ',')#So can split on commas for both semi-colons and commas
+
+		#To remove district ordinal
+		location_info = location_info.replace('1st', '')
+		location_info = location_info.replace('2nd', '')
+		location_info = location_info.replace('3rd', '')
+		location_info = location_info.replace('4th', '')
+		location_info = location_info.replace('5th', '')
+		location_info = location_info.replace('6th', '')
+		location_info = location_info.replace('7th', '')
+
+		location_info_list = location_info.split(',')
+		location_info = ''
+
+		for l in location_info_list:
+			#print l.strip()
+			if l.strip()[-1] != ':':
+				if location_info == '':
+					location_info = l.strip()
+				else:
+					location_info = location_info + ', ' + l.strip()
+
+		#print 'Final:', location_info
+		#print len(location_info_list)
+		#unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location_info).group(1)
+
+
 		# Write over current row's values with newer, cleaner, smarter, better values
 		rows[i]['sellers'] = sellers.strip()
 		rows[i]['buyers'] = buyers.strip()
-		rows[i]['location'] = location.strip(" ,")
+		rows[i]['address'] = address.strip(" ,")
+		rows[i]['location_info'] = location_info.strip(" ,")
 		rows[i]['amount'] = amt
 		rows[i]['neighborhood'] = neighborhood
 	return rows

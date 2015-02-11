@@ -21,27 +21,29 @@ c = conn.cursor(cursor_factory=psycopg2.extras.DictCursor)
 pp = pprint.PrettyPrinter()
 engine = create_engine('%s' % (server_engine))
 
-def getErrorPageHtml(url):
-    error_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'})
-    error_con = urllib2.urlopen(error_req)
-    error_html = error_con.read()
-    error_con.close()
-
-    return error_html
-
-def formAssessorURL(location):
+def formAssessorURL(address, location_info):
     #todo: what if multiple addresses. which to use to form assessor's link?
     #todo: need to account for N/S/E/W designations. Ex: S. Saratoga St. has url_param = 2617-SSARATOGAST. Maybe need to ignore the cardinal direction? Seems like it is always necessary if present though.
 
-    location = location.strip()
-    location = location.upper()
+    #print 'address:', address
+    #print 'location_info:', location_info
 
-    address_number = re.match(r"[^ \-]*", location).group(0)
+    address = address.strip()
+    address = address.upper()
+
+    location_info = location_info.strip()
+    location_info = location_info.upper()
+
+    address_number = re.match(r"[^ \-]*", address).group(0)
 
     if address_number == 'UNIT:':
         return None
 
-    street = re.match(r"\S+\s([^\,]*)", location).group(1)
+    #print 'address_number:', address_number
+
+    street = re.match(r"\S+\s([^\,]*)", address).group(1)
+
+    #print 'street:', street
 
     street_direction = street.split(' ')[0]
 
@@ -49,6 +51,8 @@ def formAssessorURL(location):
         street_direction = street_direction[0]
     else:
         street_direction = ''
+
+    #print 'street_direction:', street_direction
 
     street_type = street.split(' ')[-1]
 
@@ -122,7 +126,13 @@ def formAssessorURL(location):
         ['PROMENADE', ''],
         ['QUAY', ''],
         ['BYPASS', ''],
-        ['STRAVENUE', '']
+        ['STRAVENUE', ''],
+
+        # Post cleanup
+        ['AVE.', 'AV'],
+        ['BLVD.', 'BL'], 
+        ['ROAD', 'RD'],
+        ['ST.', 'ST']
     ]
     street_type_abbr = street_type
     for abbreviation in abbreviations:
@@ -130,7 +140,14 @@ def formAssessorURL(location):
         abbr1 = abbreviation[1]
         street_type_abbr = re.sub(abbr0, abbr1, street_type_abbr)
 
-    unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location).group(1)
+
+
+    unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location_info)
+    if unit != None:
+        unit = unit.group(1)
+    else:
+        unit = ''
+    #print 'unit:', unit
 
     street = " ".join(street.split()[0:-1])
 
@@ -150,7 +167,24 @@ def formAssessorURL(location):
 
     url_param = address_number + unit + '-' + street_direction + street + street_type_abbr
 
+    print 'url_param:', url_param
+
     return url_param
+
+
+
+
+
+
+
+
+def getErrorPageHtml(url):
+    error_req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'})
+    error_con = urllib2.urlopen(error_req)
+    error_html = error_con.read()
+    error_con.close()
+
+    return error_html
 
 def testUrl(url, error_html):
     req = urllib2.Request(url, headers={'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 Safari/537.36'})
@@ -179,6 +213,9 @@ def getInstrumentNumbers():
     print "# of records:", len(q)
         
     for u in q:
+        address = u.address
+        location_info = u.location_info
+        location = address + ', ' + location_info#todo: check that this concatenates correctly for formAssessorUrl function
         locations.append(u.location)
 
     session.close()

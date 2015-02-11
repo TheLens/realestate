@@ -36,7 +36,10 @@
               <label>Publish location?</label> <input type="search" id="location_publish_{{loop.index}}" value="{{ newrow.location_publish }}">
             </div>
             <div class="dashboard-row">
-              <label>Location:</label> <input type="search" id="location_{{loop.index}}" value="{{ newrow.location }}">
+              <label>Address:</label> <input type="search" id="address_{{loop.index}}" value="{{ newrow.address }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Location info:</label> <input type="search" id="location_info_{{loop.index}}" value="{{ newrow.location_info }}">
             </div>
             <div class="dashboard-row">
               <label>Latitude:</label> <input type="search" id="latitude_{{loop.index}}" value="{{ newrow.latitude }}">
@@ -85,7 +88,6 @@
     <script type="text/javascript" src="http://code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
     <script type="text/javascript" src="http://cdn.leafletjs.com/leaflet-0.7.3/leaflet.js"></script>
     <script type="text/javascript" src='https://api.tiles.mapbox.com/mapbox.js/v2.1.4/mapbox.js'></script>
-    <script src="http://www.mapquestapi.com/sdk/leaflet/v1.s/mq-map.js?key=Fmjtd%7Cluur2qa72u%2C7a%3Do5-9abx1y"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/foundation.min.js"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/js/modernizr.js"></script>
     <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/elections.thelensnola.org/resources/topojson.v1.min.js"></script>
