@@ -15,7 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from databasemaker import Cleaned
-from datetime import datetime, timedelta
+from datetime import datetime
 from app_config import server_connection, server_engine, APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET
 
 pp = pprint.PrettyPrinter()
@@ -54,11 +54,11 @@ def figureOutRecordedDate():
 
 def getHighestAmountDetails(document_recorded):
     q = session.query(
-            Cleaned
+            Cleaned.detail_publish, Cleaned.document_recorded, Cleaned.amount
         ).filter(
             Cleaned.detail_publish == '1'
         ).filter(
-            Cleaned.document_recorded == '%s' % '2014-02-18'#todo: switch to document_recorded for server
+            Cleaned.document_recorded == '%s' % document_recorded
         ).order_by(
             Cleaned.amount.desc()
         ).limit(1).all()

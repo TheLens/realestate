@@ -261,6 +261,7 @@ def locations(form, form_id):
             output = []
 
 def Geocode():
+    print "Geocoding..."
     logger.info('Geocode')
     '''
     Geocodes existing records and/or new records — any records that have not yet been geocoded.
@@ -283,6 +284,8 @@ def Geocode():
     An altered version of the following batch geocoding code: http://postgis.net/docs/Geocode.html
     It will only geocode entries without ratings (new records), so this is good for either batch processing or only processing new records.
     cur.execute("UPDATE locations SET (rating, longitude, latitude) = ( COALESCE((g.geo).rating,-1), ST_X((g.geo).geomout)::numeric(8,5), ST_Y((g.geo).geomout)::numeric(8,5)) FROM (SELECT document_id FROM locations WHERE rating IS NULL ORDER BY document_id) As a  LEFT JOIN (SELECT document_id, (geocode(full_address,1)) As geo FROM locations As ag WHERE ag.rating IS NULL ORDER BY document_id) As g ON a.document_id = g.document_id WHERE a.document_id = locations.document_id;")
+
+    If restoring database creates problems with TIGER or geocode() function, follow instructions here: http://lists.osgeo.org/pipermail/postgis-users/2011-October/031156.html
     '''
     logger.info('Begin geocode')
     cur.execute("""
@@ -311,25 +314,34 @@ def Geocode():
     conn.commit()
 
 def Publish(initial_date = None, until_date = None):
+    print "Determining whether to publish records..."
     logger.info('Publish')
     '''
     Checks geocoded ratings, dates, etc. to decide whether to publish or not 
     '''
 
-    session.query(Location).filter(Location.rating <= 3).update({"location_publish": "1"})
+    session.query(
+            Location.rating, Location.location_publish
+        ).filter(
+            Location.rating <= 3
+        ).update({"location_publish": "1"})
     session.flush()
 
-    session.query(Location).filter(Location.rating > 3).update({"location_publish": "0"})
+    session.query(
+            Location.rating, Location.location_publish
+        ).filter(
+            Location.rating > 3
+        ).update({"location_publish": "0"})
     session.flush()
 
-    session.query(Location).filter(Location.longitude < -90.140388).update({"location_publish": "0"}) # Long less than -90.140388 is west of New Orleans
+    session.query(Location.longitude, Location.location_publish).filter(Location.longitude < -90.140388).update({"location_publish": "0"}) # Long less than -90.140388 is west of New Orleans
     session.flush()
 
     # Long greater than -89 is east of New Orleans, which is practically MS anyway
-    session.query(Location).filter(Location.latitude < 29.864543).update({"location_publish": "0"}) # Lat less than 29.864543 is south of New Orleans
+    session.query(Location.latitude, Location.location_publish).filter(Location.latitude < 29.864543).update({"location_publish": "0"}) # Lat less than 29.864543 is south of New Orleans
     session.flush()
 
-    session.query(Location).filter(Location.latitude > 30.181719).update({"location_publish": "0"}) # Lat less than 29.864543 is north of New Orleans
+    session.query(Location.latitude, Location.location_publish).filter(Location.latitude > 30.181719).update({"location_publish": "0"}) # Lat less than 29.864543 is north of New Orleans
     session.flush()
 
     '''
@@ -337,11 +349,11 @@ def Publish(initial_date = None, until_date = None):
     '''
 
     # Assume publishable, then check for reasons not to publish.
-    session.query(Detail).update({"detail_publish": "1"})
+    session.query(Detail.detail_publish).update({"detail_publish": "1"})
     session.flush()
 
     session.query(
-            Detail
+            Detail.document_date, Detail.document_recorded, Detail.detail_publish
         ).filter(
             (Detail.document_date == None) | 
             (Detail.document_recorded == None)
@@ -369,21 +381,28 @@ def Publish(initial_date = None, until_date = None):
         with session.begin_nested():
             # For sales recorded on a given day, check if the document date is unbelievable (too old or in the future)
 
-            session.query(Detail).filter(Detail.document_recorded == '%s' % current_date_string).filter(Detail.document_date < '%s' % old_date_string).update({"detail_publish": "0"})
+            session.query(
+                    Detail.document_recorded, Detail.document_date, Detail.detail_publish
+                ).filter(
+                    Detail.document_recorded == '%s' % current_date_string
+                ).filter(
+                    Detail.document_date < '%s' % old_date_string
+                ).update({"detail_publish": "0"})
             session.flush()
 
-            session.query(Detail).filter(Detail.document_recorded == '%s' % current_date_string).filter(Detail.document_date > '%s' % previous_date_string).update({"detail_publish": "0"})
+            session.query(Detail.document_recorded, Detail.document_date, Detail.detail_publish).filter(Detail.document_recorded == '%s' % current_date_string).filter(Detail.document_date > '%s' % previous_date_string).update({"detail_publish": "0"})
             session.flush()
 
         current_date = current_date + timedelta(days = 1)
 
-    session.query(Detail).filter(Detail.amount <= 0).update({"detail_publish": "0"}) # Not sure about these, so check them all for now to be safe
+    session.query(Detail.amount, Detail.detail_publish).filter(Detail.amount <= 0).update({"detail_publish": "0"}) # Not sure about these, so check them all for now to be safe
     session.flush()
 
-    session.query(Detail).filter(Detail.amount >= 20000000).update({"detail_publish": "0"}) # Anything over $20,000,000 wouldn't be impossible, but is certainly a rare occurrence
+    session.query(Detail.amount, Detail.detail_publish).filter(Detail.amount >= 20000000).update({"detail_publish": "0"}) # Anything over $20,000,000 wouldn't be impossible, but is certainly a rare occurrence
     session.commit()
 
 def Clean(initial_date = None, until_date = None):
+    print "Adding to cleaned table..."
     logger.info('Clean')
 
     email_file = "logs/email-%s.txt" % datetime.now().strftime('%Y-%m-%d')
@@ -424,7 +443,6 @@ def Clean(initial_date = None, until_date = None):
         JOIN neighborhood ON details.document_id = neighborhood.document_id
         WHERE document_recorded >= '%s' AND document_recorded <= '%s';
     """ % (initial_date, until_date)
-
     
     result = engine.execute(sql_with_neighborhood)
 
@@ -432,14 +450,11 @@ def Clean(initial_date = None, until_date = None):
     for row in result:
         row = dict(row)
         rows.append(row)
-
+        
     rows = Cleanup.CleanNew(rows) # Clean up things like capitalizations, abbreviations, AP style quirks, etc.
-
-    #pp.pprint(rows)
 
     for row in rows:
         logger.info('Inserting', row)
-        #print row, '\n'
         try:
             with session.begin_nested():
                 i = insert(Cleaned)
@@ -452,8 +467,6 @@ def Clean(initial_date = None, until_date = None):
             logger.info('ERROR! Probably an integrity error (a sale with this instrument number has already been entered into the cleaned table.');
 
     session.commit()
-    
-
 
     '''
     Cleaned table has new records now. Can use straightforward SQL queries on Cleaned.
@@ -607,6 +620,7 @@ def copyDashboardToCleaned():
     Only for building database from scratch: Normal flow is add yesterday to Cleaned and publish accordingly. Dashboard interaction then comes after and directly updates Cleaned while simultaneously adding to/updating same entry in Dashboard table.
     '''
 
+    print "Restoring dashboard table..."
     logger.info('Dashboard')
 
     try:
@@ -673,6 +687,7 @@ def Squares(initial_date = None, until_date = None):
     Problems with matching square and district values to shapefile.
     There are integrity issues with the squares file to begin with, so don't use this function until improvements are made.
     '''
+    print "Identifying square..."
     logger.info('Squares')
     q = session.query(Location).filter(Location.rating > 3).all()
     for u in q:
@@ -748,7 +763,7 @@ def Squares(initial_date = None, until_date = None):
 
         # Don't update location_publish to '1' because not sure yet that this is trustworthy. This gives a new lat/long, but is not displayed on the map until confirmation from dashboard.
         session.query(
-                Cleaned
+                Cleaned.instrument_no, Cleaned.document_recorded, Cleaned.latitude, Cleaned.longitude
             ).filter(
                 Cleaned.instrument_no == '%s' % (in_no)
             ).filter(
@@ -852,7 +867,7 @@ def Neighborhoods(initial_date = None, until_date = None):
 
         # Update cleaned table with this new neighborhood value
         session.query(
-                Cleaned
+                Cleaned.instrument_no, Cleaned.neighborhood
             ).filter(
                 Cleaned.instrument_no == '%s' % (in_no)
             ).update({
@@ -861,7 +876,7 @@ def Neighborhoods(initial_date = None, until_date = None):
         session.commit()
 
 def Build(initial_date = None, until_date = None):
-
+    print "Building tables..."
     logger.info('buildFromScratch')
 
     print "details"
@@ -960,6 +975,7 @@ def Build(initial_date = None, until_date = None):
 
 def sendEmail():
     # Send me an email of new rows
+    print "Sending email summary..."
     logger.info('gmail function:')
     gmail.main()
 
@@ -992,6 +1008,8 @@ def checkAssessorLinks(initial_date = None, until_date = None):
             Cleaned.document_recorded >= '%s' % (initial_date)
         ).filter(
             Cleaned.document_recorded <= '%s' % (until_date)
+        ).filter(
+            Cleaned.assessor_publish == '0'
         ).all()
     
     error_html = getErrorPageHtml("http://qpublic9.qpublic.net/la_orleans_display.php?KEY=7724-BURTHESTt")
@@ -999,7 +1017,7 @@ def checkAssessorLinks(initial_date = None, until_date = None):
     num_records = len(q)
     print '%d records to check.' % num_records
 
-    for i, u in enumerate(q):
+    for u in q:
         print '%d records left.' % num_records
         num_records = num_records - 1
         address = u.address
@@ -1007,13 +1025,16 @@ def checkAssessorLinks(initial_date = None, until_date = None):
         instrument_no = u.instrument_no
         url_param = check_assessor_urls.formAssessorURL(address, location_info)
 
+
         if url_param == None:
-            session.query(Cleaned).filter(
+            '''
+            session.query(Cleaned.instrument_no, Cleaned.assessor_publish).filter(
                 Cleaned.instrument_no == '%s' % (instrument_no)
             ).update({
                 "assessor_publish": "0"
             })
             session.commit()
+            '''
             continue
         
         assessor_url = "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s" % (url_param)
@@ -1021,59 +1042,40 @@ def checkAssessorLinks(initial_date = None, until_date = None):
         response = testUrl(assessor_url, error_html)
 
         if response == None:#No error page
-            session.query(Cleaned).filter(
+            session.query(Cleaned.instrument_no, Cleaned.assessor_publish).filter(
                 Cleaned.instrument_no == '%s' % (instrument_no)
             ).update({
                 "assessor_publish": "1"
             })
             session.commit()
+        '''
         else:#Error page
-            session.query(Cleaned).filter(
+            session.query(Cleaned.instrument_no, Cleaned.assessor_publish).filter(
                 Cleaned.instrument_no == '%s' % (instrument_no)
             ).update({
                 "assessor_publish": "0"
             })
             session.commit()
+        '''
 
-        # if i == 5:
-        #     break
+        time.sleep(random.randint(1,2) + random.uniform(1.0, 2.0))
 
-        time.sleep(random.randint(3,5) + random.uniform(1.0, 2.0))
-
-def doItAll(initial_date = '2014-02-18', until_date = None):
-    print "Building tables..."
+def doItAll(initial_date = '2014-02-18', until_date = yesterday_date):
     Build(initial_date = initial_date, until_date = until_date)
-
-    print "Geocoding..."
     Geocode() #CAUTION! Geocoding entire archive takes ~45 minutes.
-
-    print "Determining whether to publish records..."
     Publish(initial_date = initial_date, until_date = until_date)
-
-    print "Adding to cleaned table..."
-    Clean(initial_date = initial_date, until_date = until_date)
-
-    '''
-    print "Identifying square..."
-    # Don't run Squares() until data integrity issues are solved.
-    #Squares(initial_date = initial_date, until_date = until_date)
-    '''
-
+    Clean(initial_date = initial_date, until_date = until_date)  
+    ###Squares(initial_date = initial_date, until_date = until_date)# Don't run Squares() until data integrity issues are solved.
     if initial_date != until_date: # Assumes any range of dates also wants this function.
-        print "Restoring dashboard table..."
         copyDashboardToCleaned()
-
     updateCleanedGeom()
-
-    print "Sending email summary..."
-    sendEmail()#todo: need dates?
-
-    checkAssessorLinks(initial_date = initial_date, until_date = until_date)
+    #sendEmail()#todo: need dates?
+    #checkAssessorLinks(initial_date = initial_date, until_date = until_date)
 
 if __name__ == '__main__':
     # From scratch:
     #doItAll(initial_date = '2014-02-18', until_date = '2014-02-19')#Default is to run through entire archive, from 2014-02-18 through most recent
-    doItAll()
+    doItAll(initial_date = '2015-02-10')
 
     # Just yesterday:
     #doItAll(initial_date = yesterday_date, until_date = yesterday_date)

@@ -112,6 +112,7 @@ def SendMessage(service, user_id, message_body):
     Draft object, including draft id and message meta data.
     """
 
+    #todo: need way to truncate if too large. will only ever be a problem for full rebuild, but still, need to make that process as failproof as possible.
     message = (service.users().messages().send(userId=user_id, body=message_body).execute())
 
     return message
@@ -121,7 +122,6 @@ def main():
     '''
     # Don't include log file so the email doesn't get placed in spam folder
     # todo: turn this back on so other people can receive email notifications
-    # todo: make emails more readable (amounts with $ and commas, rewrite date, remove xxx_publish?)
     them_message = CreateMessage(
         sender = 'Thomas Thoren <tthoren@thelensnola.org>',
         to = 'Abe Handler <ahandler@thelensnola.org>, Charles Maldonado <cmaldonado@thelensnola.org>, Steve Myers <smyers@thelensnola.org>'

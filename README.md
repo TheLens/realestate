@@ -1,3 +1,6 @@
+![Alt text](http://upload.wikimedia.org/wikipedia/en/thumb/b/b7/The_Wire_Stringer_Bell.jpg/250px-The_Wire_Stringer_Bell.jpg)
+![Alt text](http://upload.wikimedia.org/wikipedia/en/thumb/c/c8/The_Wire_Clay_Davis.jpg/250px-The_Wire_Clay_Davis.jpg)
+
 http://vault.thelensnola.org/realestate
 
 # Basics

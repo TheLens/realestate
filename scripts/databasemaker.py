@@ -67,22 +67,22 @@ class Cleaned(Base):
 	__tablename__ = 'cleaned'
 
 	#id = Column(Integer, primary_key=True)
-	instrument_no = Column(String, primary_key=True)
+	instrument_no = Column(String, primary_key=True, index=True)
 	geom = Column(Geometry(geometry_type='POINT', srid=4326, spatial_index=True))
 	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
-	address = Column(String)
-	location_info = Column(String)
-	sellers = Column(String)
-	buyers = Column(String)
+	address = Column(String, index=True)
+	location_info = Column(String, index=True)
+	sellers = Column(String, index=True)
+	buyers = Column(String, index=True)
 	latitude = Column(Float) 
 	longitude = Column(Float)
-	zip_code = Column(String)
+	zip_code = Column(String, index=True)
 	detail_publish = Column(String)
 	location_publish = Column(String)
 	assessor_publish = Column(String)
-	neighborhood = Column(String)
+	neighborhood = Column(String, index=True)
 
 	def __init__(self, geom, amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, neighborhood):
 		#self.id=id,
@@ -114,7 +114,8 @@ class Dashboard(Base):
 	amount = Column(BigInteger)
 	document_date = Column(Date, nullable=True)
 	document_recorded = Column(Date, nullable=True)
-	location = Column(String)
+	address = Column(String)
+	location_info = Column(String)
 	sellers = Column(String)
 	buyers = Column(String)
 	instrument_no = Column(String, ForeignKey("cleaned.instrument_no"), nullable=False)
@@ -126,12 +127,13 @@ class Dashboard(Base):
 	neighborhood = Column(String)
 	fixed = Column(Boolean)
 
-	def __init__(self, id, amount, document_date, document_recorded, location, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood, fixed):
+	def __init__(self, id, amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood, fixed):
 		self.id=id,
 		self.amount=amount,
 		self.document_date=document_date,
 		self.document_recorded=document_recorded,
-		self.location=location,
+		self.address=address,
+		self.location_info=location_info,
 		self.sellers=sellers,
 		self.buyers=buyers,
 		self.instrument_no=instrument_no,
@@ -145,7 +147,7 @@ class Dashboard(Base):
 		pass
 
 	def __repr__(self):
-		return "<Dashboard(id='%s', fixed='%s', amount='%s', document_date='%s', location='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.id, self.fixed, self.amount, self.document_date, self.location, self.sellers, self.buyers, self.instrument_no)
+		return "<Dashboard(id='%s', fixed='%s', amount='%s', document_date='%s', address='%s', sellers='%s', buyers='%s', instrument_no='%s')>" % (self.id, self.fixed, self.amount, self.document_date, self.address, self.sellers, self.buyers, self.instrument_no)
 
 class Detail(Base):
 	__tablename__ = 'details'

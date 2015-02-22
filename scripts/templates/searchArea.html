@@ -1,16 +1,19 @@
 <div class="row">
     <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
     <div class="small-12 medium-10 text-left columns" id="search-note">
-        <a>*New* Advanced search using neighborhood name and zip code.</a>
+        <a>*New* Search by neighborhood and ZIP code.</a>
     </div>
     <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
 </div>
 <div class="row slim">
     <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
     <div class="small-12 medium-10 columns slim">
-        <div class="row collapse slim">
+        <div class="row slim collapse">
             <div class="small-10 columns" id="input-div">
-                <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address or instrument number">
+                <input id="name_address_box" type="search" name="namesearch" placeholder="Enter seller, buyer, address or instrument number" />
+                <!-- <div class="gsst_b" id="clearQuerydiv" style="display:inline-block; position: absolute;">
+                    <a class="gsst_a" style=""><span class="sbcb_a" id="clearQuery" aria-label="Clear Search">×</span></a>
+                </div> -->
             </div>
             <div class="small-2 columns">
                 <button class="button postfix"><i class="fa fa-search"></i></button>
@@ -21,8 +24,8 @@
 </div>
 <div class="row">
     <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
-    <div class="small-7 medium-7 text-left columns" id="search-examples">Example: John Doe; Doe, John; Esplanade Avenue; 2014-06854</div>
-    <div class="small-5 medium-3 text-right columns" id="advanced-search"><a>Advanced search <i class="fa fa-caret-down"></i></a></div>
+    <div class="small-6 medium-7 text-left columns" id="search-examples">Example: John Doe; Esplanade Avenue; Garden District</div>
+    <div class="small-6 medium-3 text-right columns" id="advanced-search"><a>Advanced search <i class="fa fa-caret-down"></i></a></div>
     <div class="small-0 medium-1 columns"><span class="hide-for-small-only">&nbsp;</span></div>
 </div>
 <div id="filters">
@@ -32,20 +35,24 @@
         <!-- Amount -->
         <div class="small-6 medium-3 large-3 columns">
             <div class="search-range-title">Amount</div>
-            <label><span class="low-break-hack"><br></span>Low:</label>
-                <input id="amount1" class="currency" type="search" name="amount-low" placeholder="$">
+            <label>Low:</label>
+                <input id="amount1" class="currency" pattern="\d*" type="search" name="amount-low" placeholder="$">
             <label>High:</label>
-                <input id="amount2" class="currency" type="search" name="amount-high" placeholder="$">
+                <input id="amount2" class="currency" pattern="\d*" type="search" name="amount-high" placeholder="$">
         </div>
         <!-- end amount -->
 
         <!-- Date -->
         <div class="small-6 medium-4 large-3 columns">
             <div class="search-range-title">Date</div>
-            <label>From (<span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="The source of our data only goes back to Feb. 18, 2014. Click to read more."><a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">since Feb. 18, 2014</a></span>):</label>
-            <input id="date1" type="search" name="begin-date" placeholder="mm/dd/yyyy">
+            <label>From <span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="Our data only goes back to Feb. 18, 2014. Click to read more.">
+                    <a class="hide-for-small-only" href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">(since Feb. 18, 2014):</a>
+                </span>
+                <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank"><i class="fa fa-info-circle show-for-small-only">:</i></a>
+            </label>
+            <input id="date1" type="date" min="2014-02-18" max="9999-01-01" name="begin-date" placeholder="mm/dd/yyyy">
             <label>To:</label>
-                <input id="date2" type="search" name="end-date" placeholder="mm/dd/yyyy">
+            <input id="date2" type="date" name="end-date" placeholder="mm/dd/yyyy">
         </div>
         <!-- End date -->
 
@@ -58,7 +65,7 @@
                 <div class="small-6 medium-12 large-6 columns">
                     <div class="search-range-title">Neighborhood</div>
                         <label>&nbsp;</label>
-                        <select id="neighborhood-dropdown">
+                        <select id="neighborhood">
                             <option selected value="">Select</option>
                             {% for neighborhood in neighborhoods %}
                             <option value="{{ neighborhood }}">{{ neighborhood }}</option>
@@ -73,7 +80,7 @@
                     <div class="small-6 medium-12 large-6 columns">
                         <div class="search-range-title zip">Zip code</div>
                         <label class="zip-label">&nbsp;</label>
-                        <select id="zip-dropdown">
+                        <select id="zip_code">
                             <option selected value="">Select</option>
                             {% for zip_code in zip_codes %}
                             <option value="{{ zip_code }}">{{ zip_code }}</option>
@@ -86,6 +93,17 @@
         </div>
 
         <div class="small-0 medium-1 large-1 columns">&nbsp;</div>
-
+    </div>
+    <div class="row" id="search-button">
+        <div class="small-4 columns">
+            &nbsp;
+        </div>
+        
+        <div class="small-4 columns">
+            <button class="small button expand">Search</button>
+        </div>
+        <div class="small-4 columns">
+            &nbsp;
+        </div>
     </div>
 </div>

@@ -14,7 +14,7 @@ function initializeMap(loop_index, latitude, longitude, location_publish, detail
     zoom: 17
   });
 
-  console.log('amount:', amount);
+  //console.log('amount:', amount);
 
   //Change input borders depending on good or not
   if (location_publish === 'No') {
@@ -173,12 +173,12 @@ function doPostBack(data) {
   var searchrequest = JSON.stringify(data);
   //var query_string = buildQueryString(data);
   $.ajax({
-    url: "/realestate/dashboard",
+    url: js_app_routing + "/dashboard/",
     type: "POST",
     data: searchrequest,
     contentType: "application/json; charset=utf-8",
     success: function (info) {
-      console.log(info);
+      console.log('yo');
       //window.history.pushState(null,'hi','search' + query_string);
 
       // $("#map-table-wrapper").html(info.template1);
@@ -276,7 +276,7 @@ function initialFunction(number_of_indexes, jsrows) {
   //console.log('Number of indexes:', number_of_indexes);
   //console.log("jsrows:", jsrows);
   for (var i = 1; i < number_of_indexes + 1; i++) {
-    console.log('Index: ', i);
+    //console.log('Index: ', i);
     var map = initializeMap(i, jsrows[i - 1].latitude, jsrows[i - 1].longitude, jsrows[i - 1].location_publish, jsrows[i - 1].detail_publish, jsrows[i - 1].amount, jsrows[i - 1].document_date, jsrows[i - 1].document_recorded);
     //addDataToMap(map, neighborhoods, squares);
   }

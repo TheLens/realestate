@@ -17,8 +17,18 @@
                                 <div class="location_info"><strong>Location Info</strong><br>{{ newrow.location_info }}</div>
                                 <div class="sellers">{{ newrow.sellers }}</div>
                                 <div class="buyers">{{ newrow.buyers }}</div>
-                                <div class="instrument_no no-wrap">{{ newrow.instrument_no }}</div>
+                                <div class="instrument_no no-wrap">
+                                    <div>
+                                        <span class="instrument_no_header">Instrument Number</span>
+                                    </div>
+                                    <div>
+                                        {{ newrow.instrument_no }}
+                                    </div>
+                                </div>
                             {% endfor %}
+                        </div>
+                        <div class="small-12 columns" id="learn-more">
+                            <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">Learn more about this data.</a>
                         </div>
                         <div class="small-12 columns" id="assessor">
                             {{ assessor|safe }}
@@ -33,6 +43,7 @@
         {% include 'footer.html' %}
         <div id="tooltip"></div>
         {% include 'js.html' %}
+        <script type="text/javascript" src={{ js }}></script>
         <script type="text/javascript" src={{ salejs }}></script>
         <script type="text/javascript">
             if ({{ jsdata|tojson }} !== 'None') {

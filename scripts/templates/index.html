@@ -27,7 +27,7 @@
         {% include 'searchArea.html' %}
 
         <div class="p402_premium">
-            <div class="row" id="search-button"><!--todo: possible to just make display: none? could solve js tasks to remove this div-->
+            <div class="row" id="search-button" style="display: none;">
                 <div class="small-4 columns">
                     &nbsp;
                 </div>
@@ -44,7 +44,15 @@
             try { _402_Show(); } catch(e) {}
         </script>
         {% include 'footer.html' %}
+        <script type="text/javascript">
+            if ({{ js_app_routing|tojson }} !== 'None') {
+                var js_app_routing = {{ js_app_routing|tojson }};
+                //console.log('js_app_routing:', js_app_routing);
+            }
+        </script>
         {% include 'js.html' %}
+        <script type="text/javascript" src={{ js }}></script>
         <script type="text/javascript" src={{ indexjs }}></script>
+        <script type="text/javascript" src={{ searchAreajs }}></script>
     </body>
 </html>

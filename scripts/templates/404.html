@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% include 'head.html' %}
+    </head>
+    <body>
+        {% include 'banner.html' %}
+        <div class="row">
+            <div class="small-12 medium-12 columns">
+                We have thousands of property sales in The Vault, but we can't find the one with this URL.
+
+                <a href="/realestate/">Start a new search.</a>
+            </div>
+        </div>
+    {% include 'js.html' %}
+    <script type="text/javascript" src={{ js }}></script>
+    <script type="text/javascript" src={{ indexjs }}></script>
+    </body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        {% include 'head.html' %}       
+        {% include 'head.html' %}    
     </head>
     <body>
         {% include 'banner.html' %}
@@ -10,7 +10,7 @@
             <div class="small-12 columns">
                 <div class="row">
                     <div class="small-12 text-left columns">
-                        <div><span id="qlength">{{ qlength }}</span> <span id="plural_or_not">{{ plural_or_not }}</span> found...</div>
+                        <div id="results_language">{{ results_language }}</div>
                     </div>
                 </div>
             </div>
@@ -27,11 +27,6 @@
                 </div>
             </div>
             <div class="small-12 large-4 columns" id="table-footer-wrapper">
-                <!-- <div class="row">
-                    <div class="small-12 text-right columns">
-                        <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">What do these mean?</a>
-                    </div>
-                </div> -->
                 <div class="row">
                     <div class="small-12 columns">
                         <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
@@ -44,7 +39,7 @@
                                         <th>Location Info</th>
                                         <th>Sellers</th>
                                         <th>Buyers</th>
-                                        <th>Instrument Number</th>
+                                        <!-- <th>Instrument Number</th> -->
                                     </tr>
                                 </thead>
                                 <tbody id="tbody">
@@ -56,23 +51,25 @@
                                             <td class="location_info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
                                             <td class="sellers">{{ newrow.sellers }}</td>
                                             <td class="buyers">{{ newrow.buyers }}</td>
-                                            <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td>
+                                            <!-- <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td> -->
                                         </tr>
                                     {% endfor %}
                                 </tbody>
                             </table>
+                            <div id="results-not-found" style="display:{{ show_results }};">No results found. Please try another search.</div>
                         </div>
+                        <!-- <div class="table-container-fade"></div> -->
                         <div class="row" id="footer">
                             <div class="medium-1 visible-for-medium-only columns">
                                 &nbsp;
                             </div>
-                            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback">
+                            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback" id="back_button">
                                 <i class="fa fa-arrow-left"></i> Back
                             </div>
                             <div class="small-4 text-center current-page columns">
                                 Page <span id="page">{{ page }}</span> of <span id="totalpages">{{ totalpages }}</span>
                             </div>
-                            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward">
+                            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward" id="forward_button">
                                 Forward <i class="fa fa-arrow-right"></i>
                             </div>
                             <div class="medium-1 visible-for-medium-only columns">
@@ -85,8 +82,17 @@
         </div>
         {% include 'footer.html' %}
         <div id="tooltip"></div>
+        <script type="text/javascript">
+            if ({{ js_app_routing|tojson }} !== 'None') {
+                var js_app_routing = {{ js_app_routing|tojson }};
+                //console.log('js_app_routing:', js_app_routing);
+            }
+        </script>
         {% include 'js.html' %}
+        <script type="text/javascript" src={{ js }}></script>
         <script type="text/javascript" src={{ searchjs }}></script>
+        <script type="text/javascript" src={{ searchAreajs }}></script>
+        <script type="text/javascript" src={{ mapjs }}></script>
         <script type="text/javascript">
             if ({{ parameters|tojson }} !== 'None') {
                 //console.log('parameters');

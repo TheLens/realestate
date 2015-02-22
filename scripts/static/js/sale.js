@@ -3,7 +3,7 @@ var clicked = 0;
 
 function loadMapTiles() {
   var stamenLayer = new L.StamenTileLayer("toner-lite", {
-    minZoom: 6,
+    minZoom: 9,
     type: 'png',
     attribution: '<span id="attribution-text">Map data © <a href="http://openstreetmap.org" target="_blank">OpenStreetMap</a>. Tiles by <a href="http://stamen.com" target="_blank">Stamen Design</a>. <a href="http://sos.la.gov/">sos.la.gov</a></span>',
     scrollWheelZoom: false,
@@ -15,13 +15,13 @@ function loadMapTiles() {
     attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
     scrollWheelZoom: false,
     detectRetina: true,
-    minZoom: 6
+    minZoom: 9
   });
   var satelliteLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m6noin/{z}/{x}/{y}.png', {
     attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
     scrollWheelZoom: false,
     detectRetina: true,
-    minZoom: 6
+    minZoom: 9
   });
 
   var tileTimeout;
@@ -52,7 +52,7 @@ function addLensLogoToMap() {
   var logo = L.control({position: 'bottomleft'});
   logo.onAdd = function () {
     var div = L.DomUtil.create('div');
-    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records-temp/css/images/lens-logo.png' alt='Lens logo' >";
+    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo-retina.png' alt='Lens logo' width='100' >";
     return div;
   };
   logo.addTo(map);
@@ -60,8 +60,8 @@ function addLensLogoToMap() {
 
 function createMap() {
   map = new L.Map("map", {
-    minZoom: 6,
-    maxZoom: 15,
+    minZoom: 9,
+    maxZoom: 16,
     scrollWheelZoom: false,
     fadeAnimation: false,
     zoomControl: false
@@ -113,7 +113,6 @@ function addDataToMap(data) {
   });
 
   //logo.addTo(map);
-  //$("body").removeClass("loading");
 }
 
 function initialMapFunction(data) {
@@ -131,7 +130,6 @@ function initialMapFunction(data) {
   
   //tableHover(dataLayer);
   //mapHover(dataLayer);
-
 }
 
 function mapHover(dataLayer) {

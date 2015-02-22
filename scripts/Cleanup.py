@@ -211,43 +211,88 @@ def CleanNew(rows):
 		amt = re.sub(r',',r'',amt) # remove the comma
 		amt = float(amt) # change string to a float
 		amt = round(amt) # round to nearest dollar
-		amt = int(amt) 
+		amt = int(amt)
 
-		#Get rid of empty fields in location_info
-		#print 'Get rid of empty fields.\n'
-		#print '\n', location_info
-		location_info = location_info.replace(';', ',')#So can split on commas for both semi-colons and commas
+		all_addresses_text = ''
+
+		address_list1 = address.split(';')
+
+		for row in address_list1:
+			# unit: x, condo: 4, etc.
+
+			address_list2 = row.split(',')
+
+			individiual_address_text = ''
+
+			for l in address_list2:
+				#condo: x
+
+				try:
+					if l.strip()[-1] != ':':
+						if individiual_address_text == '':#If first addition
+							individiual_address_text = l.strip()
+						else:#If second addition or later
+							individiual_address_text = individiual_address_text + ', ' + l.strip()
+				except:
+					continue
+
+			if all_addresses_text == '':
+				if individiual_address_text != '':
+					all_addresses_text = individiual_address_text.strip()
+			else:
+				if individiual_address_text != '':
+					all_addresses_text = all_addresses_text + '; ' + individiual_address_text.strip()
+
+		#location_info = location_info.replace(';', ',')#So can split on commas for both semi-colons and commas
 
 		#To remove district ordinal
-		location_info = location_info.replace('1st', '')
-		location_info = location_info.replace('2nd', '')
-		location_info = location_info.replace('3rd', '')
-		location_info = location_info.replace('4th', '')
-		location_info = location_info.replace('5th', '')
-		location_info = location_info.replace('6th', '')
-		location_info = location_info.replace('7th', '')
+		location_info = location_info.replace('1st', '1')
+		location_info = location_info.replace('2nd', '2')
+		location_info = location_info.replace('3rd', '3')
+		location_info = location_info.replace('4th', '4')
+		location_info = location_info.replace('5th', '5')
+		location_info = location_info.replace('6th', '6')
+		location_info = location_info.replace('7th', '7')
 
-		location_info_list = location_info.split(',')
-		location_info = ''
+		all_locations_text = ''
 
-		for l in location_info_list:
-			#print l.strip()
-			if l.strip()[-1] != ':':
-				if location_info == '':
-					location_info = l.strip()
-				else:
-					location_info = location_info + ', ' + l.strip()
+		list1 = location_info.split(';')
 
-		#print 'Final:', location_info
-		#print len(location_info_list)
+		for row in list1:
+			# unit: x, condo: 4, etc.
+
+			list2 = row.split(',')
+
+			individiual_location_text = ''
+
+			for l in list2:
+				#condo: x
+
+				try:
+					if l.strip()[-1] != ':':
+						if individiual_location_text == '':#If first addition
+							individiual_location_text = l.strip()
+						else:#If second addition or later
+							individiual_location_text = individiual_location_text + ', ' + l.strip()
+				except:
+					continue
+
+				#print 'individiual_location_text:', individiual_location_text
+
+			if all_locations_text == '':
+				if individiual_location_text != '':
+					all_locations_text = individiual_location_text.strip()
+			else:
+				if individiual_location_text != '':
+					all_locations_text = all_locations_text + '; ' + individiual_location_text.strip()
+
 		#unit = re.match(r"^.*UNIT\: (.*)\, CONDO", location_info).group(1)
 
-
 		# Write over current row's values with newer, cleaner, smarter, better values
-		rows[i]['sellers'] = sellers.strip()
-		rows[i]['buyers'] = buyers.strip()
-		rows[i]['address'] = address.strip(" ,")
-		rows[i]['location_info'] = location_info.strip(" ,")
+		rows[i]['sellers'] = sellers.strip(' ,').replace('  ', ' ').replace(' ,', ',')
+		rows[i]['buyers'] = buyers.strip(' ,').replace('  ', ' ').replace(' ,', ',')
+		rows[i]['address'] = all_addresses_text.strip(" ,").replace('  ', ' ').replace(' ,', ',')
+		rows[i]['location_info'] = all_locations_text.strip(" ,").replace('  ', ' ').replace(' ,', ',')
 		rows[i]['amount'] = amt
-		rows[i]['neighborhood'] = neighborhood
+		rows[i]['neighborhood'] = neighborhood.replace('  ', ' ').replace(' ,', ',')
 	return rows

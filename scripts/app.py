@@ -9,7 +9,7 @@ import math
 import check_assessor_urls
 
 from flask.ext.cache import Cache
-from flask import Flask, render_template, jsonify, request, Response
+from flask import Flask, render_template, jsonify, request, Response, redirect, url_for
 from sqlalchemy import create_engine, desc, insert, update, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -17,7 +17,7 @@ from databasemaker import Cleaned, Dashboard, Neighborhood
 from datetime import datetime, timedelta
 from functools import wraps
 
-from app_config import server_connection, server_engine, indexjs, searchjs, salejs, dashboardjs, neighborhoodstopo, squarestopo, css, development_username, development_password
+from app_config import server_connection, server_engine, js, indexjs, searchAreajs, searchjs, mapjs, salejs, dashboardjs, neighborhoodstopo, squarestopo, css, development_username, development_password, app_routing, js_app_routing
 
 Base = declarative_base()
 app = Flask(__name__)
@@ -49,8 +49,15 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.errorhandler(404)
+def page_not_found(self):
+    return render_template('404.html',
+                            css = css,
+                            js = js,
+                            indexjs = indexjs), 404
+
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/", methods=['GET'])
+@app.route("%s/" % (app_routing), methods=['GET'])
 def base():
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
@@ -59,11 +66,15 @@ def base():
     yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
     yesterday_date = MonthCheck(yesterday_date)
 
-    q = session.query(Neighborhood).all()
+    qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
+
+    for u in qd:
+        yesterday_date = readableDate(u.document_recorded, no_day=True)
+
+    q = session.query(Neighborhood.gnocdc_lab).all()
 
     neighborhoods = []
     for hood in q:
-        #print hood.gnocdc_lab
         neighborhoods.append((hood.gnocdc_lab).title())
 
     neighborhoods.sort()
@@ -73,17 +84,24 @@ def base():
     return render_template(
         'index.html',
         yesterday_date = yesterday_date,
+        js = js,
         indexjs = indexjs,
+        searchAreajs = searchAreajs,
+        js_app_routing = js_app_routing,
         css = css,
         neighborhoods = neighborhoods,
         zip_codes = zip_codes
         )
 
+# @app.route('/realestate/search')
+# def searchRedirect():
+#     return redirect(url_for('/realestate/search/'))
+
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/search", methods=['GET', 'POST'])
+@app.route("%s/search/" % (app_routing), methods=['GET', 'POST'])
+@app.route("%s/search" % (app_routing), methods=['GET', 'POST'])
 def search():
     if request.method == 'GET':
-        print 'GET'
         incomingdata = {}
 
         '''
@@ -107,15 +125,12 @@ def search():
 
         amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
 
-        #print amountlow, amounthigh, begindate, enddate
-
         response = query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
 
         return response
 
     if request.method == 'POST':
         # Formerly /realestate/mapsearch
-        print 'POST'
         incomingdata = request.get_json()
 
         name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code = assignData(incomingdata)
@@ -132,29 +147,29 @@ def search():
         if 'latitude' in incomingdata and 'longitude' in incomingdata:
             latitude = incomingdata['latitude']
             longitude = incomingdata['longitude']
-            response = geoquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude)
+            response = geoquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude, mapbuttonstate)
         else:
             response = mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, page_direction, page, totalpages)
 
         return response
 
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/dashboard", methods=['GET', 'POST'])
-#@requires_auth#todo: turn back on
+@app.route("%s/dashboard/" % (app_routing), methods=['GET', 'POST'])
+@requires_auth
 def dashboard():
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
     if request.method == 'GET':
-        print 'GET'
-
         q = session.query(
                 Cleaned
             ).filter(
                 (Cleaned.detail_publish == '0') | 
                 (Cleaned.location_publish == '0')
-            ).order_by(Cleaned.document_recorded.desc()).limit(20).all()
+            ).filter(
+                Cleaned.buyers.ilike('%%waffle%%')
+            ).order_by(Cleaned.document_recorded.desc()).all()
         #todo: paginate, because loading many maps takes a while
 
         num_results = len(q)
@@ -181,11 +196,13 @@ def dashboard():
 
         return render_template(
             'dashboard.html',
+            js = js,
             dashboardjs = dashboardjs,
             neighborhoodstopo = neighborhoodstopo,
             squarestopo = squarestopo,
             css = css,
             num_results = num_results,
+            js_app_routing = js_app_routing,
             newrows = q,
             jsrows = rows,
             number_of_indexes = len(q)
@@ -193,30 +210,51 @@ def dashboard():
 
     if request.method == 'POST':
         # User submitted a change through dashboard
-        print 'POST'
-
         incomingdata = request.get_json()
 
         for key in incomingdata:
             incomingdata[key] = incomingdata[key].strip()
 
+
         #Set fixed to false
         incomingdata['fixed'] = False
 
+        dumb = incomingdata['document_recorded']
+        dumb = dumb.replace('March', 'Mar.')
+        dumb = dumb.replace('April', 'Apr.')
+        dumb = dumb.replace('May', 'May.')
+        dumb = dumb.replace('June', 'Jun.')
+        dumb = dumb.replace('July', 'Jul.')
+        dumb = datetime.strptime(dumb, '%A, %b. %d, %Y')
+        dumb = dumb.strftime('%Y-%m-%d')
+        incomingdata['document_recorded'] = dumb
+
+        dumb = incomingdata['document_date']
+        dumb = dumb.replace('March', 'Mar.')
+        dumb = dumb.replace('April', 'Apr.')
+        dumb = dumb.replace('May', 'May.')
+        dumb = dumb.replace('June', 'Jun.')
+        dumb = dumb.replace('July', 'Jul.')
+        dumb = datetime.strptime(dumb, '%A, %b. %d, %Y')
+        dumb = dumb.strftime('%Y-%m-%d')
+        incomingdata['document_date'] = dumb
+
         pp.pprint(incomingdata)
+
+
+
 
         '''
         Insert/update dashboard log table
         '''
 
         q = session.query(
-                Dashboard
+                Dashboard.instrument_no
             ).filter(
                 Dashboard.instrument_no == '%s' % (incomingdata['instrument_no'])
             ).all()
 
         input_length = len(q)
-        print input_length
 
         if input_length == 0:
             print 'Adding sale in dashboard table'
@@ -224,7 +262,7 @@ def dashboard():
             i = insert(Dashboard)
             i = i.values(incomingdata)
             session.execute(i)
-            #session.commit()
+            session.commit()
         else:
             print 'Updating sale in dashboard table'
             #This sale has already been entered into dashboard table            
@@ -233,7 +271,7 @@ def dashboard():
             u = u.where(Dashboard.instrument_no == '%s' % incomingdata['instrument_no'])
 
             session.execute(u)
-            #session.commit()
+            session.commit()
 
         # Update changes in Cleaned table
         updateCleaned()
@@ -272,9 +310,6 @@ def updateCleaned():
         rows.append(row_dict)
 
     for row in rows:
-        print 'row:'
-        print row['instrument_no']
-
         print 'Updating Cleaned sale based on Dashboard entry'
         #This sale has already been entered into dashboard table            
         u = update(Cleaned)
@@ -292,7 +327,7 @@ def updateCleaned():
         session.commit()
 
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/sale/<instrument_no>", methods=['GET'])
+@app.route("%s/sale/<instrument_no>" % (app_routing), methods=['GET'])
 def sale(instrument_no = None):
 
     search_term = instrument_no
@@ -308,6 +343,11 @@ def sale(instrument_no = None):
         Session = sessionmaker(bind=engine)
         session = Session()
 
+        qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
+
+        for u in qd:
+            yesterday_date = readableDate(u.document_recorded, no_day=True)
+
         q = session.query(
                 Cleaned
             ).filter(
@@ -320,7 +360,7 @@ def sale(instrument_no = None):
         
         for u in q: 
             u.amount = Currency(u.amount)
-            u.document_date = readableDate(u.document_date)
+            u.document_date = readableDate(u.document_date, no_day=True)
             address = u.address
             location_info = u.location_info
             assessor_publish = u.assessor_publish
@@ -332,38 +372,40 @@ def sale(instrument_no = None):
             "features": features
         }
 
-        yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-        yesterday_date = MonthCheck(yesterday_date)
+        #yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+        #yesterday_date = MonthCheck(yesterday_date)
 
         if assessor_publish == '0' or assessor_publish == None or assessor_publish == '':
-            assessor = "Could not find this location in the assessor's database. <a href='http://www.qpublic.net/la/orleans/search1.html' target='_blank'>Search based on other criteria.</a>"
+            assessor = "Could not find this property on the Orleans Parish Assessor's Office site. <a href='http://www.qpublic.net/la/orleans/search1.html' target='_blank'>Search based on other criteria.</a>"
         else:
             url_param = check_assessor_urls.formAssessorURL(address, location_info)
             assessor_url = "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=%s" % (url_param)
             assessor = "<a href='%s' target='_blank'>Read more about this property on the Assessor's Office's website.</a>" % (assessor_url)
-        template1 =  render_template(
-            'sale.html',
-            yesterday_date = yesterday_date,
-            salejs = salejs,
-            css = css,
-            newrows = q,
-            assessor = assessor,
-            jsdata = jsdata
-        )
+        
+        template1 = ''
+
+        if len(q) == 0:
+            template1 = page_not_found()
+        else:
+            template1 =  render_template(
+                'sale.html',
+                yesterday_date = yesterday_date,
+                js = js,
+                salejs = salejs,
+                css = css,
+                newrows = q,
+                assessor = assessor,
+                jsdata = jsdata
+            )
 
         session.close()
 
         return template1
 
 #@cache.memoize(timeout=5000)
-@app.route("/realestate/input", methods=['GET', 'POST'])
+@app.route("%s/input" % (app_routing), methods=['GET', 'POST'])
 def input():
-    print 'request:'
-    print request
-
     term = request.args.get('q')
-    print 'term:'
-    print term
 
     search_term = urllib.unquote(term).decode('utf8')
 
@@ -372,49 +414,59 @@ def input():
     session = Session()
 
     q_neighborhoods = session.query(
-            Neighborhood
+            Cleaned.neighborhood
         ).filter(
-            (Neighborhood.gnocdc_lab.ilike('%%%s%%' % search_term))
-        ).all()
+            Cleaned.neighborhood.ilike('%%%s%%' % search_term)
+        ).distinct().limit(3).all()
+
+    q_zip = session.query(
+            Cleaned.zip_code
+        ).filter(
+            Cleaned.zip_code.ilike('%%%s%%' % search_term)
+        ).distinct().limit(3).all()
 
     q_locations = session.query(
-            Cleaned
+            Cleaned.detail_publish, Cleaned.address
         ).filter(
             Cleaned.detail_publish == '1'
         ).filter(
-            (Cleaned.address.ilike('%%%s%%' % search_term))
-        ).all()
+            Cleaned.address.ilike('%%%s%%' % search_term)
+        ).limit(3).all()
 
     q_buyers = session.query(
-            Cleaned
+            Cleaned.detail_publish, Cleaned.buyers
         ).filter(
             Cleaned.detail_publish == '1'
         ).filter(
-            (Cleaned.buyers.ilike('%%%s%%' % search_term))
-        ).all()
+            Cleaned.buyers.ilike('%%%s%%' % search_term)
+        ).limit(3).all()
 
     q_sellers = session.query(
-            Cleaned
+            Cleaned.detail_publish, Cleaned.sellers
         ).filter(
             Cleaned.detail_publish == '1'
         ).filter(
-            (Cleaned.sellers.ilike('%%%s%%' % search_term))
-        ).all()
+            Cleaned.sellers.ilike('%%%s%%' % search_term)
+        ).limit(3).all()
 
     response = []
 
-    print len(q_neighborhoods)
 
     for i, u in enumerate(q_neighborhoods):
         response.append(
             {
-                "label": (u.gnocdc_lab).title(),
+                "label": (u.neighborhood).title(),
                 "category": "Neighborhoods"
             }
         )
-        # Limit of three options
-        if i == 2:
-            break
+
+    for i, u in enumerate(q_zip):
+        response.append(
+            {
+                "label": u.zip_code,
+                "category": "ZIP codes"
+            }
+        )
 
     for i, u in enumerate(q_locations):
         response.append(
@@ -423,9 +475,6 @@ def input():
                 "category": "Addresses"
             }
         )
-        # Limit of three options
-        if i == 2:
-            break
 
     for i, u in enumerate(q_buyers):
         response.append(
@@ -434,9 +483,6 @@ def input():
                 "category": "Buyers"
             }
         )
-        # Limit of three options
-        if i == 2:
-            break
 
     for i, u in enumerate(q_sellers):
         response.append(
@@ -445,11 +491,6 @@ def input():
                 "category": "Sellers"
             }
         )
-        # Limit of three options
-        if i == 2:
-            break
-
-    pp.pprint(response)
 
     return jsonify(
         response = response
@@ -457,17 +498,20 @@ def input():
 
 #@cache.memoize(timeout=5000)
 def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code):
+
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind = engine)
     session = Session()
 
-    print 'query_db'
+    qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
 
-    q = session.query(Neighborhood).all()
+    for u in qd:
+        yesterday_date = readableDate(u.document_recorded, no_day=True)
+
+    q = session.query(Neighborhood.gnocdc_lab).all()
 
     neighborhoods = []
     for hood in q:
-        #print hood.gnocdc_lab
         neighborhoods.append((hood.gnocdc_lab).title())
 
     neighborhoods.sort()
@@ -479,11 +523,11 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
     page = 1 # start on first page
     recordsoffset = (page - 1) * pagelength # Page 1 offsets 0
 
-    q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset)
+    q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset, pagelength)
     
-    for u in q: 
+    for u in q:
         u.amount = Currency(u.amount)
-        u.document_date = RewriteDate(u.document_date)
+        u.document_date = readableDate(u.document_date, no_day=True)
 
     features = loopThing(q)
     newrows = q
@@ -493,16 +537,13 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
         "features": features
     }
 
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-    yesterday_date = MonthCheck(yesterday_date)
+    # yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    # yesterday_date = MonthCheck(yesterday_date)
 
-    if qlength == 1:
-        plural_or_not = "result"
-    else:
-        plural_or_not = "results"
-
+    show_results = 'none'
     if qlength == 0:
         page = 0
+        show_results = 'block'
 
     amountlow, amounthigh, begindate, enddate = revertEntries(amountlow, amounthigh, begindate, enddate)
 
@@ -512,18 +553,29 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
     parameters['amounthigh'] = amounthigh
     parameters['begindate'] = begindate
     parameters['enddate'] = enddate
+    parameters['neighborhood'] = neighborhood
+    parameters['zip_code'] = zip_code
 
     zip_codes = [70112, 70113, 70114, 70115, 70116, 70117, 70118, 70119, 70121, 70122, 70123, 70124, 70125, 70126, 70127, 70128, 70129, 70130, 70131, 70139, 70140, 70141, 70142, 70143, 70145, 70146, 70148, 70149, 70150, 70151, 70152, 70153, 70154, 70156, 70157, 70158, 70159, 70160, 70161, 70162, 70163, 70164, 70165, 70166, 70167, 70170, 70172, 70174, 70175, 70176, 70177, 70178, 70179, 70181, 70182, 70183, 70184, 70185, 70186, 70187, 70189, 70190, 70195]
+
+    map_button = False
+    results_language = constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, map_button)
 
     template1 = render_template(
         'search.html',
         yesterday_date = yesterday_date,
+        js = js,
         searchjs = searchjs,
+        searchAreajs = searchAreajs,
+        mapjs = mapjs,
         css = css,
+        js_app_routing = js_app_routing,
         newrows = newrows,
         jsdata = jsdata,
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not,
+        show_results = show_results,
+        #qlength = NumberWithCommas(qlength),
+        #plural_or_not = plural_or_not,
+        results_language = results_language,
         page = page,
         totalpages = totalpages,
         pagelength = pagelength,
@@ -535,6 +587,65 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
     session.close()
 
     return template1
+
+#todo: this
+def constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, map_button):
+    '''
+    In goes filter values, out of this messy function comes a coherent sentence such as, "10 results found in the Mid-City neighborhood."
+    '''
+
+    if qlength == 1:
+        plural_or_not = "sale"
+    else:
+        plural_or_not = "sales"
+
+    final_sentence = str(NumberWithCommas(qlength)) + ' ' + str(plural_or_not) + ' found'#10 records found
+    if name_address == '' and amountlow == '' and amounthigh == '' and begindate == '' and enddate == '' and neighborhood == '' and zip_code == '':
+        if map_button == True:
+            final_sentence = final_sentence + ' in the current map view.'#10 records found.
+        else:
+            final_sentence = final_sentence + '.'#10 records found.
+    else:
+        if name_address != '':
+            final_sentence = final_sentence + ' for keyword "' + name_address + '"'#10 records found for 'keyword'
+
+        if neighborhood != '':
+            if zip_code != '':
+                final_sentence = final_sentence + " in the " + neighborhood + " neighborhood and " + zip_code#10 records found for 'keyword' in Mid-City and 70119
+            else:
+                final_sentence = final_sentence + " in the " + neighborhood + " neighborhood"#10 records found for 'keyword' in Mid-City
+        elif zip_code != '':
+            final_sentence = final_sentence + " in ZIP code " + zip_code#10 records found for 'keyword' in 70119
+
+        if amountlow != '':
+            if amounthigh != '':
+                final_sentence = final_sentence + " where the price was between " + Currency(amountlow) + " and " + Currency(amounthigh)#10 records found for 'keyword' in Mid-City, where the amount is between $10 and $20
+            else:
+                final_sentence = final_sentence + " where the price was greater than " + Currency(amountlow)#10 records found for 'keyword' in Mid-City, where the amount is greater than $10
+        elif amounthigh != '':
+            final_sentence = final_sentence + " where the price was less than " + Currency(amounthigh)#10 records found for 'keyword' in Mid-City, where the amount is less than $20
+
+        if begindate != '':
+            if enddate != '':
+                final_sentence = final_sentence + " between " + readableDate(begindate) + ", and " + readableDate(enddate)#10 records found for 'keyword' in Mid-City, where the amount is between $10 and $20, between Feb. 10, 2014, and Feb. 12, 2014
+            else:
+                final_sentence = final_sentence + " after " + readableDate(begindate)#10 records found for 'keyword' in Mid-City, where the amount is greater than $10, after Feb. 10, 2014.
+        elif enddate != '':
+            final_sentence = final_sentence + " before " + readableDate(enddate)#10 records found for 'keyword' in Mid-City, where the amount is less than $20, before Feb. 20, 2014.
+
+        if map_button == True:
+            final_sentence = final_sentence + " in the current map view"
+
+        if final_sentence[-1] == "'" or final_sentence[-1] == '"':
+            last_character = final_sentence[-1]
+            l = list(final_sentence)
+            l[-1] = '.'
+            l.append(last_character)
+            final_sentence = ''.join(l)
+        else:
+            final_sentence = final_sentence + '.'
+
+    return final_sentence
 
 #@cache.memoize(timeout=5000)
 def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, page_direction, page, totalpages):
@@ -549,16 +660,15 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
         bounds['_southWest']['lng']
     ]
 
-    print 'mapbuttonstate:', mapbuttonstate
-    print 'page direction:', page_direction
-    print 'page:', page
-    #print 'totalpages:', totalpages
+    qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
+
+    for u in qd:
+        yesterday_date = readableDate(u.document_recorded, no_day=True)
 
     if mapbuttonstate == True: #map filtering is on        
         q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate)
         qlength = len(q) # number of records
         totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
-        print 'totalpages:', totalpages
 
         if page_direction == None:
             page = 1
@@ -601,11 +711,11 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
                     page = int(page) - 1
                 recordsoffset = (page - 1) * pagelength
 
-        q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset)
+        q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset, pagelength)
 
     for u in q: 
         u.amount = Currency(u.amount)
-        u.document_date = RewriteDate(u.document_date)
+        u.document_date = readableDate(u.document_date, no_day=True)
 
     features = loopThing(q)
 
@@ -614,16 +724,14 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
         "features": features
     }
 
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-    yesterday_date = MonthCheck(yesterday_date)
+    # yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    # yesterday_date = MonthCheck(yesterday_date)
 
-    if qlength == 1:
-        plural_or_not = "result"
-    else:
-        plural_or_not = "results"
-
+    show_results = 'none'
     if qlength == 0:
         page = 0
+        show_results = 'block'
+
     tabletemplate = render_template(
         'table.html',
         newrows = q
@@ -631,24 +739,33 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
 
     session.close()
 
+    amountlow, amounthigh, begindate, enddate = revertEntries(amountlow, amounthigh, begindate, enddate)
+
+    results_language = constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, mapbuttonstate)
+
     return jsonify(
         tabletemplate = tabletemplate,
         yesterday_date = yesterday_date,
         jsdata = jsdata,
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not,
+        #qlength = NumberWithCommas(qlength),
+        results_language = results_language,
+        show_results = show_results,
+        #plural_or_not = plural_or_not,
         page = page,
         totalpages = totalpages,
         pagelength = pagelength
     )
 
 #@cache.memoize(timeout=5000)
-def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude):
+def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude, mapbuttonstate):
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind = engine)
     session = Session()
 
-    print 'geoquery_db'
+    qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
+
+    for u in qd:
+        yesterday_date = readableDate(u.document_recorded, no_day=True)
 
     q = mapQuery2(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code)
 
@@ -656,30 +773,6 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
     totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
     page = 1 # start on first page
     recordsoffset = (page - 1) * pagelength # Page 1 offsets 0
-
-    '''
-    todo: make these changes to cleaned in databasemaker
-
-    ALTER TABLE cleaned ADD COLUMN geom geometry(POINT,4326);
-    UPDATE cleaned SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326)
-    CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);
-
-    example query:
-    SELECT count(*) FROM cleaned WHERE ST_Distance_Sphere(geom, ST_MakePoint(-90.1016, 29.9684)) <= 1 * 1609.34;
-    '''
-
-    '''
-    qq = session.query(
-                func.ST_Y(
-                    func.ST_Centroid(Square.geom)
-                ).label('ST_Y')
-            ).all()
-    '''
-
-    print 'Latitude:', latitude
-    print type(latitude)
-    print 'Longitude:', longitude
-    print type(longitude)
 
     # Near me query
     q = session.query(
@@ -717,7 +810,7 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
 
     for u in q: 
         u.amount = Currency(u.amount)
-        u.document_date = RewriteDate(u.document_date)
+        u.document_date = readableDate(u.document_date, no_day=True)
 
     features = loopThing(q)
 
@@ -726,13 +819,8 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
         "features": features
     }
 
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-    yesterday_date = MonthCheck(yesterday_date)
-
-    if qlength == 1:
-        plural_or_not = "result"
-    else:
-        plural_or_not = "results"
+    #yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    #yesterday_date = MonthCheck(yesterday_date)
 
     if qlength == 0:
         page = 0
@@ -745,12 +833,15 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
 
     session.close()
 
+    results_language = constructResultsLanguage(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, mapbuttonstate)
+
     return jsonify(
         tabletemplate = tabletemplate,
         yesterday_date = yesterday_date,
         jsdata = jsdata,
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not,
+        results_language = results_language,
+        #qlength = NumberWithCommas(qlength),
+        #plural_or_not = plural_or_not,
         page = page,
         totalpages = totalpages,
         pagelength = pagelength
@@ -864,7 +955,7 @@ def mapQuery2(session, name, amountlow, amounthigh, begindate, enddate, neighbor
         ).all()
     return q
 
-def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset):
+def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, recordsoffset, pagelength):
     q = session.query(
             Cleaned
         ).filter(
@@ -894,112 +985,6 @@ def mapQuery3(session, name, amountlow, amounthigh, begindate, enddate, neighbor
             '%d' % pagelength
         ).all()
     return q
-
-'''
-#@cache.memoize(timeout=5000)
-@app.route("/realestate/pageflip", methods=['POST'])
-def pageflip():
-    incomingdata = request.get_json()
-
-    name_address, amountlow, amounthigh, begindate, enddate = assignData(incomingdata)
-    
-    bounds = incomingdata['bounds']
-    mapbuttonstate = incomingdata['mapbuttonstate']
-    page = incomingdata['page']
-    totalpages = incomingdata['totalpages']
-    page_direction = incomingdata['direction']
-    
-    amountlow, amounthigh, begindate, enddate = CheckEntry(amountlow, amounthigh, begindate, enddate)
-
-    return page_query(name_address, amountlow, amounthigh, begindate, 
-        enddate, bounds, mapbuttonstate, page_direction, page, totalpages)
-'''
-'''
-#@cache.memoize(timeout=5000)
-def page_query(name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, page_direction, page, totalpages):
-
-    Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-    bounds = [
-        bounds['_northEast']['lat'], 
-        bounds['_northEast']['lng'], 
-        bounds['_southWest']['lat'], 
-        bounds['_southWest']['lng']
-    ]
-
-    if mapbuttonstate == True: #map filtering is on
-        q = mapQueryLength(session, name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate)
-
-        qlength = len(q) # number of records
-        totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
-
-        if page_direction == 'forward':
-            page = int(page) + 1
-
-        if qlength == 0:
-            page = 0
-
-        if page == 0:
-            recordsoffset = 0
-        else:
-            if page_direction == 'back':
-                page = int(page) - 1
-            recordsoffset = (page - 1) * pagelength
-
-        q = mapQuery1(session, name_address, amountlow, amounthigh, begindate, enddate, bounds, mapbuttonstate, recordsoffset)
-
-    if mapbuttonstate == False: # map filtering is off
-        q = mapQuery2(session, name_address, amountlow, amounthigh, begindate, enddate)
-
-        qlength = len(q) # number of records
-        totalpages = int(math.ceil(float(qlength)/float(pagelength))) # total number of pages
-
-        if page_direction == 'forward':
-            page = int(page) + 1
-        
-        if qlength == 0:
-            page = 0
-
-        if page == 0:
-            recordsoffset = 0
-        else:
-            if page_direction == 'back':
-                page = int(page) - 1
-            recordsoffset = (page - 1) * pagelength
-
-        q = mapQuery3(session, name_address, amountlow, amounthigh, begindate, enddate, recordsoffset)
-
-    for u in q: 
-        u.amount = Currency(u.amount)
-        u.document_date = RewriteDate(u.document_date)
-    
-    features = loopThing(q)
-    
-    jsdata = {
-        "type": "FeatureCollection",
-        "features": features
-    }
-    if qlength == 1:
-        plural_or_not = "result"
-    else:
-        plural_or_not = "results"
-    tabletemplate = render_template(
-        'table.html',
-        newrows = q
-    )
-    session.close()
-
-    return jsonify(
-        tabletemplate = tabletemplate,
-        jsdata = jsdata,
-        qlength = NumberWithCommas(qlength),
-        plural_or_not = plural_or_not,
-        page = page,
-        totalpages = totalpages,
-        pagelength = pagelength
-    )
-'''
 
 def loopThing(q):
     features = []
@@ -1048,23 +1033,36 @@ def RewriteDate(value):
     else:
         return "None"
 
-def readableDate(value):
+def readableDate(value, no_day=None):
     # Receive yyyy-mm-dd. Return Day, Month Date, Year
     if (value != None):
-        readable_date = value.strftime('%A, %b. %-d, %Y')
+        if (type(value) == unicode):
+            #value = urllib.unquote(value).decode('utf8')
+            value = str(value)
+            value = datetime.strptime(value, '%m/%d/%Y')
+            value = value.strftime('%b. %-d, %Y')
 
-        readable_date = readable_date.replace('Mar.', 'March')
-        readable_date = readable_date.replace('Apr.', 'April')
-        readable_date = readable_date.replace('May.', 'May')
-        readable_date = readable_date.replace('Jun.', 'June')
-        readable_date = readable_date.replace('Jul.', 'July')
+            return value
+        else:
+            #value = str(value)
+            if no_day == None:
+                readable_date = value.strftime('%A, %b. %-d, %Y')
+            else:
+                readable_date = value.strftime('%b. %-d, %Y')
 
-        return value.strftime('%A, %b. %-d, %Y')
+            readable_date = readable_date.replace('Mar.', 'March')
+            readable_date = readable_date.replace('Apr.', 'April')
+            readable_date = readable_date.replace('May.', 'May')
+            readable_date = readable_date.replace('Jun.', 'June')
+            readable_date = readable_date.replace('Jul.', 'July')
+
+            return readable_date#value.strftime('%A, %b. %-d, %Y')
 
     else:
         return "None"
 
 def Currency(value):
+    value = int(value)
     return "${:,}".format(value)
 
 def publishConversion(bit):
@@ -1074,7 +1072,6 @@ def publishConversion(bit):
         1: "Yes"
     }
     english = conversion_dict[bit]
-    #print english
     return english
 
 def publishReversion(english):

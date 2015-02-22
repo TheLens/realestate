@@ -1,4 +1,15 @@
 /*************
+Table of contents
+
+1. Custom property sales styles
+2. Mobile-only
+3. Medium-only
+4. Large-only
+5. Other
+
+*************/
+
+/*************
   Lens Theme
 
   Red: #B33125;
@@ -22,21 +33,46 @@
   font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 
  *************/
+
+/*************
+
+1. Property sales styles
+
+*************/
+
 body {
 	width: 100%;
 	margin: 0 auto;
 	font-size: 14px;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
 }
+form.leaflet-control-layers-list,
+input[type=radio].leaflet-control-layers-selector {
+	margin-bottom: 0;
+}
+input[type="search"] {
+	padding-left: 0.25rem;
+	padding-right: 0.25rem;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+
 select {
 	height: 100%;
+	font-size: 16px;
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
 }
 #dashboard-block {
 	margin-bottom: 20px;
+	border-bottom: 1px solid black;
 }
 textarea {
 	min-width: 100px;
 	width: auto;
 	padding: 5px;
+}
+#learn-more {
+	margin-bottom: 15px;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 #assessor {
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
@@ -49,7 +85,7 @@ textarea {
     max-height: 325px;
     padding: 10px;
     font-size: 15px;
-    box-shadow: 0 0 5px #888888;;
+    box-shadow: 0px 0px 5px #888;;
     background-color: #FFF;
     color: #000;
     overflow: auto;
@@ -67,19 +103,47 @@ textarea {
 	padding: 2px 5px;
 	line-height: 14px;
 }
+
+
+.clearable {
+  background: #fff url(data:image/gif;base64,R0lGODlhBwAHAIAAAP///5KSkiH5BAAAAAAALAAAAAAHAAcAAAIMTICmsGrIXnLxuDMLADs=) no-repeat right -10px center;
+  border: 1px solid #999;
+  padding: 3px 18px 3px 4px;     /* Use the same right padding (18) in jQ! */
+  border-radius: 3px;
+  transition: background 0.4s;
+}
+.clearable.x {
+	background-position: right 5px center;
+} /* (jQ) Show icon */
+.clearable.onX {
+	cursor: pointer;
+} /* (jQ) hover cursor style */
+
+
+
 li.ui-autocomplete-category {
 	font-weight: bold;
-	font-size: 13px;
-	line-height: 13px;
+	font-size: 16px;
+	line-height: 16px;
 	padding: 3px 4px 2px;
-
+	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
 }
 li.ui-menu, li.ui-menu-item {
-	font-size: 12px;
-	line-height: 12px;
+	font-size: 16px;
+	left: 1px;
+	line-height: 16px;
+	margin-right: 0;
+	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+.ui-widget-content .ui-state-focus {
+    background: #F5F5EF;
+    padding-left: 0.5em;
+    border-left: none;
+    border-right: none;
 }
 ul.ui-autocomplete {
 	z-index: 1008;
+	padding-right: 0;
 }
 
 .leaflet-control {
@@ -92,7 +156,7 @@ ul.ui-autocomplete {
     padding: 10px;
     font-size: 14px;
     line-height: 18px;
-    box-shadow: 0 0 5px #888888;;
+    box-shadow: 0px 0px 5px #888;;
     background-color: #FFF;
     color: #000;
     position: absolute;
@@ -106,7 +170,12 @@ ul.ui-autocomplete {
     height: 100%;
     /*pointer-events: auto;*//*To allow for popup div to scroll*/
 }
-
+#results-not-found {
+	display: none;
+	width: 100%;
+	text-align: center;
+	margin: 10% 0;
+}
 .centered {
 	text-align: center;
 }
@@ -136,8 +205,8 @@ a:hover {
 	display: none;
 }
 #advanced-search {
-	font-size: 12px;
-	line-height: 12px;
+	font-size: 14px;
+	line-height: 14px;
 	padding-top: 4px;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
@@ -294,7 +363,8 @@ body.loading .modal {
     display: block;
 }
 #amount1, #amount2, #date1, #date2, #name_address_box  {
-	width: 100% !important;
+	width: 100%;
+	font-size: 16px;
 }
 .slim {
 	height: 37px;
@@ -302,7 +372,6 @@ body.loading .modal {
 input {
 	outline: none;
 	color: #555;
-	padding: 1%;
 	background-color: #fff;
 	border: 1px solid #ccc;
 	border-radius: 0px !important;
@@ -342,8 +411,20 @@ a.greybutton {
 	padding: 0 0 4px 0;
 	font-size: 14px;
 }
+.table-container-fade {
+	position: absolute;
+	bottom: 25px;
+	width: 250px;
+	/*padding: 0 4em 0 0;*/
+	height: 15px;
+	background-image: -webkit-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+	background-image: -moz-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+	background-image: -ms-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+	background-image: -o-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+	background-image: linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+}
 .table-wrapper {
-	height: 400px;
+	max-height: 400px;
 	border-top: 1px solid #E0E0E0;
 	border-bottom: 1px solid #E0E0E0;
 	overflow: auto;
@@ -375,7 +456,6 @@ a.greybutton {
 }
 #name_address_box {
 	margin-bottom: 0;
-	font-size: 14px;
 }
 #search-note {
 	color: #B33125;
@@ -385,8 +465,8 @@ a.greybutton {
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 #search-examples {
-	font-size: 12px;
-	line-height: 12px;
+	font-size: 14px;
+	line-height: 14px;
 	margin-bottom: 3%;
 	padding-top: 4px;
 	padding-left: 15px;
@@ -570,15 +650,18 @@ div.instrument_no {
     margin: 0;
     font-weight: normal;
 }
-div.instrument_no:before {
+.instrument_no_header {
   font-size: 14px;
-  display: block;
+  /*display: block;*/
   font-weight: bold;
 }
-div.instrument_no:before {
+/*div.instrument_no:before {
     content: "Instrument Number";
-}
+}*/
 
+/*
+ Large width
+*/
 @media screen and (min-width: 1025px) {	
 	.map-wrapper {
 		padding-right: 0;
@@ -586,8 +669,22 @@ div.instrument_no:before {
 
 	.table-wrapper {
 		overflow-x: hidden;
-		overflow-y: auto;
+		overflow-y: scroll; /*auto*/
 	}
+
+
+	.table-wrapper::-webkit-scrollbar {
+		-webkit-appearance: none;
+		width: 14px;
+		height: 14px;
+	}
+
+	.table-wrapper::-webkit-scrollbar-thumb {
+		border-radius: 8px;
+		border: 3px solid #fff;
+		background-color: rgba(0, 0, 0, .3);
+	}
+
 	#footer .pageback {
 		padding-right: 0;
 	}
@@ -620,10 +717,11 @@ div.instrument_no:before {
 		display: none;
 	}
 	#myTable td.document_date, #myTable td.amount {
-		width: 50%;
+		width: 48%;
+		/*width: 100%;*/
 		display: inline-block;
 		font-size: 18px;
-		padding: 4px;
+		padding: 1%;
 		color: #000;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 		margin: 0;
@@ -640,7 +738,6 @@ div.instrument_no:before {
 	}
 	#myTable td.address {
 		font-size: 14px;
-		width: 100%;
 		display: block;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 		color: #000;
@@ -650,7 +747,6 @@ div.instrument_no:before {
 	}
 	#myTable td.location_info {
 		font-size: 14px;
-		width: 100%;
 		display: block;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 		color: #000;
@@ -659,7 +755,6 @@ div.instrument_no:before {
 		font-weight: normal;
 	}
 	#myTable td.sellers, #myTable td.buyers {
-      width: 100%;
       display: inline-block;
       vertical-align: top;
       margin-top: 0%;
@@ -722,26 +817,28 @@ div.instrument_no:before {
 	table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td {
 		background: #FFFFFF;
 	}
-
-
-
-
 }
 
 /* Mobile view */
-@media screen and (max-width: 500px) {	
-
+@media screen and (max-width: 600px) {	
 	#banner-title {
-		font-size: 14px;
-		margin: 8px 12px 0px 12px;
+		font-size: 16px;
+		margin: 8px 12px 0px 6px;
+	}
+	#banner-social-facebook,
+	#banner-social-twitter {
+		font-size: 20px;
+		margin-top: 7px;
 	}
 	#search-note {
 		padding-bottom: 4px;
 	}
 
 	.table-wrapper {
+		max-height: none;
 		height: auto;
-		border: none;
+		border-top: 1px solid #E0E0E0;
+		border-bottom: 1px solid #E0E0E0;
 
 		overflow-x: hidden;
 		overflow-y: auto;
@@ -772,9 +869,9 @@ div.instrument_no:before {
 		height: auto;
 		padding: 4px 0;
 		border-top: none;
-		border-right: none;
-		border-left: none;
-		border-bottom: 1px solid #A8A299;
+		/*border-right: none;
+		border-left: none;*/
+		/*border-bottom: 1px solid #A8A299;*/
 	}
 	#myTable td {
 	 	border: none;
@@ -784,62 +881,54 @@ div.instrument_no:before {
 		display: none;
 	}
 	#myTable td.document_date, #myTable td.amount {
-		width: 50%;
+		width: 46%;
 		display: inline-block;
 		font-size: 18px;
-		padding: 4px 0;
+		padding: 0;
 		color: #000;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-		margin: 0;
 		font-weight: normal; 
 	}
 	#myTable td.document_date {
 		text-align: left;
-		margin-right: 0;
+		margin: 2%;
 	}
 	#myTable td.amount {
 		text-align: right;
-		margin-left: 0;
+		margin: 2%;
 		/*color: #B43018;*/
 	}
 	#myTable td.address {
 		font-size: 14px;
-		width: 100%;
+		width: 96%;
 		display: block;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 		color: #000;
-		padding: 4px 0 8px;
-		margin: 0;
+		padding: 0;
+		margin: 2% 2% 1%;
 		font-weight: normal;
 	}
 	#myTable td.location_info {
 		font-size: 14px;
-		width: 100%;
+		width: 96%;
 		display: block;
 		font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 		color: #000;
-		padding: 4px 0 8px;
-		margin: 0;
+		margin: 0 2% 2%;
+		padding: 0;
 		font-weight: normal;
 	}
 	#myTable td.sellers, #myTable td.buyers {
-      width: 48%;
+      width: 46%;
       display: inline-block;
       vertical-align: top;
-      margin-top: 0;
-      margin-bottom: 2%;
+      margin: 2%;
       text-align: left;
       font-size: 14px;
       color: #000000;
       font-weight: normal;
       background-color: #E9E9E9;
 	  font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-	}
-	#myTable td.sellers {
-		margin-right: 2%;
-	}
-	#myTable td.buyers {
-		margin-left: 2%;
 	}
 	#myTable td.sellers:before, #myTable td.buyers:before {
 	  font-size: 14px;
@@ -891,7 +980,7 @@ div.instrument_no:before {
 /* Medium-view */
 @media screen and (min-width: 641px) and (max-width: 1024px) {
 	#page-title {
-		padding: 50px 0 20px 0;
+		padding: 0px 0 20px 0;
 		font-size: 36px;
 		line-height: 36px;
 	}
@@ -901,11 +990,14 @@ div.instrument_no:before {
 	.zip-label {
 		display: none;
 	}
+	.table-wrapper {
+		max-height: none;
+	}
 }
 
 @media screen and (max-width: 640px) {
 	#page-title {
-		padding: 50px 0 20px 0;
+		padding: 20px 0;
 		font-size: 26px;
 		line-height: 26px;
 	}
