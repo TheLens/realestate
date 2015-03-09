@@ -89,9 +89,9 @@ function addDataToMap(data) {
       return L.circleMarker(layer, {
         radius: 10,
         color: 'white',
-        opacity: 0.8,
+        opacity: 1.0,
         fillColor: '#B33125',
-        fillOpacity: 0.5
+        fillOpacity: 1.0
       });
     }
   });
@@ -102,15 +102,15 @@ function addDataToMap(data) {
   dataLayer = dataLayer2;
   map.addLayer(dataLayer);
 
-  dataLayer.eachLayer(function (layer) {
-    layer.on('mouseover', function (event) {
-      layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
-      layer.bringToFront();
-    });
-    layer.on('mouseout', function (event) {
-      layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
-    });
-  });
+  // dataLayer.eachLayer(function (layer) {
+  //   layer.on('mouseover', function (event) {
+  //     layer.setStyle({radius: 10, color: 'white', opacity: 1.0, fillColor: '#B33125', fillOpacity: 1.0});
+  //     layer.bringToFront();
+  //   });
+  //   layer.on('mouseout', function (event) {
+  //     layer.setStyle({radius: 10, color: 'white', opacity: 0.8, fillColor: '#B33125', fillOpacity: 0.5});
+  //   });
+  // });
 
   //logo.addTo(map);
 }

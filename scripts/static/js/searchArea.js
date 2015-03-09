@@ -103,7 +103,6 @@ function buildQueryString(data) {
     map_query_string = "";// "?q=&a1=&a2=&d1=&d2=";
   }
 
-  //console.log('returning:', map_query_string);
   return map_query_string;
 }
 
@@ -155,12 +154,9 @@ function prepareData(category) {
   data.amounthigh = amounthigh;
   data.begindate = begindate;
   data.enddate = enddate;
-
   data.neighborhood = neighborhood;
   data.zip_code = zip_code;
 
-  console.log('data:', data);
-  
   return data;
 }
 
@@ -181,16 +177,13 @@ $("#search-note").on("click", function () {
 });
 
 function formatCurrency(number) {
-  //console.log('number:', number);
   var n = number.split('').reverse().join("");
   var n2 = n.replace(/\d\d\d(?!$)/g, "$&,");
   var return_val = '$' + n2.split('').reverse().join('');
-  //console.log('return_val:', return_val);
   return return_val;
 }
 
 $('.currency').on('input', function () {
-  //console.log('$(this):', $(this));
   $(this).val(formatCurrency(this.value.replace(/[,$]/g, '')));
 }).on('keypress', function (e) {
   if (!$.isNumeric(String.fromCharCode(e.which)) && (e.which !== 8)) {
@@ -208,18 +201,11 @@ $(document.body).keyup(function (event) {
   }
 });
 
-var isIE = /*@cc_on!@*/false || !!document.documentMode; // At least IE6
-var isFirefox = typeof InstallTrigger !== 'undefined';   // Firefox 1.0+
-var isSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0; // At least Safari 3+: "[object HTMLElementConstructor]"
-
-if (isIE || isFirefox || isSafari && !(/iPhone|iPad|iPod/i.test(navigator.userAgent)) ) {
-
-  //console.log('isIE or isFirefox or isSafari');
-  $( "#date1" ).datepicker({
-      minDate: new Date(2014, 1, 18)
-    });
-  $( "#date2" ).datepicker();
-}
+//if (isIE || isFirefox || isSafari && !(/iPhone|iPad|iPod/i.test(navigator.userAgent)) ) {
+$( "#date1" ).datepicker({
+    minDate: new Date(2014, 1, 18)
+  });
+$( "#date2" ).datepicker();
 
 if ($(window).width() < 500) {
   $('#name_address_box').attr('placeholder','Enter buyer, seller, address');
@@ -374,12 +360,15 @@ $(document).on("click", '.searchButton', function () {
 function checkForChanges() {
   var gcsTimeout;
   if ($('button.t402-elided').length) {
+    console.log('gcs not cleared');
+    //console.log($('button.t402-elided'));
     gcsTimeout = setTimeout(checkForChanges, 500);
   } else {
     console.log('gcs cleared');
     clearTimeout(gcsTimeout);
+    $('.p402_premium').css({'display': 'none'});
     $('button').addClass('searchButton');
   }
 }
 
-window.onload = checkForChanges();
+checkForChanges();
