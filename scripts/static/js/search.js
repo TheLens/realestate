@@ -14,11 +14,14 @@ function tablesorterOptions() {
 }
 
 function mapSearching() {
+  /*
+   Map movement filter is turned on.
+  */
+
   var nbhd_text, zip_text;
 
   if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
     nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
-    //console.log('nbhd_text:', nbhd_text);
   }
 
   if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
@@ -67,77 +70,99 @@ function mapSearching() {
 
       document.getElementById('page').innerHTML = info.page;
       document.getElementById('totalpages').innerHTML = info.totalpages;
-      $('#table-wrapper').data('page', info.page);
-      $('#table-wrapper').data('totalpages', info.totalpages);
-      $('#table-wrapper').data('pagelength', info.pagelength);
+
+      var table_wrapper = document.querySelector('#table-wrapper');
+      table_wrapper.setAttribute('data-page', info.page);
+      table_wrapper.setAttribute('data-totalpages', info.totalpages);
+      table_wrapper.setAttribute('data-pagelength', info.pagelength);
+
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
 
       document.getElementById('results_language').innerHTML = info.results_language;
       document.getElementById('results-not-found').style.display = info.show_results;
 
-      //console.log('success data:', data);
       //console.log('data.neighborhood:', data.neighborhood);
 
-      if (typeof data.neighborhood !== 'undefined') {
-        console.log('data.neighborhood:', data.neighborhood);
+      if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
         selectedNeighborhood(data.neighborhood);
+        updateMap(info.jsdata, 1, 0, 1);
+      } else {
+        removeNeighborhoodLayer();
+        updateMap(info.jsdata, 1, 0, 0);
       }
 
-      updateMap(info.jsdata, 1);
+      checkPagerButtons(info.page, info.totalpages)
     }
   });
 }
 
 function doSearch(category) {
   var data = prepareData(category);
-
-  //console.log('category:', category);
-
   var nbhd_text, zip_text;
 
+  // Get URL's neighborhood value
   if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
     nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
-    //console.log('nbhd_text:', nbhd_text);
   }
 
+  // Get URL's zip value
   if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
     zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
   }
 
+  // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
   if (document.getElementById('name_address_box').value.trim() === nbhd_text) {
     data.name_address = '';
     data.neighborhood = nbhd_text;
-    // Handle if neighborhood in search bar AND in neighborhood dropdown. favor dropdown
+
+    // Handle if neighborhood in search bar AND is now also in neighborhood dropdown. favor dropdown
     if (document.getElementById('neighborhood').value !== '') {
-      document.getElementById('name_address_box').value = '';
+      document.getElementById('name_address_box').value = ''; // Overwriting this will affect checks below
       data.neighborhood = document.getElementById('neighborhood').value;
     }
   }
 
+  // If search input is still equal to the zip code previously searched for, keep in search bar and continue to use as zip, not as keyword.
   if (document.getElementById('name_address_box').value.trim() === zip_text) {
     data.name_address = '';
     data.zip_code = zip_text;
+
     if (document.getElementById('zip_code').value !== '') {
       document.getElementById('name_address_box').value = '';
       data.zip_code = document.getElementById('zip_code').value;
     }
   }
 
-  var bounds = map.getBounds();
-  data.bounds = bounds;
 
+
+  // If neighborhood dropdown selection is equal to the neighborhood previously searched for (in the URL), but there is now a neighborhood in the search input, remove the neighborhood dropdown and favor the search input.
+  if (document.getElementById('neighborhood').value === nbhd_text && category === 'neighborhood') {
+    document.getElementById('neighborhood').value = '';
+    data.neighborhood = document.getElementById('name_address_box').value;
+    data.name_address = '';
+  }
+
+  // If zip dropdown selection is equal to the zip previously searched for (in the URL), but there is now a zip in the search input, remove the zip dropdown and favor the search input.
+  if (document.getElementById('zip_code').value === zip_text && category === 'zip_code') {
+    document.getElementById('zip_code').value = '';
+    data.zip_code = document.getElementById('name_address_box').value;
+    data.name_address = '';
+  }
+
+
+
+
+
+  // Disable map-view filtering if new searches uses geographic parameters
   if (document.getElementById('neighborhood').value !== '' || document.getElementById('zip_code').value !== '' || typeof category !== 'undefined') {
     document.getElementById("mapButton").checked = false;
   }
 
-  var mapbuttonstate = document.getElementById("mapButton").checked;
-  data.mapbuttonstate = mapbuttonstate;
-
-  var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
-  data.page = page;
-  data.totalpages = totalpages;
+  data.bounds = map.getBounds();
+  data.mapbuttonstate = document.getElementById("mapButton").checked;
+  data.page = $('#table-wrapper').attr('data-page');
+  data.totalpages = $('#table-wrapper').attr('data-totalpages');
   data.direction = null;
 
   var maprequest = JSON.stringify(data);
@@ -151,19 +176,19 @@ function doSearch(category) {
     data: maprequest,
     contentType: "application/json; charset=utf-8",
     success: function (info) {
-      //console.log('info:', info);
-
       if (query_string === '') {
         window.history.pushState(null,'hi',document.URL.split("?")[0]);
       } else {
         window.history.pushState(null,'hi',query_string);
       }
+      
       document.getElementById('page').innerHTML = info.page;
       document.getElementById('totalpages').innerHTML = info.totalpages;
 
-      $('#table-wrapper').data('page', info.page);
-      $('#table-wrapper').data('totalpages', info.totalpages);
-      $('#table-wrapper').data('pagelength', info.pagelength);
+      var table_wrapper = document.querySelector('#table-wrapper');
+      table_wrapper.setAttribute('data-page', info.page);
+      table_wrapper.setAttribute('data-totalpages', info.totalpages);
+      table_wrapper.setAttribute('data-pagelength', info.pagelength);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
@@ -171,15 +196,17 @@ function doSearch(category) {
       document.getElementById('results_language').innerHTML = info.results_language;
       document.getElementById('results-not-found').style.display = info.show_results;
 
-      //console.log('success data:', data);
       //console.log('data.neighborhood:', data.neighborhood);
 
-      if (typeof data.neighborhood !== 'undefined') {
-        console.log('data.neighborhood:', data.neighborhood);
+      if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
         selectedNeighborhood(data.neighborhood);
+        updateMap(info.jsdata, 0, 0, 1);
+      } else {
+        removeNeighborhoodLayer();
+        updateMap(info.jsdata, 0, 0, 0);
       }
 
-      updateMap(info.jsdata, 0);
+      checkPagerButtons(info.page, info.totalpages)
     }
   });
 }
@@ -187,6 +214,10 @@ function doSearch(category) {
 $("body").on("click", ".pageforward", function () {
   var page = $('#table-wrapper').attr('data-page');
   var totalpages = $('#table-wrapper').attr('data-totalpages');
+  
+  //console.log('\npage:',  page);
+  //console.log('totalpages:', totalpages);
+
   if (page !== totalpages) {
     var data = prepareData();
 
@@ -210,42 +241,31 @@ $("body").on("click", ".pageforward", function () {
       contentType: "application/json; charset=utf-8",
       success: function (info) {
         document.getElementById('page').innerHTML = info.page;
-        document.querySelector('#table-wrapper').dataset.page = info.page;
-
         document.getElementById('totalpages').innerHTML = info.totalpages;
-        document.querySelector('#table-wrapper').dataset.totalpages = info.totalpages;
+
+        var table_wrapper = document.querySelector('#table-wrapper');
+        table_wrapper.setAttribute('data-page', info.page);
+        table_wrapper.setAttribute('data-totalpages', info.totalpages);
+        table_wrapper.setAttribute('data-pagelength', info.pagelength);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
         document.getElementById('results_language').innerHTML = info.results_language;
 
-        //console.log('success data:', data);
         //console.log('data.neighborhood:', data.neighborhood);
 
-        if (typeof data.neighborhood !== 'undefined') {
-          console.log('data.neighborhood:', data.neighborhood);
+        if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
           selectedNeighborhood(data.neighborhood);
+          updateMap(info.jsdata, 0, 1, 1);
+        } else {
+          removeNeighborhoodLayer();
+          updateMap(info.jsdata, 0, 1, 0);
         }
 
-        updateMap(info.jsdata, 0, 1);
+        checkPagerButtons(info.page, info.totalpages)
 
-        // Check if this is the last possible page. If so, disable forward button option.
         //console.log('info.page:', info.page);
-        if (info.page === 1) {
-          document.getElementById('back_button').style.color = 'gray';
-          document.getElementById('back_button').style.cursor = 'default';
-        } else {
-          document.getElementById('back_button').style.color = '#222';
-          document.getElementById('back_button').style.cursor = 'pointer';
-        }
-
-        if (info.page === info.totalpages) {
-          document.getElementById('forward_button').style.color = 'gray';
-          document.getElementById('forward_button').style.cursor = 'default';
-        } else {
-          document.getElementById('forward_button').style.color = '#222';
-          document.getElementById('forward_button').style.cursor = 'pointer';
-        }
+        //console.log('info.totalpages:', info.totalpages);
       }
     });
   }
@@ -254,7 +274,7 @@ $("body").on("click", ".pageforward", function () {
 $("body").on("click", ".pageback", function () {
   var page = $('#table-wrapper').attr('data-page');
   var totalpages = $('#table-wrapper').attr('data-totalpages');
-  if (page !== "1") {
+  if (page !== "1" && page !== "0") {
     var data = prepareData();
 
     data.bounds = map.getBounds();
@@ -280,79 +300,35 @@ $("body").on("click", ".pageback", function () {
       contentType: "application/json; charset=utf-8",
       success: function (info) {
         document.getElementById('page').innerHTML = info.page;
-        document.querySelector('#table-wrapper').dataset.page = info.page;
-
         document.getElementById('totalpages').innerHTML = info.totalpages;
-        document.querySelector('#table-wrapper').dataset.totalpages = info.totalpages;
+
+        var table_wrapper = document.querySelector('#table-wrapper');
+        table_wrapper.setAttribute('data-page', info.page);
+        table_wrapper.setAttribute('data-totalpages', info.totalpages);
+        table_wrapper.setAttribute('data-pagelength', info.pagelength);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
 
         document.getElementById('results_language').innerHTML = info.results_language;
 
-        //console.log('success data:', data);
-        //console.log('data.neighborhood:', data.neighborhood);
+        ////console.log('data.neighborhood:', data.neighborhood);
 
-        if (typeof data.neighborhood !== 'undefined') {
-          console.log('data.neighborhood:', data.neighborhood);
+        if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
           selectedNeighborhood(data.neighborhood);
-        }
-
-        updateMap(info.jsdata, 0, 1);
-
-        // Check if this is the last possible page. If so, disable forward button option.
-        //console.log('info.page:', info.page);
-        //console.log('info.page:', typeof info.page);
-        if (info.page === 1) {
-          document.getElementById('back_button').style.color = 'gray';
-          document.getElementById('back_button').style.cursor = 'default';
+          updateMap(info.jsdata, 0, 1, 1);
         } else {
-          document.getElementById('back_button').style.color = '#222';
-          document.getElementById('back_button').style.cursor = 'pointer';
+          removeNeighborhoodLayer();
+          updateMap(info.jsdata, 0, 1, 0);
         }
 
-        if (info.page === info.totalpages) {
-          document.getElementById('forward_button').style.color = 'gray';
-          document.getElementById('forward_button').style.cursor = 'default';
-        } else {
-          document.getElementById('forward_button').style.color = '#222';
-          document.getElementById('forward_button').style.cursor = 'pointer';
-        }
+        checkPagerButtons(info.page, info.totalpages);
       }
     });
   }
 });
 
-function doPostBack(data) {
-  var searchrequest = JSON.stringify(data);
-  var query_string = buildQueryString(data);
-  $.ajax({
-    url: js_app_routing + "/search",
-    type: "POST",
-    data: searchrequest,
-    contentType: "application/json; charset=utf-8",
-    success: function (info) {
-      if (query_string === '') {
-        window.history.pushState(null,'hi',document.URL.split("?")[0]);
-      } else {
-        // var testarr = document.URL.split('?')[0].split('');
-        // testarr.splice(-1, 1);
-        // var root_url = testarr.join('');
-        window.history.pushState(null,'hi',query_string);
-      }
-      $("#map-table-wrapper").html(info.template1);
-      $("#map-table-wrapper").trigger("updateAll");
-      document.getElementById('map-table-wrapper').style.display = 'block';
-      document.getElementById('foot').style.display = 'block';
-
-      initialMapFunction(info.jsdata);
-    }
-  });
-}
-
 function populateSearchParameters(parameters) {
-  //console.log('parameters.name_address:', (parameters.name_address).length);
-  //console.log('parameters.name_address:', typeof parameters.name_address);
   document.getElementById('name_address_box').value = parameters.name_address;
   document.getElementById('amount1').value = (parameters.amountlow !== '' ? '$' : '') + parameters.amountlow;
   document.getElementById('amount2').value = (parameters.amounthigh !== '' ? '$' : '') + parameters.amounthigh;
@@ -371,14 +347,24 @@ function populateSearchParameters(parameters) {
   }
 }
 
-window.onload = function() {
-  var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
+function checkPagerButtons(page, totalpages) {
+  //console.log('yo:');
 
-  //console.log('test');
+  if (typeof page === 'undefined') {
+    page = $('#table-wrapper').attr('data-page');
+  }
 
-  if (page === '1') {
-    //console.log('test');
+  if (typeof totalpages === 'undefined') {
+    totalpages = $('#table-wrapper').attr('data-totalpages');
+  }
+
+  page = page.toString();
+  totalpages = totalpages.toString();
+
+  ////console.log('page:', page);
+  ////console.log('totalpages:', totalpages);
+
+  if (page === '1' || page === '0') {
     document.getElementById('back_button').style.color = 'gray';
     document.getElementById('back_button').style.cursor = 'default';
   } else {
@@ -395,10 +381,14 @@ window.onload = function() {
   }
 }
 
+checkPagerButtons();
+
+
 String.prototype.trunc = String.prototype.trunc ||
   function(n) {
     return this.length > n ? this.substr(0, n - 1) + ' ...' : this;
   };
+
 
 /*
  Not using for now.

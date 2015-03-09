@@ -71,7 +71,7 @@ textarea {
 	padding: 5px;
 }
 #learn-more {
-	margin-bottom: 15px;
+	margin: 15px 0;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 #assessor {
@@ -188,11 +188,11 @@ a:hover {
 }
 .leaflet-control-attribution {
 	text-align: right;
+	background-color: rgba(255,255,255,0.3);
+	color: #3887BE;
 }
-.leaflet-container .leaflet-control-attribution,
-.leaflet-container .leaflet-control-attribution a,
-.leaflet-container .leaflet-control-attribution a:hover {
-	background-color: rgba(255,255,255,0);
+.leaflet-control-attribution a,
+.leaflet-control-attribution a:hover {
 	color: #3887BE;
 }
 .small-break {
@@ -203,11 +203,22 @@ a:hover {
 }
 #filters {
 	display: none;
+	margin: 0 0 20px 0;
+}
+.filters-wrapper {
+	background-color: #F0F0F0;
+	padding: 0.9375em;
+	overflow: hidden;
+}
+.padding {
+	padding: 0 0.9375em;
+	height:auto;
 }
 #advanced-search {
 	font-size: 14px;
 	line-height: 14px;
 	padding-top: 4px;
+	margin: 0 0 20px 0;
 	font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 .label {
@@ -280,10 +291,25 @@ table {
 	margin: 0;
 }
 .fa:hover {
-	color: #7A7A7A;
+	color: #000;
 }
 .fa-caret-down, .fa-caret-up {
 	/*vertical-align: text-top;*/
+}
+.fa-search:hover {
+	color: inherit;
+}
+.fa-search{
+	font-size: 18px;
+}
+#back_button:hover, #forward_button:hover, .fa-arrow-right:hover, .fa-arrow-left:hover {
+	color: inherit;
+}
+#date-from-label-text {
+	display: inline;
+}
+#date-from-label-icon {
+	display: none;
 }
 #banner {
 	z-index: 9999;
@@ -332,11 +358,12 @@ table {
 	font-weight: normal;
 	color: #5A5A54;
 }
-#banner-logo:hover, #banner-social-twitter:hover, #banner-social-facebook:hover, #banner-social-email:hover, #banner-title:hover, #banner-support:hover {
+/*#banner-logo:hover, #banner-social-twitter:hover, #banner-social-facebook:hover, #banner-social-email:hover, #banner-title:hover, #banner-support:hover {
 	opacity: 0.7;
-}
+}*/
 #banner-title:hover, #banner-support:hover {
 	text-decoration: underline;
+	color: #000;
 }
 
 .modal {
@@ -396,12 +423,12 @@ a.greybutton {
 #page-title, #page-title a {
 	text-align: center;
 	position: relative;
-	padding: 50px 0 30px 0;
+	padding: 0px 0 20px 0;
 	font-size: 40px;
 	line-height: 40px;
 	color: #000;
 	font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
-  	font-weight: bold;
+  	/*font-weight: bold;*/
 }
 #page-title a:hover {
 	text-decoration: none;
@@ -422,6 +449,9 @@ a.greybutton {
 	background-image: -ms-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
 	background-image: -o-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
 	background-image: linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+}
+#map-table-wrapper {
+	padding: 0 0 15px 0;
 }
 .table-wrapper {
 	max-height: 400px;
@@ -568,10 +598,21 @@ button.button:hover {
 	white-space: nowrap;
 }
 
+
 /*
  * Single-sale page styles
  */
-div.document_date, div.amount {
+.single_sale_listing {
+	font-size: 14px;
+    width: 100%;
+    display: block;
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+    color: #000;
+    padding: 0px;
+    margin: 0;
+    font-weight: normal;
+}
+#document_date, #amount {
     width: 49%;
     display: inline-block;
     font-size: 18px;
@@ -581,47 +622,22 @@ div.document_date, div.amount {
     margin-bottom: 10px;
     font-weight: normal; 
 }
-div.document_date {
+#document_date {
     text-align: left;
     margin-right: 0;
 }
-div.amount {
+#amount {
     text-align: right;
     margin-left: 0;
     /*color: #B43018;*/
 }
-div.address {
-    font-size: 14px;
-    width: 100%;
-    display: block;
-    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-    color: #000;
-    padding: 0px;
-    margin: 0;
-    font-weight: normal;
-}
-div.location_info {
-    font-size: 14px;
-    width: 100%;
-    display: block;
-    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-    color: #000;
-    padding: 0px;
-    margin: 0;
-    font-weight: normal;
-}
-div.sellers, div.buyers {
-  width: 100%;
+#sellers, #buyers {
   display: inline-block;
   vertical-align: top;
   margin-top: 0%;
   margin-bottom: 0%;
   text-align: left;
-  font-size: 14px;
-  color: #000;
-  font-weight: normal;
   background-color: #FFF;
-  font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 div.sellers {
     margin-right: 0%;
@@ -629,35 +645,9 @@ div.sellers {
 div.buyers {
     margin-left: 0%;
 }
-div.sellers:before, div.buyers:before {
-  font-size: 14px;
-  display: block;
-  font-weight: bold;
-}
-div.sellers:before {
-    content: "Sellers";
-}
-div.buyers:before {
-    content: "Buyers";
-}
-div.instrument_no {
-    font-size: 14px;
-    width: 100%;
-    display: block;
-    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
-    color: #000;
-    padding: 0px;
-    margin: 0;
-    font-weight: normal;
-}
-.instrument_no_header {
-  font-size: 14px;
-  /*display: block;*/
-  font-weight: bold;
-}
-/*div.instrument_no:before {
-    content: "Instrument Number";
-}*/
+
+
+
 
 /*
  Large width
@@ -665,6 +655,13 @@ div.instrument_no {
 @media screen and (min-width: 1025px) {	
 	.map-wrapper {
 		padding-right: 0;
+	}
+
+	.zip {
+		padding-top: 0px;
+	}
+	.zip-label {
+		display: none;
 	}
 
 	.table-wrapper {
@@ -821,10 +818,6 @@ div.instrument_no {
 
 /* Mobile view */
 @media screen and (max-width: 600px) {	
-	#banner-title {
-		font-size: 16px;
-		margin: 8px 12px 0px 6px;
-	}
 	#banner-social-facebook,
 	#banner-social-twitter {
 		font-size: 20px;
@@ -980,24 +973,25 @@ div.instrument_no {
 /* Medium-view */
 @media screen and (min-width: 641px) and (max-width: 1024px) {
 	#page-title {
-		padding: 0px 0 20px 0;
+		/*padding: 0px 0 20px 0;*/
 		font-size: 36px;
 		line-height: 36px;
 	}
+	.table-wrapper {
+		max-height: none;
+	}
+
 	.zip {
 		padding-top: 0px;
 	}
 	.zip-label {
 		display: none;
 	}
-	.table-wrapper {
-		max-height: none;
-	}
 }
 
 @media screen and (max-width: 640px) {
 	#page-title {
-		padding: 20px 0;
+		/*padding: 20px 0;*/
 		font-size: 26px;
 		line-height: 26px;
 	}
@@ -1009,5 +1003,22 @@ div.instrument_no {
 	}
 	.attribution-break {
 		display: none !important;
+	}
+}
+
+@media screen and (max-width: 750px) {
+	#date-from-label-text {
+		display: none;
+	}
+	#date-from-label-icon {
+		display: inline;
+	}
+}
+
+/* To match page title resizing with logo resizing in lens.js */
+@media screen and (max-width: 500px) {
+	#banner-title {
+		font-size: 16px;
+		margin: 8px 12px 0px 6px;
 	}
 }
