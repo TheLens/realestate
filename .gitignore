@@ -1,8 +1,11 @@
 #directories
 data
+scripts/images
+scripts/logs
  
 #files
 app_config.py
+test.*
 *.pyc
 *.DS_Store
 *.sql
