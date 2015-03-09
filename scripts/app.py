@@ -7,6 +7,7 @@ import urllib
 import re
 import math
 import check_assessor_urls
+import json
 
 from flask.ext.cache import Cache
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for
@@ -49,6 +50,7 @@ def requires_auth(f):
         return f(*args, **kwargs)
     return decorated
 
+@cache.memoize(timeout=5000)
 @app.errorhandler(404)
 def page_not_found(self):
     return render_template('404.html',
@@ -56,15 +58,26 @@ def page_not_found(self):
                             js = js,
                             indexjs = indexjs), 404
 
-#@cache.memoize(timeout=5000)
+@app.route("%s/webhook" % (app_routing), methods=['POST'])
+def webhook():
+    json_data = request.data
+    print 'json_data:'
+    print json_data
+
+    data = json.loads(json_data)
+    #print 'data:', data
+
+    return 'Successful!!'
+
+@cache.memoize(timeout=5000)
 @app.route("%s/" % (app_routing), methods=['GET'])
 def base():
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
 
-    yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
-    yesterday_date = MonthCheck(yesterday_date)
+    #yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%b %-d, %Y')
+    #yesterday_date = MonthCheck(yesterday_date)
 
     qd = session.query(Cleaned).filter(Cleaned.detail_publish == '1').order_by(desc(Cleaned.document_recorded)).limit(1).all()
 
@@ -75,7 +88,7 @@ def base():
 
     neighborhoods = []
     for hood in q:
-        neighborhoods.append((hood.gnocdc_lab).title())
+        neighborhoods.append((hood.gnocdc_lab).title().replace('Mcd', 'McD'))
 
     neighborhoods.sort()
 
@@ -97,7 +110,7 @@ def base():
 # def searchRedirect():
 #     return redirect(url_for('/realestate/search/'))
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 @app.route("%s/search/" % (app_routing), methods=['GET', 'POST'])
 @app.route("%s/search" % (app_routing), methods=['GET', 'POST'])
 def search():
@@ -153,7 +166,7 @@ def search():
 
         return response
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 @app.route("%s/dashboard/" % (app_routing), methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
@@ -167,10 +180,7 @@ def dashboard():
             ).filter(
                 (Cleaned.detail_publish == '0') | 
                 (Cleaned.location_publish == '0')
-            ).filter(
-                Cleaned.buyers.ilike('%%waffle%%')
             ).order_by(Cleaned.document_recorded.desc()).all()
-        #todo: paginate, because loading many maps takes a while
 
         num_results = len(q)
 
@@ -240,8 +250,6 @@ def dashboard():
         incomingdata['document_date'] = dumb
 
         pp.pprint(incomingdata)
-
-
 
 
         '''
@@ -326,7 +334,7 @@ def updateCleaned():
         session.execute(u)
         session.commit()
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 @app.route("%s/sale/<instrument_no>" % (app_routing), methods=['GET'])
 def sale(instrument_no = None):
 
@@ -402,7 +410,7 @@ def sale(instrument_no = None):
 
         return template1
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 @app.route("%s/input" % (app_routing), methods=['GET', 'POST'])
 def input():
     term = request.args.get('q')
@@ -455,7 +463,7 @@ def input():
     for i, u in enumerate(q_neighborhoods):
         response.append(
             {
-                "label": (u.neighborhood).title(),
+                "label": (u.neighborhood).title().replace('Mcd', 'McD'),
                 "category": "Neighborhoods"
             }
         )
@@ -496,7 +504,7 @@ def input():
         response = response
         )
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code):
 
     Base.metadata.create_all(engine)
@@ -512,7 +520,7 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
 
     neighborhoods = []
     for hood in q:
-        neighborhoods.append((hood.gnocdc_lab).title())
+        neighborhoods.append((hood.gnocdc_lab).title().replace('Mcd', 'McD'))
 
     neighborhoods.sort()
 
@@ -561,6 +569,10 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
     map_button = False
     results_language = constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, map_button)
 
+    print '564page:', page
+    print 'totalpages:', totalpages
+    print 'pagelength:', pagelength
+
     template1 = render_template(
         'search.html',
         yesterday_date = yesterday_date,
@@ -588,7 +600,6 @@ def query_db(name_address, amountlow, amounthigh, begindate, enddate, neighborho
 
     return template1
 
-#todo: this
 def constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, map_button):
     '''
     In goes filter values, out of this messy function comes a coherent sentence such as, "10 results found in the Mid-City neighborhood."
@@ -607,7 +618,10 @@ def constructResultsLanguage(name_address, amountlow, amounthigh, begindate, end
             final_sentence = final_sentence + '.'#10 records found.
     else:
         if name_address != '':
-            final_sentence = final_sentence + ' for keyword "' + name_address + '"'#10 records found for 'keyword'
+            if len(name_address.split()) > 1:
+                final_sentence = final_sentence + ' for key phrase "' + name_address + '"'#10 records found for 'keyword'
+            else:
+                final_sentence = final_sentence + ' for keyword "' + name_address + '"'#10 records found for 'keyword'
 
         if neighborhood != '':
             if zip_code != '':
@@ -647,7 +661,7 @@ def constructResultsLanguage(name_address, amountlow, amounthigh, begindate, end
 
     return final_sentence
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, bounds, mapbuttonstate, page_direction, page, totalpages):
 
     Base.metadata.create_all(engine)
@@ -675,6 +689,8 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
             recordsoffset = (page - 1) * pagelength
         elif page_direction == 'back' or page_direction == 'forward':
             if page_direction == 'forward':
+                print '682LOOK'
+                print '682page:', page
                 page = int(page) + 1
 
             if qlength == 0:
@@ -699,6 +715,8 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
             recordsoffset = (page - 1) * pagelength
         elif page_direction == 'back' or page_direction == 'forward':
             if page_direction == 'forward':
+                print '707LOOK'
+                print '709page:', page
                 page = int(page) + 1
             
             if qlength == 0:
@@ -743,6 +761,10 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
 
     results_language = constructResultsLanguage(name_address, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, mapbuttonstate)
 
+    print '754page:', page
+    print 'totalpages:', totalpages
+    print 'pagelength:', pagelength
+
     return jsonify(
         tabletemplate = tabletemplate,
         yesterday_date = yesterday_date,
@@ -756,7 +778,7 @@ def mapquery_db(name_address, amountlow, amounthigh, begindate, enddate, neighbo
         pagelength = pagelength
     )
 
-#@cache.memoize(timeout=5000)
+@cache.memoize(timeout=5000)
 def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, latitude, longitude, mapbuttonstate):
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind = engine)
@@ -834,6 +856,10 @@ def geoquery_db(name, amountlow, amounthigh, begindate, enddate, neighborhood, z
     session.close()
 
     results_language = constructResultsLanguage(name, amountlow, amounthigh, begindate, enddate, neighborhood, zip_code, qlength, mapbuttonstate)
+
+    print '848page:', page
+    print 'totalpages:', totalpages
+    print 'pagelength:', pagelength
 
     return jsonify(
         tabletemplate = tabletemplate,
@@ -993,6 +1019,9 @@ def loopThing(q):
         if u.location_publish == "0":
             u.document_date = u.document_date + "*"
             continue
+        if u.permanent_flag == False:
+            u.document_date = u.document_date + u"\u2020"
+            # continue
         features_dict = { 
             "type": "Feature", 
             "properties": { 
@@ -1112,7 +1141,7 @@ def revertEntries(amountlow, amounthigh, begindate, enddate):
 
 if __name__ == '__main__':
     app.run(
-        host = "0.0.0.0",
-        use_reloader = True,
-        debug = True
+        # host = "0.0.0.0",
+        #use_reloader = True,
+        # debug = True
     )
