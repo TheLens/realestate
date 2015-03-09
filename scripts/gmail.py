@@ -5,7 +5,7 @@ import pprint
 import base64
 import httplib2
 import mimetypes
-from datetime import datetime
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from apiclient.discovery import build
@@ -41,7 +41,9 @@ http = credentials.authorize(http)
 # Build the Gmail service from discovery
 gmail_service = build('gmail', 'v1', http=http)
 
-def CreateMessage(sender = None, to = None):
+yesterday_date = (datetime.now() - timedelta(days=1)).strftime('%Y-%m-%d')
+
+def CreateMessage(sender = 'Thomas Thoren <tthoren@thelensnola.org>', to = 'Thomas Thoren <tthoren@thelensnola.org>', initial_date = yesterday_date, until_date = yesterday_date):
     """
     Create a message for an email.
 
@@ -55,10 +57,12 @@ def CreateMessage(sender = None, to = None):
     An object containing a base64url encoded email object.
     """
     stats_file = "email-%s.txt" % datetime.now().strftime('%Y-%m-%d')
+
     stats_dir = "logs/" + stats_file
     f_stats = open(stats_dir, 'r')
 
     log_file = "land-records_%s.log" % datetime.now().strftime('%Y-%m-%d')
+
     log_dir = "logs/" + log_file
 
     message = ''
@@ -72,8 +76,14 @@ def CreateMessage(sender = None, to = None):
 
     message['to'] = to
     message['from'] = sender
-    message['subject'] = "Land records summary for " + datetime.now().strftime('%A, %b. %-d, %Y')
-    
+
+    if initial_date == until_date:
+        message['subject'] = "Land records summary for sales recorded " + (datetime.strptime(initial_date, '%Y-%m-%d')).strftime('%A, %b. %-d, %Y')
+    else:
+        initial_date = (datetime.strptime(initial_date, '%Y-%m-%d')).strftime('%A, %b. %-d, %Y')
+        until_date = (datetime.strptime(until_date, '%Y-%m-%d')).strftime('%A, %b. %-d, %Y')
+
+        message['subject'] = "Land records summary for sales recorded between " + initial_date + " and " + until_date
 
     msg = MIMEText(message_text, 'html')
     message.attach(msg)
@@ -117,7 +127,7 @@ def SendMessage(service, user_id, message_body):
 
     return message
     
-def main():
+def main(initial_date = yesterday_date, until_date = yesterday_date):
 
     '''
     # Don't include log file so the email doesn't get placed in spam folder
@@ -131,7 +141,9 @@ def main():
 
     me_message = CreateMessage(
         sender = 'Thomas Thoren <tthoren@thelensnola.org>',
-        to = 'Thomas Thoren <tthoren@thelensnola.org>'
+        to = 'Thomas Thoren <tthoren@thelensnola.org>',
+        initial_date = initial_date,
+        until_date = until_date
     )
     SendMessage(gmail_service, gmail_username, me_message)
 

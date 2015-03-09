@@ -14,13 +14,14 @@ import time
 
 from fabric.api import local
 from bs4 import BeautifulSoup
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from sqlalchemy import create_engine, insert, func, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 import gmail, check_assessor_urls
 from databasemaker import Detail, Location, Vendor, Vendee, Cleaned, Neighborhood, Square, Dashboard
+from pythonEmail.py import main
 from app_config import server_engine, server_connection, backup_directory
 
 pp = pprint.PrettyPrinter()
@@ -136,14 +137,14 @@ def vendors(form, form_id):
                 output.append(form_id)
                 dict_output = {}
                 dict_output = {
-                                'vendor_blank': '%s' % (output[0]),
-                                'vendor_p_c': '%s' % (output[1]),
-                                'vendor_lastname': '%s' % (output[2]),
-                                'vendor_firstname': '%s' % (output[3]),
-                                'vendor_relator': '%s' % (output[4]),
-                                'vendor_cancel_status': '%s' % (output[5]),
-                                'document_id': '%s' % (output[6])
-                                }
+                    'vendor_blank': '%s' % (output[0]),
+                    'vendor_p_c': '%s' % (output[1]),
+                    'vendor_lastname': '%s' % (output[2]),
+                    'vendor_firstname': '%s' % (output[3]),
+                    'vendor_relator': '%s' % (output[4]),
+                    'vendor_cancel_status': '%s' % (output[5]),
+                    'document_id': '%s' % (output[6])
+                }
                 i = insert(Vendor)
                 i = i.values(dict_output)
                 session.execute(i)
@@ -175,14 +176,14 @@ def vendees(form, form_id):
                 output.append(form_id)
                 dict_output = {}
                 dict_output = {
-                                'vendee_blank': '%s' % (output[0]),
-                                'vendee_p_c': '%s' % (output[1]),
-                                'vendee_lastname': '%s' % (output[2]),
-                                'vendee_firstname': '%s' % (output[3]),
-                                'vendee_relator': '%s' % (output[4]),
-                                'vendee_cancel_status': '%s' % (output[5]),
-                                'document_id': '%s' % (output[6])
-                                }
+                    'vendee_blank': '%s' % (output[0]),
+                    'vendee_p_c': '%s' % (output[1]),
+                    'vendee_lastname': '%s' % (output[2]),
+                    'vendee_firstname': '%s' % (output[3]),
+                    'vendee_relator': '%s' % (output[4]),
+                    'vendee_cancel_status': '%s' % (output[5]),
+                    'document_id': '%s' % (output[6])
+                }
                 i = insert(Vendee)
                 i = i.values(dict_output)
                 session.execute(i)
@@ -240,20 +241,20 @@ def locations(form, form_id):
             output.append(form_id)
             dict_output = {}
             dict_output = {
-                            'subdivision': '%s' % (output[0]),
-                            'condo': '%s' % (output[1]),
-                            'district': '%s' % (output[2]),
-                            'square': '%s' % (output[3]),
-                            'lot': '%s' % (output[4]),
-                            'cancel_status': '%s' % (output[5]),
-                            'street_number': '%s' % (output[6]),
-                            'address': '%s' % (output[7]),
-                            'unit': '%s' % (output[8]),
-                            'weeks': '%s' % (output[9]),
-                            'cancel_stat': '%s' % (output[10]),
-                            'freeform_legal': '%s' % (output[11]),
-                            'document_id': '%s' % (output[12])
-                            }
+                'subdivision': '%s' % (output[0]),
+                'condo': '%s' % (output[1]),
+                'district': '%s' % (output[2]),
+                'square': '%s' % (output[3]),
+                'lot': '%s' % (output[4]),
+                'cancel_status': '%s' % (output[5]),
+                'street_number': '%s' % (output[6]),
+                'address': '%s' % (output[7]),
+                'unit': '%s' % (output[8]),
+                'weeks': '%s' % (output[9]),
+                'cancel_stat': '%s' % (output[10]),
+                'freeform_legal': '%s' % (output[11]),
+                'document_id': '%s' % (output[12])
+            }
             i = insert(Location)
             i = i.values(dict_output)
             session.execute(i)
@@ -285,7 +286,7 @@ def Geocode():
     It will only geocode entries without ratings (new records), so this is good for either batch processing or only processing new records.
     cur.execute("UPDATE locations SET (rating, longitude, latitude) = ( COALESCE((g.geo).rating,-1), ST_X((g.geo).geomout)::numeric(8,5), ST_Y((g.geo).geomout)::numeric(8,5)) FROM (SELECT document_id FROM locations WHERE rating IS NULL ORDER BY document_id) As a  LEFT JOIN (SELECT document_id, (geocode(full_address,1)) As geo FROM locations As ag WHERE ag.rating IS NULL ORDER BY document_id) As g ON a.document_id = g.document_id WHERE a.document_id = locations.document_id;")
 
-    If restoring database creates problems with TIGER or geocode() function, follow instructions here: http://lists.osgeo.org/pipermail/postgis-users/2011-October/031156.html
+    If restoring database or using a copy of a database creates problems with TIGER or geocode() function ("HINT:  No function matches the given name and argument types. You might need to add explicit type casts."), follow the instructions here and run `ALTER DATABASE landrecords SET search_path=public, tiger;`: http://lists.osgeo.org/pipermail/postgis-users/2011-October/031156.html
     '''
     logger.info('Begin geocode')
     cur.execute("""
@@ -304,8 +305,8 @@ def Geocode():
         ) As a
         LEFT JOIN (
             SELECT document_id, (geocode(full_address,1)) As geo
-            FROM locations As ag
-            WHERE ag.rating IS NULL
+            FROM locations
+            WHERE locations.rating IS NULL
             ORDER BY document_id
         ) As g ON a.document_id = g.document_id
         WHERE a.document_id = locations.document_id;
@@ -370,7 +371,7 @@ def Publish(initial_date = None, until_date = None):
     # Evaluate "30 days ago" based on that particular day
     while current_date != new_until_date:
         # Update date range
-        old_date = current_date - timedelta(days = 30)
+        old_date = current_date - timedelta(days = 180)
         previous_date = current_date - timedelta(days = 1)
 
         # Copy datetime objects to date strings
@@ -398,7 +399,8 @@ def Publish(initial_date = None, until_date = None):
     session.query(Detail.amount, Detail.detail_publish).filter(Detail.amount <= 0).update({"detail_publish": "0"}) # Not sure about these, so check them all for now to be safe
     session.flush()
 
-    session.query(Detail.amount, Detail.detail_publish).filter(Detail.amount >= 20000000).update({"detail_publish": "0"}) # Anything over $20,000,000 wouldn't be impossible, but is certainly a rare occurrence
+    session.query(Detail.amount, Detail.detail_publish).filter(Detail.amount >= 20000000).update({"detail_publish": "0"}) # Anything over $20,000,000 wouldn't be impossible, but is a rare occurrence
+
     session.commit()
 
 def Clean(initial_date = None, until_date = None):
@@ -435,7 +437,7 @@ def Clean(initial_date = None, until_date = None):
           WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
           GROUP BY document_id
         )
-        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
+        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, details.permanent_flag, location.location_publish, neighborhood.neighborhood
         FROM details
         JOIN location ON details.document_id = location.document_id
         JOIN vendor ON details.document_id = vendor.document_id
@@ -446,6 +448,7 @@ def Clean(initial_date = None, until_date = None):
     
     result = engine.execute(sql_with_neighborhood)
 
+    # rows is used again at end of function
     rows = []
     for row in result:
         row = dict(row)
@@ -469,23 +472,75 @@ def Clean(initial_date = None, until_date = None):
     session.commit()
 
     '''
+    No neighborhood found.
+    '''
+
+    sql_without_neighborhood = """
+        WITH vendee AS (
+          SELECT document_id, string_agg(vendee_firstname::text || ' ' || vendee_lastname::text, ', ') AS buyers
+          FROM vendees
+          GROUP BY document_id
+        ), vendor AS (
+          SELECT document_id, string_agg(vendor_firstname::text || ' ' || vendor_lastname::text, ', ') AS sellers
+          FROM vendors
+          GROUP BY document_id
+        ), location AS (
+          SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text, '; ') AS address, string_agg('Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location_info, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
+          FROM locations
+          GROUP BY document_id
+        ), hood AS (
+          SELECT document_id, longitude, latitude
+          FROM locations
+        ), neighborhood AS (
+          SELECT document_id
+          FROM hood, (SELECT ST_Union(geom) as geom from neighborhoods) as nbhd
+          WHERE NOT ST_Contains(nbhd.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
+          GROUP BY document_id
+        )
+        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.latitude, location.longitude, location.zip_code, details.detail_publish, details.permanent_flag, location.location_publish
+        FROM details
+        JOIN location ON details.document_id = location.document_id
+        JOIN vendor ON details.document_id = vendor.document_id
+        JOIN vendee ON details.document_id = vendee.document_id
+        JOIN neighborhood ON details.document_id = neighborhood.document_id
+        WHERE document_recorded >= '%s' AND document_recorded <= '%s';
+    """ % (initial_date, until_date)
+
+    
+    no_neighborhood_result = engine.execute(sql_without_neighborhood)
+
+    no_neighborhood_rows = []
+    for row in no_neighborhood_result:
+        row = dict(row)
+        row['neighborhood'] = "None"
+        no_neighborhood_rows.append(row)
+
+    #pp.pprint(no_neighborhood_rows)
+        
+    no_neighborhood_rows = Cleanup.CleanNew(no_neighborhood_rows) # Clean up things like capitalizations, abbreviations, AP style quirks, etc.
+
+    for row in no_neighborhood_rows:
+        logger.info('Inserting', row)
+        try:
+            with session.begin_nested():
+                i = insert(Cleaned)
+                i = i.values(row)
+                session.execute(i)
+                session.flush()
+        except:
+            # e = sys.exc_info()[1]
+            #print 'Error!'
+            logger.info('ERROR! Probably an integrity error (a sale with this instrument number has already been entered into the cleaned table.');
+
+    session.commit()
+    
+
+
+    '''
     Cleaned table has new records now. Can use straightforward SQL queries on Cleaned.
     '''
 
-    # f.write('=============\n')
-    # f.write('NEW RECORDS\n')
-    # f.write('=============\n\n')
-
-    #f.write('View:\n')
-    f.write('<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={0}</p>\n\n'.format(datetime.now().strftime('%m/%d/%Y')))
-
-    '''
-    STATS
-    '''
-
-    # f.write('======\n')
-    # f.write('STATS\n')
-    # f.write('======\n\n')
+    f.write('<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={0}</p>\n\n'.format((datetime.now() - timedelta(days=1)).strftime('%m/%d/%Y')))
 
     '''
     Number of new records
@@ -538,7 +593,6 @@ def Clean(initial_date = None, until_date = None):
     
     f.write('<p>%s records not published because location could not be found.</p>\n\n' % (format(count, ',')))
 
-    #f.write('Dashboard:\n')
     f.write('<p>http://vault.thelensnola.org/realestate/dashboard</p>\n\n')
 
     '''
@@ -553,12 +607,9 @@ def Clean(initial_date = None, until_date = None):
 
     high_result = engine.execute(high_amount_sql)
 
-    high_count = 1 # placeholder
-
     for u in high_result:
         high_count = u.amount
-
-    f.write('<p>High: %s</p>\n\n' % ('$' + format(high_count, ',')))
+        f.write('<p>High: %s</p>\n\n' % ('$' + format(high_count, ',')))
 
     '''
     Lowest amount
@@ -574,39 +625,28 @@ def Clean(initial_date = None, until_date = None):
 
     low_result = engine.execute(low_amount_sql)
 
-    low_count = 1 # placeholder
     for u in low_result:
         low_count = u.amount
-    
-    f.write('<p>Low: %s</p>\n\n' % ('$' + format(low_count, ',')))
+        f.write('<p>Low: %s</p>\n\n' % ('$' + format(low_count, ',')))
 
     '''
     Writing all new records here because want it at end of email message.
     'rows' is from Cleaned commit output
     '''
 
-    # f.write('============\n')
-    # f.write('ALL RECORDS\n')
-    # f.write('============\n\n')
-
     message = ''
-    #pp.pprint(rows)
     for row in rows:
-        #print row
-        # for (key, val) in row.iteritems():
-        #u'\u2022'
-        #     message = message + "%s: %s" % (key, val) + '\n'
         if row['document_date'] == None:
-            message = message + '<p>Sale date: None<br>\n'
+            message += '<p><strong>Sale date</strong><br>None<br>\n'
         else:
-            message = message + '<p>Sale date: ' + row['document_date'].strftime('%A, %b. %-d, %Y') + '<br>\n'
-        message = message + 'Amount: $' + format(row['amount'], ',') + '<br>\n'
-        message = message + 'Buyers: ' + row['buyers'] + '<br>\n'
-        message = message + 'Sellers: ' + row['sellers'] + '<br>\n'
-        message = message + 'Address: ' + row['address'] + '<br>\n'
-        message = message + 'Location info: ' + row['location_info'] + '<br>\n'
-        message = message + 'Zip: ' + row['zip_code'] + '<br>\n'
-        message = message + 'Neighborhood: ' + row['neighborhood'] + '</p>\n'
+            message += '<p><strong>Sale date</strong><br>' + row['document_date'].strftime('%A, %b. %-d, %Y') + '<br>\n'
+        message += '<strong>Amount</strong><br>$' + format(row['amount'], ',') + '<br>\n'
+        message += '<strong>Buyers</strong><br>' + row['buyers'] + '<br>\n'
+        message += '<strong>Sellers</strong><br>' + row['sellers'] + '<br>\n'
+        message += '<strong>Address</strong><br>' + row['address'] + '<br>\n'
+        message += '<strong>Location info</strong><br>' + row['location_info'] + '<br>\n'
+        message += '<strong>Zip</strong><br>' + row['zip_code'] + '<br>\n'
+        message += '<strong>Neighborhood</strong><br>' + row['neighborhood'] + '</p>\n'
         #message = message + row['document_date'] + '\n'
         f.write(message.encode('utf8'))
         f.write('\n')
@@ -659,9 +699,6 @@ def copyDashboardToCleaned():
 
         rows.append(row_dict)
 
-    # print 'rows:'
-    # pp.pprint(rows)
-
     for row in rows:
         print 'row:'
         print row['instrument_no']
@@ -682,199 +719,6 @@ def copyDashboardToCleaned():
         session.execute(u)
         session.commit()
 
-def Squares(initial_date = None, until_date = None):
-    '''
-    Problems with matching square and district values to shapefile.
-    There are integrity issues with the squares file to begin with, so don't use this function until improvements are made.
-    '''
-    print "Identifying square..."
-    logger.info('Squares')
-    q = session.query(Location).filter(Location.rating > 3).all()
-    for u in q:
-        doc_id = u.document_id
-        #print "Document ID:", doc_id
-
-        # original_latitude = u.latitude
-        # original_longitude = u.longitude
-
-        untouched_district = u.district
-        district = re.sub(r"ST", r"", untouched_district)
-        district = re.sub(r"ND", r"", district)
-        district = re.sub(r"RD", r"", district)
-        district = re.sub(r"TH", r"", district)
-
-        untouched_square = u.square
-        square = re.sub(r"-", r"", untouched_square)
-
-        '''
-        print "Untouched district:", untouched_district
-        print "Untouched square:", untouched_square
-
-        print "District:", district
-        print "Square:", square
-        '''
-
-        if district == '' or square == '' or square == '-1':
-            # print "No information about district and/or square."
-            # print "\n"
-            continue
-
-        qq = session.query(
-                # func.ST_AsText(
-                #     func.ST_Centroid(Square.geom)
-                # )
-                func.ST_X(
-                    func.ST_Centroid(Square.geom)
-                ).label('ST_X'),
-                func.ST_Y(
-                    func.ST_Centroid(Square.geom)
-                ).label('ST_Y')
-            ).filter(
-                Square.mun_dst == '%s' % (district)
-            ).filter(
-                Square.square == Square.square == '%s' % (square)
-            ).all()
-
-        #qq should only find one point (a given district's square). todo: make sure.
-
-        for uu in qq:
-            #print uu.keys()
-            latitude = uu.ST_Y
-            longitude = uu.ST_X
-
-        #should only be one set of lat/long..., as noted above
-
-        '''
-        print 'Latitude:', latitude
-        print "Longitude:", longitude
-        '''
-
-        qqq = session.query(
-                Detail
-            ).filter(
-                Detail.document_id == '%s' % doc_id
-            ).all()
-
-        #print "This should say 1:", len(qqq)
-
-        for uuu in qqq:
-            #print 'Instrument #:', uuu.instrument_no
-            in_no = uuu.instrument_no
-
-        # Don't update location_publish to '1' because not sure yet that this is trustworthy. This gives a new lat/long, but is not displayed on the map until confirmation from dashboard.
-        session.query(
-                Cleaned.instrument_no, Cleaned.document_recorded, Cleaned.latitude, Cleaned.longitude
-            ).filter(
-                Cleaned.instrument_no == '%s' % (in_no)
-            ).filter(
-                Cleaned.document_recorded >= '%s' % (initial_date)
-            ).filter(
-                Cleaned.document_recorded <= '%s' % (until_date)
-            ).update({
-                "latitude": "%s" % (latitude),
-                "longitude": "%s" % (longitude)
-            })
-        session.commit()
-
-        '''
-        print "Original latitude:", original_latitude
-        print "Original longitude:", original_longitude
-
-        print "New latitude:", latitude
-        print "New longitude:", longitude
-        print "\n"
-        '''
-
-def Neighborhoods(initial_date = None, until_date = None):
-    '''
-    This is incredibly slow. Needs overhaul.
-
-    avoid updates. aim to only use inserts. run postgis queries before inserting row to cleaned in the first place.
-
-    '''
-    logger.info('Neighborhoods')
-
-    insert_directly_into_cleaned_sql = """
-    WITH vendee AS (
-      SELECT document_id, string_agg(vendee_firstname::text || ' ' || vendee_lastname::text, ', ') AS buyers
-      FROM vendees
-      GROUP BY document_id
-    ), vendor AS (
-      SELECT document_id, string_agg(vendor_firstname::text || ' ' || vendor_lastname::text, ', ') AS sellers
-      FROM vendors
-      GROUP BY document_id
-    ), location AS (
-      SELECT document_id, min(location_publish) AS location_publish, string_agg(street_number::text || ' ' || address::text, '; ') AS address, string_agg('Unit: ' || unit::text || ', Condo: ' || condo::text || ', Weeks: ' || weeks::text || ', Subdivision: ' || subdivision::text || ', District: ' || district::text || ', Square: ' || square::text || ', Lot: ' || lot::text, '; ') AS location_info, mode(zip_code) AS zip_code, mode(latitude) AS latitude, mode(longitude) AS longitude
-      FROM locations
-      GROUP BY document_id
-    ), hood AS (
-      SELECT document_id, longitude, latitude
-      FROM locations
-    ), neighborhood AS (
-      SELECT document_id, gnocdc_lab AS neighborhood
-      FROM neighborhoods, hood
-      WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(hood.longitude::float, hood.latitude::float),4326))
-    )
-    INSERT INTO cleaned (
-        amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, neighborhood
-    )
-    (
-        SELECT details.amount, details.document_date, details.document_recorded, location.address, location.location_info, vendor.sellers, vendee.buyers, details.instrument_no, location.la
-        titude, location.longitude, location.zip_code, details.detail_publish, location.location_publish, neighborhood.neighborhood
-        FROM details
-        JOIN location ON details.document_id = location.document_id
-        JOIN vendor ON details.document_id = vendor.document_id
-        JOIN vendee ON details.document_id = vendee.document_id
-        JOIN neighborhood ON details.document_id = neighborhood.document_id
-        WHERE document_recorded >= '2014-02-18' AND document_recorded <= '2014-09-11'
-    );
-    """
-
-    if 1 == 0:
-        print insert_directly_into_cleaned_sql
-
-    q = session.query(
-            Cleaned
-        ).filter(
-            Cleaned.document_recorded >= '%s' % (initial_date)
-        ).filter(
-            Cleaned.document_recorded <= '%s' % (until_date)
-        ).all()
-
-    for u in q:
-        in_no = u.instrument_no
-        '''
-        print "Instrument #:", in_no
-        print "Longitude: ", u.longitude
-        print "Latitude:", u.latitude
-        '''
-
-        # Find neighborhood containing this sale's lat/lng
-        qq = session.query(
-                Neighborhood
-            ).filter(
-                func.ST_Contains(
-                    Neighborhood.geom,
-                    'SRID=4326;POINT(%s %s)' % (u.longitude, u.latitude)
-                )
-            ).all()
-
-        # If a neighborhood is found, apply GNOCDC name to neighborhood value
-        if qq != []:
-            for uu in qq:
-                hood = uu.gnocdc_lab
-        #print "Neighborhood:", hood
-
-        # Update cleaned table with this new neighborhood value
-        session.query(
-                Cleaned.instrument_no, Cleaned.neighborhood
-            ).filter(
-                Cleaned.instrument_no == '%s' % (in_no)
-            ).update({
-                "neighborhood": "%s" % (hood.title())
-            })
-        session.commit()
-
 def Build(initial_date = None, until_date = None):
     print "Building tables..."
     logger.info('buildFromScratch')
@@ -886,7 +730,10 @@ def Build(initial_date = None, until_date = None):
         current_date = folder.split('/')[-1]
 
         # If this date is before the specified initial_date, then skip.
-        if current_date < initial_date:
+        try:
+            if datetime.strptime(current_date, '%Y-%m-%d') < datetime.strptime(initial_date, '%Y-%m-%d'):
+                continue
+        except:
             continue
 
         print folder
@@ -913,7 +760,10 @@ def Build(initial_date = None, until_date = None):
         current_date = folder.split('/')[-1]
 
         # If this date is before the specified initial_date, then skip.
-        if current_date < initial_date:
+        try:
+            if datetime.strptime(current_date, '%Y-%m-%d') < datetime.strptime(initial_date, '%Y-%m-%d'):
+                continue
+        except:
             continue
 
         for form in sorted(glob.glob('%s/form-html/*.html' % (folder))): # For all records (within each day)
@@ -935,7 +785,10 @@ def Build(initial_date = None, until_date = None):
         current_date = folder.split('/')[-1]
 
         # If this date is before the specified initial_date, then skip.
-        if current_date < initial_date:
+        try:
+            if datetime.strptime(current_date, '%Y-%m-%d') < datetime.strptime(initial_date, '%Y-%m-%d'):
+                continue
+        except:
             continue
 
         for form in sorted(glob.glob('%s/form-html/*.html' % (folder))): # For all records (within each day)
@@ -957,7 +810,10 @@ def Build(initial_date = None, until_date = None):
         current_date = folder.split('/')[-1]
 
         # If this date is before the specified initial_date, then skip.
-        if current_date < initial_date:
+        try:
+            if datetime.strptime(current_date, '%Y-%m-%d') < datetime.strptime(initial_date, '%Y-%m-%d'):
+                continue
+        except:
             continue
 
         print folder
@@ -973,11 +829,11 @@ def Build(initial_date = None, until_date = None):
             break
     session.commit()
 
-def sendEmail():
+def sendEmail(initial_date = yesterday_date, until_date = yesterday_date):
     # Send me an email of new rows
     print "Sending email summary..."
     logger.info('gmail function:')
-    gmail.main()
+    gmail.main(initial_date = initial_date, until_date = until_date)
 
 def updateCleanedGeom():
     local('psql landrecords -c "UPDATE cleaned SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);"')
@@ -1060,31 +916,227 @@ def checkAssessorLinks(initial_date = None, until_date = None):
 
         time.sleep(random.randint(1,2) + random.uniform(1.0, 2.0))
 
+def checkPermanentStatusOfNewSales():
+    '''
+    Examine first-time sales and assign True or False for permanent_flag.
+    '''
+
+    # Find the date range of sales to look at. This is only to reduce the number of iterations needed by the for-loop below.
+
+    earliest_none_date = ''
+    latest_none_date = ''
+
+    q = session.query(
+            func.min(Detail.document_recorded).label('early_date')
+        ).filter(
+            Detail.permanent_flag == None
+        )
+
+    for u in q:
+        earliest_none_date = u.early_date
+
+    print 'earliest_none_date:', earliest_none_date
+
+    q = session.query(
+            func.max(Detail.document_recorded).label('late_date')
+        ).filter(
+            Detail.permanent_flag == None
+        )
+
+    for u in q:
+        latest_none_date = u.late_date
+
+    print 'latest_none_date:', latest_none_date
+
+    for folder in sorted(glob.glob('../data/*')): # For all folders (dates)
+        current_iteration_date = folder.split('/')[-1]
+
+        try:
+            current_iteration_datetime = datetime.strptime(current_iteration_date, '%Y-%m-%d')
+        except:
+            continue
+
+        try:
+            earliest_none_datetime = datetime.combine(earliest_none_date, datetime.min.time())
+        except:
+            continue
+
+        if current_iteration_datetime < earliest_none_datetime:
+            continue
+
+        # For this date that is currently considered temporary (whether by default or because it was previously confirmed to be temporary), check on the permanent date range at the time of the scrape.
+        for pathname in sorted(glob.glob('%s/permanent-date-range-when-scraped_*.html' % (folder))): # For all records (within each day)
+            #print 'pathname:', pathname
+
+            permanent_range_first_date_when_scraped = re.match(r"../data/" + current_iteration_date + r"/permanent-date-range-when-scraped_(\d+)-(\d+).html", pathname).group(1)
+            print 'permanent_range_first_date_when_scraped:', permanent_range_first_date_when_scraped
+            permanent_range_first_date_when_scraped = datetime.strptime(permanent_range_first_date_when_scraped, '%m%d%Y')#).strftime('%Y-%m-%d')
+
+            permanent_range_last_date_when_scraped = re.match(r"../data/" + current_iteration_date + r"/permanent-date-range-when-scraped_(\d+)-(\d+).html", pathname).group(2)
+            print 'permanent_range_last_date_when_scraped:', permanent_range_last_date_when_scraped
+            permanent_range_last_date_when_scraped = datetime.strptime(permanent_range_last_date_when_scraped, '%m%d%Y')#).strftime('%Y-%m-%d')
+
+            if (permanent_range_first_date_when_scraped <= current_iteration_datetime and current_iteration_datetime <= permanent_range_last_date_when_scraped):
+                session.query(Detail).filter(Detail.document_recorded == '%s' % current_iteration_date).update({"permanent_flag": True})
+                session.query(Cleaned).filter(Cleaned.document_recorded == '%s' % current_iteration_date).update({"permanent_flag": True})
+                session.commit()
+            else:
+                session.query(Detail).filter(Detail.document_recorded == '%s' % current_iteration_date).update({"permanent_flag": False})
+                session.query(Cleaned).filter(Cleaned.document_recorded == '%s' % current_iteration_date).update({"permanent_flag": False})
+                session.commit()
+        print '\n'
+
+        # If reached final date, then end.
+        if current_iteration_date == latest_none_date:
+            break
+
+def checkPermanentStatusOfTempSales():
+    '''
+    Compare most recently downloaded permanent date range against sales that were previously determined to have permanent_flag = False to see if any sales should be re-scraped.
+    '''
+
+    # Find the date range of temporary sales to look at. This is only to reduce the number of iterations needed by the for-loop below.
+
+    earliest_temp_date = ''
+    latest_temp_date = ''
+
+    q = session.query(
+            func.min(Detail.document_recorded).label('early_date')
+        ).filter(
+            Detail.permanent_flag == False
+        )
+    for u in q:
+        print u
+        earliest_temp_date = u.early_date
+    print 'earliest_temp_date:', earliest_temp_date
+
+
+    q = session.query(
+            func.max(Detail.document_recorded).label('late_date')
+        ).filter(
+            Detail.permanent_flag == False
+        )
+    for u in q:
+        print u
+        earliest_temp_date = u.late_date
+    print 'latest_temp_date:', latest_temp_date
+
+    dates_to_redo = []
+
+    permanent_range_first_date = ''
+    permanent_range_last_date = ''
+
+    # Find most recently updated permanent date range.
+    for pathname in glob.glob('../data/most-recent-permanent-date-range_*.html'):
+        print 'pathname:', pathname
+
+        permanent_range_first_date = re.match(r"../data/most-recent-permanent-date-range_(\d+)-(\d+).html", pathname).group(1)
+        permanent_range_first_date = datetime.strptime(permanent_range_first_date, '%m%d%Y')#).strftime('%Y-%m-%d')
+
+        permanent_range_last_date = re.match(r"../data/most-recent-permanent-date-range_(\d+)-(\d+).html", pathname).group(2)
+        permanent_range_last_date = datetime.strptime(permanent_range_last_date, '%m%d%Y')#).strftime('%Y-%m-%d')
+
+    for folder in sorted(glob.glob('../data/*')): # For all folders (dates)
+        current_iteration_date = folder.split('/')[-1]
+        #print 'current_iteration_date:', current_iteration_date
+
+        try:
+            current_iteration_datetime = datetime.strptime(current_iteration_date, '%Y-%m-%d')
+        except:
+            continue
+
+        try:
+            earliest_temp_datetime = datetime.combine(earliest_temp_date, datetime.min.time())
+        except:
+            continue
+
+        if current_iteration_datetime < earliest_temp_datetime:
+            continue
+
+        if (permanent_range_first_date <= current_iteration_datetime and current_iteration_datetime <= permanent_range_last_date):
+            dates_to_redo.append(current_iteration_datetime)
+        
+        #else:
+            #Do nothing. Keep records and don't change permanent_flag
+
+        # If reached final date, then end.
+        if current_iteration_date == latest_temp_date:
+            break
+
+    try:
+        early_date = min(dates_to_redo)
+        late_date = max(dates_to_redo)
+    except:
+        #Nothing left to do because no records are "temporary"
+        return
+
+    #Delete existing records for this date
+    location_sql = """
+        DELETE FROM locations USING details
+        WHERE details.document_id = locations.document_id
+        AND details.document_recorded >= '%s'
+        AND details.document_recorded <= '%s'
+    """ % (early_date, late_date)
+    engine.execute(location_sql)
+
+    vendor_sql = """
+        DELETE FROM vendors USING details
+        WHERE details.document_id = vendors.document_id
+        AND details.document_recorded >= '%s'
+        AND details.document_recorded <= '%s'
+    """ % (early_date, late_date)
+    engine.execute(vendor_sql)
+
+    vendee_sql = """
+        DELETE FROM vendees USING details
+        WHERE details.document_id = vendees.document_id
+        AND details.document_recorded >= '%s'
+        AND details.document_recorded <= '%s'
+    """ % (early_date, late_date)
+    engine.execute(vendee_sql)
+
+    detail_sql = """
+        DELETE FROM details
+        WHERE document_recorded >= '%s'
+        AND document_recorded <= '%s'
+    """ % (early_date, late_date)
+    engine.execute(detail_sql)
+
+    cleaned_sql = """
+        DELETE FROM cleaned
+        WHERE document_recorded >= '%s'
+        AND document_recorded <= '%s'
+    """ % (early_date, late_date)
+    engine.execute(cleaned_sql)
+
+    # Scrape those days over again
+    selen.main(from_date = earliest_date_need_to_rescrape_datetime, until_date = latest_date_need_to_rescrape_datetime)
+
+    # Build those newly scraped records. This will set perm_flag = True in checkPermanentStatusOfNewSales().
+    doItAll(earliest_date_need_to_rescrape, latest_date_need_to_rescrape)
+
+
 def doItAll(initial_date = '2014-02-18', until_date = yesterday_date):
     Build(initial_date = initial_date, until_date = until_date)
     Geocode() #CAUTION! Geocoding entire archive takes ~45 minutes.
     Publish(initial_date = initial_date, until_date = until_date)
     Clean(initial_date = initial_date, until_date = until_date)  
-    ###Squares(initial_date = initial_date, until_date = until_date)# Don't run Squares() until data integrity issues are solved.
     if initial_date != until_date: # Assumes any range of dates also wants this function.
         copyDashboardToCleaned()
     updateCleanedGeom()
-    #sendEmail()#todo: need dates?
+
+    checkPermanentStatusOfNewSales()
+    checkPermanentStatusOfTempSales()
+
+    sendEmail(initial_date = initial_date, until_date = until_date)
     #checkAssessorLinks(initial_date = initial_date, until_date = until_date)
 
 if __name__ == '__main__':
-    # From scratch:
-    #doItAll(initial_date = '2014-02-18', until_date = '2014-02-19')#Default is to run through entire archive, from 2014-02-18 through most recent
-    doItAll(initial_date = '2015-02-10')
-
-    # Just yesterday:
-    #doItAll(initial_date = yesterday_date, until_date = yesterday_date)
-
-    #Create new .csv file of table
-    #cur.execute("COPY cleaned to '/Users/Tom/projects/land-records/temp/table_dump.csv' delimiters',';")
-    #cur.execute("\copy cleaned to '/home/tom/projects/land-records/repo/scripts/static/lens-property-sales-%s.csv' csv header" % (yesterday_date))
-    # For limited columns: http://stackoverflow.com/questions/2952366/dump-csv-from-sqlalchemy
-    #conn.commit()
+    try:
+        doItAll(initial_date = yesterday_date, until_date = yesterday_date)
+        #doItAll()#Default is to build entire archive
+    except:
+        pythonEmail.main(email_subject = "Error running Land Record's initialize.py script", email_body = 'Sorry.')
 
     session.close()
     cur.close()

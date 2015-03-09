@@ -8,6 +8,7 @@ import re
 import math
 import check_assessor_urls
 import json
+import logging
 
 from flask.ext.cache import Cache
 from flask import Flask, render_template, jsonify, request, Response, redirect, url_for
@@ -17,6 +18,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from databasemaker import Cleaned, Dashboard, Neighborhood
 from datetime import datetime, timedelta
 from functools import wraps
+from fabric.api import local
 
 from app_config import server_connection, server_engine, js, indexjs, searchAreajs, searchjs, mapjs, salejs, dashboardjs, neighborhoodstopo, squarestopo, css, development_username, development_password, app_routing, js_app_routing
 
@@ -30,6 +32,25 @@ pp = pprint.PrettyPrinter()
 engine = create_engine('%s' % (server_engine))
 
 pagelength = 10
+
+local_absolute_path = '/Users/Tom/projects/land-records/repo/'
+server_absolute_path = '/apps/land-records/repo/scripts'
+s3_path = 's3://lensnola/land-records'
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+# Create file handler which logs debug messages or higher
+fh = logging.FileHandler('logs/app.log', 'w')
+# fh.filemode('w')
+fh.setLevel(logging.DEBUG)
+
+# Create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(lineno)d - %(message)s')
+fh.setFormatter(formatter)
+
+# Add the handlers to the logger
+logger.addHandler(fh)
 
 def check_auth(username, password):
     return username == development_username and password == development_password
@@ -60,14 +81,83 @@ def page_not_found(self):
 
 @app.route("%s/webhook" % (app_routing), methods=['POST'])
 def webhook():
-    json_data = request.data
-    print 'json_data:'
-    print json_data
+    logger.info('/webhook')
 
-    data = json.loads(json_data)
-    #print 'data:', data
+    data = request.get_json()
 
-    return 'Successful!!'
+    gitPull(data)
+
+    files_list = gatherUpdatedFiles(data)
+
+    for f in files_list:
+        aws_string = formAWSString(f)
+
+        if aws_string == None:
+            continue
+
+        logger.info(aws_string)
+
+        local(aws_string)
+
+    logger.info('Done')
+    return "None"
+
+def gitPull(data):
+    try:
+        logger.info('try')
+        branch = data['ref']
+        logger.info(branch)
+        if branch != 'refs/heads/master':
+            logger.info('Not master branch')
+            return 'None'
+    except:
+        logger.info('except')
+        return "None"
+
+    local('git pull origin master')
+
+
+def formAWSString(f):
+    # Ex. f = 'scripts/templates/search.html'
+    logger.info(f)
+    
+    file_path = f.split('static/')[-1] # Ex. 'js/lens.js'
+
+    aws_string = 'aws s3 cp {0}{1} {2}/{3} --acl public-read'.format(local_absolute_path, f, s3_path, file_path)
+
+    return aws_string
+
+def gatherUpdatedFiles(data):
+    try:
+        logger.info('try')
+        branch = data['ref']
+        logger.info(branch)
+        if branch != 'refs/heads/master':
+            logger.info('Not master branch')
+            return 'None'
+    except:
+        logger.info('except')
+        return "None"
+
+    github_branch = data['ref'].split('/')[-1]
+    logger.info(github_branch)
+
+    added_files_list = data['commits'][0]['added'] # Ex: ['scripts/templates/search.html']
+    modified_files_list = data['commits'][0]['modified']
+
+    files_list = []
+
+    for f in added_files_list:
+        files_list.append(f)
+
+    for f in modified_files_list:
+        files_list.append(f)
+
+    for i, f in enumerate(files_list):
+        if f.split('/')[1] != 'static':
+            del files_list[i]
+
+    return files_list
 
 @cache.memoize(timeout=5000)
 @app.route("%s/" % (app_routing), methods=['GET'])
@@ -1142,6 +1232,6 @@ def revertEntries(amountlow, amounthigh, begindate, enddate):
 if __name__ == '__main__':
     app.run(
         # host = "0.0.0.0",
-        #use_reloader = True,
-        # debug = True
+        use_reloader = True,
+        debug = True
     )

@@ -3,15 +3,15 @@ import urllib
 
 local_absolute_path = '/Users/Tom/projects/land-records/repo/scripts/'
 server_absolute_path = '/apps/land-records/repo/scripts'
+
+server_scraper_path = '/scrapers/land-records'
+
 s3_path = 's3://lensnola/land-records/'
 server_name = '162.243.152.217'
 server_name = 'vault.thelensnola.org'
 
-def deploy():
-    local("./deploy.sh")
-
-def initialize():
-    local('scp %sinitialize.py          tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+def scrape():
+    local('scp %sscrape.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
 
 def cleanup():
     local('scp %sCleanup.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
@@ -19,11 +19,22 @@ def cleanup():
 def app_config():
     local('scp %sapp_config.py          tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
 
+def init():
+    local('scp %sinitialize.py          tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+
+def app():
+    local('scp %sapp.py                 tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+
+def run_trifecta():
+    local('python databasedeleter.py')
+    local('python databasemaker.py')
+    local('python initialize.py')
+
 def four():
     local('scp %sapp.py                 tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    local('scp %sinitialize.py          tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sdatabasedeleter.py     tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sdatabasemaker.py       tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
-    local('scp %sinitialize.py          tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
 
 def templates():
     local('scp %stemplates/404.html   tom@%s:%s/templates' % (local_absolute_path, server_name, server_absolute_path))
@@ -40,7 +51,8 @@ def templates():
 
 def scripts():
     local('scp %sapp.py                 tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
-    local('scp %scheck_assessor_urls.py tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    local('scp %sbackup.sh              tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    #local('scp %scheck_assessor_urls.py tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sCleanup.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sdatabasedeleter.py     tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sdatabasemaker.py       tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
@@ -55,11 +67,12 @@ def scripts():
     #local('scp %srequirements.txt       tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sscrape.sh              tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     local('scp %sscrape.py              tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
-    local('scp %sscreen.js              tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    #local('scp %sscreen.js              tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    local('scp %sscrape-mechanize.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     #local('scp %ssquares-topo.json      tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     #local('scp %ssquares.json           tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     #local('scp %stserver.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
-    local('scp %stwitter.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
+    #local('scp %stwitter.py             tom@%s:%s' % (local_absolute_path, server_name, server_absolute_path))
     #local('scp /Users/Tom/projects/land-records/repo/.gitignore             tom@%s:%s' % (server_name, server_absolute_path))
 
 def geographicData():

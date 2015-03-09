@@ -82,9 +82,10 @@ class Cleaned(Base):
 	detail_publish = Column(String)
 	location_publish = Column(String)
 	assessor_publish = Column(String)
+	permanent_flag = Column(Boolean, nullable=True)
 	neighborhood = Column(String, index=True)
 
-	def __init__(self, geom, amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, neighborhood):
+	def __init__(self, geom, amount, document_date, document_recorded, address, location_info, sellers, buyers, instrument_no, latitude, longitude, zip_code, detail_publish, location_publish, assessor_publish, permanent_flag, neighborhood):
 		#self.id=id,
 		self.geom=geom,
 		self.amount=amount,
@@ -101,6 +102,7 @@ class Cleaned(Base):
 		self.detail_publish=detail_publish,
 		self.location_publish=location_publish,
 		self.assessor_publish=assessor_publish,
+		self.permanent_flag=permanent_flag
 		self.neighborhood = neighborhood
 		pass
 
@@ -173,8 +175,9 @@ class Detail(Base):
 	no_pages_in_image = Column(String)
 	image = Column(String)
 	detail_publish = Column(String)
+	permanent_flag = Column(Boolean, nullable=True)
 
-	def __init__(self, document_id, document_type, instrument_no, multi_seq, min_, cin, book_type, book, page, document_date, document_recorded, amount, status, prior_mortgage_doc_type, prior_conveyance_doc_type, cancel_status, remarks, no_pages_in_image, image, detail_publish):
+	def __init__(self, document_id, document_type, instrument_no, multi_seq, min_, cin, book_type, book, page, document_date, document_recorded, amount, status, prior_mortgage_doc_type, prior_conveyance_doc_type, cancel_status, remarks, no_pages_in_image, image, detail_publish, permanent_flag):
 		self.document_id=document_id,
 		self.document_type=document_type,
 		self.instrument_no=instrument_no,
@@ -194,7 +197,8 @@ class Detail(Base):
 		self.remarks=remarks,
 		self.no_pages_in_image=no_pages_in_image,
 		self.image=image,
-		self.detail_publish=detail_publish
+		self.detail_publish=detail_publish,
+		self.permanent_flag=permanent_flag
 		pass
 
 	def __repr__(self):
@@ -326,24 +330,28 @@ def remakeDB():
 	engine = create_engine('%s' % (server_engine), implicit_returning=True)
 	Base.metadata.create_all(engine)
 
-def neighborhoodsJSON():
-	local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/neighborhoods/102682.prj -t_srs EPSG:4326 neighborhoods.json ../data/neighborhoods/Neighborhood_Statistical_Areas.shp")
-	local("topojson -o neighborhoods-topo.json --properties name=gnocdc_lab neighborhoods.json")
+#def neighborhoodsJSON():
+	#local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/neighborhoods/102682.prj -t_srs EPSG:4326 neighborhoods.json ../data/neighborhoods/Neighborhood_Statistical_Areas.shp")
+	#local("topojson -o neighborhoods-topo.json --properties name=gnocdc_lab neighborhoods.json")
 	#cp neighborhoods-topo.json static/js/neigbhorhoods-topo.js
 	#vim neighborhoods-topo.js: var neighborhoods = {...};
 	#minify: yuicompressor neighborhoods-topo.js -o neighborhoods-topo.min.js
 
-def squaresJSON():
-	local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/squares/102682.prj -t_srs EPSG:4326 squares.json ../data/squares/NOLA_Squares_20140221.shp")
-	local("topojson -o squares-topo.json --properties square=SQUARE --properties dist=MUN_DST squares.json")
+#def squaresJSON():
+	#local("ogr2ogr -f GeoJSON -s_srs ESRI::../data/squares/102682.prj -t_srs EPSG:4326 squares.json ../data/squares/NOLA_Squares_20140221.shp")
+	#local("topojson -o squares-topo.json --properties square=SQUARE --properties dist=MUN_DST squares.json")
 	#cp squares-topo.json static/js/squares-topo.js
 	#vim squares-topo.js: var squares = {...};
 	#too big to be minified
 
 def importNeighorhoods():
 	local("shp2pgsql -I ../data/neighborhoods/Neighborhood_Statistical_Areas neighborhoods | psql -d landrecords")
-	cur.execute("SELECT updategeometrysrid('neighborhoods','geom',3452);")
+	cur.execute("SELECT updategeometrysrid('neighborhoods','geom',3452);") #If need to alter geometry's SRID
 	cur.execute("ALTER TABLE neighborhoods ALTER COLUMN geom TYPE geometry(MultiPolygon,4326) USING ST_Transform(geom,4326);")
+	
+	# Delete duplicate neighborhoods
+	#cur.execute("DELETE FROM neighborhoods USING neighborhoods n2 WHERE neighborhoods.gnocdc_lab = n2.gnocdc_lab AND neighborhoods.gid < n2.gid;")
+	# Note: Using PostGIS to export CBD as JSON produced a file with errors, so I had to manually export that selection in QGIS and change to MultiPolygon in text editor.
 	conn.commit()
 
 def importSquares():

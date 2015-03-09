@@ -1,4 +1,5 @@
 function changeBannerImage() {
+  console.log('changeBannerImage');
   var header_img;
   var screenWidth = document.documentElement.clientWidth;
 
@@ -20,4 +21,4 @@ function changeBannerImage() {
 window.addEventListener('resize', function(e) {
   changeBannerImage();
 });
-window.onload = changeBannerImage();
+changeBannerImage();

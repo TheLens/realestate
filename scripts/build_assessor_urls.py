@@ -203,11 +203,9 @@ def getInstrumentNumbers():
     open('assessor_problem_urls.txt', 'w').close()# Blank slate
     f = open("assessor_problem_urls.txt", "a")
 
-    q = session.query(#limit to instrument numbers and locations
+    q = session.query(#todo: limit to instrument numbers and locations
             Cleaned
-        ).filter(
-            Cleaned.detail_publish == '1'
-        ).all()
+        ).all()#.filter(Cleaned.detail_publish == '1')
 
     locations = []
     url_params = []
@@ -216,8 +214,7 @@ def getInstrumentNumbers():
     print "# of records:", len(q)
     f.write("# of records: %d" % len(q))
         
-    for i, u in enumerate(q):
-        #print u.location 
+    for u in q:
         locations.append(u.location)
 
     session.close()

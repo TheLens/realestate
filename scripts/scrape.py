@@ -1,230 +1,270 @@
-import mechanize
+# -*- coding: utf-8 -*-
+
 import time
 import random
-import logging
-import logging.handlers
 import os
+import re
+import sys
+import glob
 
 from bs4 import BeautifulSoup
+from selenium import webdriver
 from datetime import datetime, timedelta
+from selenium.webdriver.common.keys import Keys
 
 from app_config import username, password
 
-'''
-Downloads and stores HTML from Land Records Division
-'''
+driver = webdriver.PhantomJS(executable_path='/usr/local/bin/phantomjs', port=0)
+#driver = webdriver.Firefox(timeout=60)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
+start_date = datetime(2014, 2, 18)
+today_date = datetime.now()
+yesterday_date = datetime.now() - timedelta(days=1)
 
-# Create file handler which logs debug messages or higher
-fh = logging.FileHandler('logs/land-records_%s.log' % (datetime.now().strftime('%m-%d-%Y')))
-fh.setLevel(logging.DEBUG)
-
-# Create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(lineno)d - %(message)s')
-fh.setFormatter(formatter)
-
-# Add the handlers to the logger
-logger.addHandler(fh)
-
-# # Application code
-# logger.debug('debug message')
-# logger.info('info message')
-# logger.warn('warn message')
-# logger.error('error message')
-# logger.critical('critical message')
+date_range_html = ''
 
 absolute_link = "/apps/land-records/repo/data"
+#absolute_link = "/Users/Tom/projects/land-records/repo/data"
 
-def gimme_login(username, password):
-	logger.info('gimme_login')
+def login():
+	print '\nlogin()'
 
-	base_url = "http://onlinerecords.orleanscivilclerk.com/"
-	
-	# Navigate browser:
-	br = mechanize.Browser()
+	# Load homepage
+	print 'Load homepage'
+	driver.get("http://onlinerecords.orleanscivilclerk.com/")
+	time.sleep(2.2)
 
-	#br.set_handle_equiv(True)
-	br.set_handle_referer(True)
-	br.set_handle_redirect(True)
-	#br.set_handle_redirect(mechanize.HTTPRedirectHandler)
-	br.set_handle_robots(False)
-	#br.set_debug_redirects(True)
-	#br.set_handle_refresh(mechanize._http.HTTPRefreshProcessor()) #, max_time=1)
-	br.addheaders = [('User-agent', 'Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.0.1) Gecko/2008071615 Fedora/3.0.1-1.fc9 Firefox/3.0.1')]
-	br.open(base_url)
-	br.select_form(nr=0) #there is no name for the form
-	for control in br.form.controls:
-		control.readonly = False
-	br["__EVENTTARGET"] = "ctl00$Header1$btnLogon"
-	br["__EVENTARGUMENT"] = ""
-	br["Header1_txtLogonName"] = username
-	br["Header1_txtPassword"] = password
-	br["ctl00$Header1$btnLogon"] = "Logon"
-	br["Header1_txtLogonName_clientState"] = "|0|01" + username + "||[[[[]],[],[]],[{},[]],'01'" + username + "']"
-	br["Header1_txtPassword_clientState"] = "|0|01||[[[[]],[],[]],[{},[]],'05'" + password + "']"
-	br["Header1_WebHDS_clientState"] = ""
-	br["Header1_WebDataMenu1_clientState"] = "[[null,[[[null,[],null],[{},[]],null]],null],[{},[{},{}]],null]"
-	br["dlgOptionWindow_clientState"] = "[[[[null,3,null,null,'700px','550px',1,1,0,0,null,0]],[[[[[null,'Copy Options',null]],[[[[[]],[],null],[null,null],[null]],[[[[]],[],null],[null,null],[null]],[[[[]],[],null],[null,null],[null]]],[]],[{},[]],null],[[[[null,null,null,null]],[],[]],[{},[]],null]],[]],[{},[]],'3,0,,,700px,550px,0']"
-	br["RangeContextMenu_clientState"] = "[[[[null,null,null,null,1]],[[[[[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null]],[],[]],[{},[]],null]],null],[{},[{},{}]],null]"
-	br["ctl00$_IG_CSS_LINKS_"] = "~/localization/style.css|~/localization/styleforsearch.css|~/favicon.ico|~/localization/styleFromCounty.css|ig_res/Default/ig_datamenu.css|ig_res/ElectricBlue/ig_dialogwindow.css|ig_res/ElectricBlue/ig_datamenu.css|ig_res/Default/ig_texteditor.css|ig_res/Default/ig_shared.css|ig_res/ElectricBlue/ig_shared.css"
-	#br["ctl00$Header1$btnLogon__10"] = ["3"]
-	br.submit()
-	rand_no = random.randint(1, 10)
-	time.sleep(1 + rand_no)
-	logger.info('end gimme_login')
-	return br
+	# Login link
+	print 'Click login link'
+	login_link_elem = driver.find_element_by_id("Header1_lnkLogin")
+	login_link_elem.click()
+	time.sleep(1.2)
 
-def gimme_results(br, year, month, day):
-	logger.info('gimme_results', year, month, day)
-	search_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchEntry.aspx"
-	
-	beg_year = year # four digits
-	beg_month = month #single or double
-	beg_day = day #single or double
-	end_year = year
-	end_month = month
-	end_day = day
+	# Username input
+	print 'Enter username'
+	unsername_elem = driver.find_element_by_id("Header1_txtLogonName")
+	unsername_elem.send_keys(username)
 
-	br.open(search_url)
-	br.select_form(nr=0) #there is no name for the form
-	for control in br.form.controls:
-		control.readonly = False
-	br["__EVENTTARGET"] = "ctl00$cphNoMargin$SearchButtons2$btnSearch"
-	br["__EVENTARGUMENT"] = "0"
-	br["Header1_txtLogonName_clientState"] = "|0|01||[[[[]],[],[]],[{},[]],'01']"
-	br["Header1_txtLogonName"] = ""
-	br["Header1_txtPassword_clientState"] = "|0|01||[[[[]],[],[]],[{},[]],'01']"
-	br["Header1_txtPassword"] = ""
-	br["Header1_WebHDS_clientState"] = ""
-	br["Header1_WebDataMenu1_clientState"] = "[[null,[[[null,[],null],[{},[]],null]],null],[{},[{},{}]],null]"
-	br["cphNoMargin_f_WebTab1_clientState"] = "[[[[null,'502px',null,null,null,null,null,null,0]],[],[{'0':[[null,null,null,null,null,null,'Basic',1,null,null,null,null]],'1':[[null,null,null,null,null,null,'Advanced',1,null,null,null,null]]}]],[{'0':[3,1]},[{}]],null]"
-	br["ctl00$cphNoMargin$f$drbPartyType2"] = [""]
-	br["ctl00$cphNoMargin$f$drbPartyType"] = [""]
-	# Eventually change the following to allow for variables that are entered more easily (for date range and form type)
-	br["cphNoMargin_f_ddcDateFiledFrom_clientState"] = "|0|01%s-%s-%s-0-0-0-0||[[[[]],[],[]],[{},[]],'01%s-%s-%s-0-0-0-0']" % (beg_year, beg_month, beg_day, beg_year, beg_month, beg_day)
-	br["cphNoMargin_f_ddcDateFiledTo_clientState"] = "|0|01%s-%s-%s-0-0-0-0||[[[[]],[],[]],[{},[]],'01%s-%s-%s-0-0-0-0']" % (end_year, end_month, end_day, end_year, end_month, end_day)
-	br["ctl00$cphNoMargin$f$ddlCancelStatus"] = [""]
-	br["ctl00$cphNoMargin$f$dclDocType$291"] = ["S"] 
-	# ^^^ the name in the input checkbox on SearchEntry
-	#id = cphNoMargin_f_dclDocType_291 (for S)
-	br["ctl00$cphNoMargin$f$DataDropDownList1"] = [""]
+	# Password input
+	print 'Enter password'
+	password_elem = driver.find_element_by_id("Header1_txtPassword")
+	password_elem.send_keys(password)
+	password_elem.send_keys('\n')#To trigger search function
+	time.sleep(2.2)
 
-	response = br.submit()
-	data = response.read()
-	
-	# Save HTML file for page 1
-	html_out = open("%s/%s-%s-%s/page-html/page1.html" % (absolute_link, year, month, day), "w")
-	html_out.write(data)
-	html_out.close()
-	# Get an array of links for each form from page 1 and download its HTML
-	soup = BeautifulSoup(open("%s/%s-%s-%s/page-html/page1.html"  % (absolute_link, year, month, day)))
+	print 'Page title:', driver.title
 
-	# Get forms HTML from page 1
-	rows = soup.find_all('td', class_="igede12b9e")
-	print "page1"
-	logger.info('page1')
-	for x in range(0, len(rows)):
-		code = rows[x].string
-		print code
-		logger.info(code)
-		form_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?global_id=%s&type=dtl" % (code)
-		response = br.open(form_url)
-		data = response.read()
-		htmlout = open("%s/%s-%s-%s/form-html/%s.html" % (absolute_link, year, month, day, code), "w")
-		htmlout.write(data)
-		htmlout.close()
-		# Take a break
-		rand_no = random.randint(1, 10)
-		time.sleep(1 + rand_no)
+	print 'Finished logging in'
 
-	# Find number of pages
-	table = soup.find('select', id="cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
-	if (table != None): # Avoids weekends and other days that have no sales
-		pages = table.findAll('option')
-		no_of_pages = len(pages)
+def navigateSearchPage(year, month, day):
+	print '\nnavigateSearchPage(', year, month, day, ')'
 
-		# Loop through remaining pages, grabbing HTML along the way
+	driver.get("http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchEntry.aspx")
+	time.sleep(2.2)
 
-		for page in range(2, no_of_pages+1):
-			print page
-			logger.info(page)
-			page_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?pg=%d" % (page)
-			response = br.open(page_url)
-			data = response.read()
-			htmlout = open("%s/%s-%s-%s/page-html/page%d.html" % (absolute_link, year, month, day, page), "w")
-			htmlout.write(data)
-			htmlout.close()
-			# Get an array of links for each form from the page and download its HTML
-			soup = BeautifulSoup(open("%s/%s-%s-%s/page-html/page%d.html" % (absolute_link, year, month, day, page)))
-			rows = soup.find_all('td', class_="igede12b9e")
-			for x in range(0, len(rows)):
-				code = rows[x].string
-				print code
-				logger.info(code)
-				form_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?global_id=%s&type=dtl" % (code)
-				response = br.open(form_url)
-				data = response.read()
-				htmlout = open("%s/%s-%s-%s/form-html/%s.html" % (absolute_link, year, month, day, code), "w")
-				htmlout.write(data)
-				htmlout.close()
-				# Take a break
-				rand_no = random.randint(1, 10)
-				time.sleep(1 + rand_no)
-			# Take a break
-			rand_no = random.randint(1, 10)
-			time.sleep(1 + rand_no)
-	logger.info('end gimme_results')
+	date_range_elem = driver.find_element_by_id("cphNoMargin_lblSearchSummary")
+	date_range = date_range_elem.text
 
-def gimme_everything():
+	print 'date_range:', date_range
 
-	#Yesterday's date
-	year = (datetime.now() - timedelta(days=1)).strftime('%Y') # "2014"
-	month = (datetime.now() - timedelta(days=1)).strftime('%m') # "09"
-	day = (datetime.now() - timedelta(days=1)).strftime('%d') # "09"
+	first_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)", date_range).group(1)#02/18/2014
+	first_date = first_date.replace('/', '')
 
-	# check if folder for this day exists. if not, then make one
-	pagedir = "%s/%s-%s-%s/page-html" % (absolute_link, year, month, day)
-	formdir = "%s/%s-%s-%s/form-html" % (absolute_link, year, month, day)
-	if not os.path.exists(pagedir):
-		os.makedirs(pagedir)
-	if not os.path.exists(formdir):
-		os.makedirs(formdir)
+	second_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)", date_range).group(2)#02/25/2015
+	second_date = second_date.replace('/', '')
 
-	# convert month and day to integers and back to strings to remove leading zero
-	#month = str(int(month)) # "9"
-	#day = str(int(day)) # "9"
+	date_range_html = driver.page_source
 
-	login = gimme_login(username, password)
-	gimme_results(login, year, month, day)
+	# Delete old file first
+	for fl in glob.glob("%s/%s-%s-%s/permanent-date-range-when-scraped*.html" % (absolute_link, year, month, day)):
+		os.remove(fl)
 
-def gimme_everything_ever():
+	# Save permanent date range for this individual sale.
+	individual_html_out = open("%s/%s-%s-%s/permanent-date-range-when-scraped_%s-%s.html" % (absolute_link, year, month, day, first_date, second_date), "w")
+	individual_html_out.write(date_range_html.encode('utf-8'))
+	individual_html_out.close()
 
-	original_date = datetime(2014, 2, 18)
-	present_date = datetime.now()
+	# Delete old file first
+	for fl in glob.glob("%s/most-recent-permanent-date-range*.html" % (absolute_link)):
+		os.remove(fl)
 
-	login = gimme_login(username, password)
+	# Save permanent date range for overall sales.
+	overall_html_out = open("%s/most-recent-permanent-date-range_%s-%s.html" % (absolute_link, first_date, second_date), "w")
+	overall_html_out.write(date_range_html.encode('utf-8'))
+	overall_html_out.close()
 
-	while original_date != present_date:
-		year = (original_date).strftime('%Y') # "2014"
-		month = (original_date).strftime('%m') # "09"
-		day = (original_date).strftime('%d') # "09"
+	time.sleep(2.2)
+
+def searchParameters(year, month, day):
+	print '\nsearchParameters(', year, month, day, ')'
+
+	search_date = month + day + year
+
+	# Advanced tab
+	advanced_tab_elem = driver.find_element_by_id("x:2130005445.2:mkr:ti1")
+	advanced_tab_elem.click()
+	time.sleep(1.2)
+
+	# "Date filed from" input
+	date_file_from_elem = driver.find_element_by_id("x:2002578730.0:mkr:3")
+	date_file_from_elem.click()
+	date_file_from_elem.send_keys(search_date)
+
+	# "Date filed to" input
+	date_file_to_elem = driver.find_element_by_id("x:625521537.0:mkr:3")
+	date_file_to_elem.click()
+	date_file_to_elem.send_keys(search_date)
+
+	# Select "SALE" in document type dropdown
+	document_type_elem = driver.find_element_by_id("cphNoMargin_f_dclDocType_291")
+	document_type_elem.click()
+
+	# Click "Search"
+	search_button_elem = driver.find_element_by_id("cphNoMargin_SearchButtons2_btnSearch__2")
+	search_button_elem.click()
+	time.sleep(2.2)
+
+def parseResults(year, month, day):
+	print '\nparseResults(', year, month, day, ')'
+
+	# Find current page number
+	try:
+		item_list_elem = driver.find_element_by_id("cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
+		options = item_list_elem.find_elements_by_tag_name("option")
+	except:
+		# Save table page
+		print 'No results for this day. Saving HTML and returning'
+		html_out = open("%s/%s-%s-%s/page-html/page1.html" % (absolute_link, year, month, day), "w")
+		html_out.write((driver.page_source).encode('utf-8'))
+		html_out.close()
+		return
+
+	print options
+
+	total_pages = int(options[-1].get_attribute('value'))
+	print 'Total pages:', total_pages
+
+	for i in range(1, total_pages + 1):
+		print 'Results page #:', i
+
+		# Save table page
+		print 'Write HTML'
+		html_out = open("%s/%s-%s-%s/page-html/page%d.html" % (absolute_link, year, month, day, i), "w")
+		html_out.write((driver.page_source).encode('utf-8'))
+		html_out.close()
+
+		print 'Build BeautifulSoup'
+		soup = BeautifulSoup(open("%s/%s-%s-%s/page-html/page%d.html" % (absolute_link, year, month, day, i)))
+
+		print 'Find all <td class="">'
+		rows = soup.find_all('td', class_="igede12b9e")# List of Object IDs
+
+		print '%s rows' % len(rows)
+		print 'rows:\n', rows
+
+		for j in range(1, len(rows)):
+			print 'Single sale #', (i - 1) * 20 + j
+
+			document_id = rows[j].string
+
+			print 'Document ID:', document_id
+
+			single_sale_url = "http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx?global_id=%s&type=dtl" % (document_id)
+
+			print single_sale_url
+
+			try:
+				driver.get(single_sale_url)
+				time.sleep(1.2)
+			except:
+				print 'Exception: could not open single sale url'
+
+			html_out = open("%s/%s-%s-%s/form-html/%s.html" % (absolute_link, year, month, day, document_id), "w")
+			html_out.write((driver.page_source).encode('utf-8'))
+			html_out.close()
+
+			time.sleep(1.2)		
+
+		print 'Go to /SearchResults.aspx'
+		driver.get("http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx")
+
+		print 'Go to next page in results'
+
+		next_button_elem = driver.find_element_by_id("OptionsBar1_imgNext")
+		next_button_elem.click()
+		time.sleep(2.2)
+
+	#driver.get("http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchResults.aspx")
+
+def logout():
+	print '\nlogout()'
+
+	# No matter which page you're on, you can go back here and logout.
+	driver.get("http://onlinerecords.orleanscivilclerk.com/RealEstate/SearchEntry.aspx")
+
+	logout_elem = driver.find_element_by_id("Header1_lnkLogout")
+	logout_elem.click()
+
+def cycleThroughDates(from_date, until_date):
+	print 'cycleThroughDates'
+
+	print 'intial from_date:', from_date
+	print 'initial until_date:', until_date
+
+	end_date = until_date + timedelta(days=1)
+
+	print 'while loop:\n'
+	while from_date.strftime('%Y-%m-%d') != end_date.strftime('%Y-%m-%d'):
+		print 'from_date:', from_date
+		print 'end_date:', end_date
+
+		print 'Building year, month, day'
+		year = (from_date).strftime('%Y') # "2014"
+		month = (from_date).strftime('%m') # "09"
+		day = (from_date).strftime('%d') # "09"
 
 		# Check if folder for this day exists. if not, then make one
+		print 'Checking on folders'
 		pagedir = "%s/%s-%s-%s/page-html" % (absolute_link, year, month, day)
-		formdir = "%s/%s-%s-%s/form-html" % (absolute_link, year, month, day)
+		print 'pagedir:', pagedir
 
+		formdir = "%s/%s-%s-%s/form-html" % (absolute_link, year, month, day)
+		print 'formdir:', formdir
+
+		print 'Building folders'
 		if not os.path.exists(pagedir):
 			os.makedirs(pagedir)
 		if not os.path.exists(formdir):
 			os.makedirs(formdir)
 
-		gimme_results(login, year, month, day)
+		# The good stuff
+		print 'About to navigateSearchPage'
+		navigateSearchPage(year, month, day)
 
-		original_date = original_date + timedelta(days=1)
+		print 'About to searchParameters'
+		searchParameters(year, month, day)
 
-#gimme_everything()
-gimme_everything_ever()
+		print 'About to parseResults'
+		parseResults(year, month, day)
 
-logging.close()
+		print 'Increasing from_date by 1'
+		from_date = from_date + timedelta(days=1)
+
+def main(from_date = start_date, until_date = yesterday_date):
+	print '\nmain()'
+
+	login()
+
+	try:
+		cycleThroughDates(from_date, until_date)
+	except Exception, e:
+		'Exception in main() function'
+		print e
+	finally:
+		logout()
+		driver.close()
+		driver.quit()
+
+if __name__ == '__main__':
+	#main(from_date = datetime(2015, 2, 24))# Default is entire archive from Feb. 18, 2014, to yesterday.
+	main(from_date = yesterday_date, until_date = yesterday_date)

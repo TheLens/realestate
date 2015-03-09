@@ -39,7 +39,8 @@ def CleanNew(rows):
 		['L L C', 'LLC'], 
 		['Fbo', 'FBO'], 
 		['Pcw85', 'PCW85'], 
-		['Nola', 'NOLA'], 
+		['Nola', 'NOLA'],
+		['NOLAn', 'Nolan'],
 		['Fka', 'FKA'], 
 		['Bwe ', 'BWE '],
 		['Mjh', 'MJH'],
@@ -93,12 +94,14 @@ def CleanNew(rows):
 		['Mcz', 'McZ']
 	]
 	address_abbreviations = [
-		['Blvd', 'Blvd.'], 
+		['Blvd', 'Blvd.'],
+		['Blvd,', 'Blvd.,'],
+		['Boulevard', 'Blvd.'],
 		['Hwy', 'Highway'], 
 		[' Rd', ' Road'],
 		['Ct', 'Court'], 
-		['Ave,', 'Ave.,'], 
-		['Blvd,', 'Blvd.,'], 
+		['Ave,', 'Ave.,'],
+		['Avenue', 'Ave.'],
 		[' To ', ' to '],
 		
 		['1St', '1st'], 
@@ -142,7 +145,8 @@ def CleanNew(rows):
 	]
 	neighborhood_names = [
 		['B. W.', 'B.W.'],
-		['St.  A', 'St. A']
+		['St.  A', 'St. A'],
+		['Mcd', 'McD']
 	]
 	# This loop scans for the above problem words and replaces them with their substitutes:
 	for i, row in enumerate(rows):
