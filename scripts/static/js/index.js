@@ -7,3 +7,5 @@ function doSearch(category) {
   query_string = "/realestate/search" + query_string;
   window.location.href = query_string;
 }
+
+document.getElementById('asterisk-note').style.display = 'none';

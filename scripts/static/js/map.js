@@ -2,7 +2,7 @@ var map, dataLayer, neighborhoodLayer;
 var clicked = 0;
 var dropdownFocus = 0;//0 is standard. dropdown selection = 1
 
-function updateMap(data, mapsearching, backforward) {
+function updateMap(data, mapsearching, backforward, neighborhood_fit_bounds) {
   tablesorterOptions();
 
   var center = map.getCenter();
@@ -18,7 +18,9 @@ function updateMap(data, mapsearching, backforward) {
       if (Object.keys(dataLayer._layers).length === 0) { //if there aren't any points on the map
         map.setView(center, zoom);
       } else {
-        map.fitBounds(dataLayer.getBounds(), {padding: [5, 5]});
+        if (neighborhood_fit_bounds === 0) {
+          map.fitBounds(dataLayer.getBounds(), {padding: [2, 2]});
+        }
       }
     }
   }
@@ -27,13 +29,16 @@ function updateMap(data, mapsearching, backforward) {
   //mapHover(dataLayer);
 }
 
-function updateNeighborhoodLayer(data) {
-  console.log('updateNeighborhoodLayer');
-  console.log(data);
-
+function removeNeighborhoodLayer() {
   if (map.hasLayer(neighborhoodLayer)) {
     map.removeLayer(neighborhoodLayer);
   }
+}
+
+function updateNeighborhoodLayer(data) {
+  if (map.hasLayer(neighborhoodLayer)) {
+    map.removeLayer(neighborhoodLayer);
+  }  
 
   neighborhoodLayer = L.geoJson(data, {
     // filter: function (feature, layer) {
@@ -53,17 +58,17 @@ function updateNeighborhoodLayer(data) {
     }
     //onEachFeature: onEachFeature
   }).addTo(map);
-  
+
   map.fitBounds(neighborhoodLayer);
+  neighborhoodLayer.bringToBack();
 }
 
 function selectedNeighborhood(neighborhood) {
-  console.log('neighborhood:', neighborhood);
   neighborhood = decodeURIComponent(neighborhood).toUpperCase();
-  console.log('neighborhood:', neighborhood);
   neighborhood = neighborhood.replace(/ /g, '+');
 
-  console.log('neighborhood:', neighborhood);
+  // Correct McDonogh from MCDONOGH to McDONOGH:
+  neighborhood = neighborhood.replace(/MC/g, 'Mc');
 
   var url = "http://localhost:5000/static/neighborhood-geojson/" + neighborhood + ".js";
   var static_url = '../../static/neighborhood-geojson/' + neighborhood + '.js';
@@ -75,10 +80,7 @@ function selectedNeighborhood(neighborhood) {
     dataType: "json",
     contentType: "application/json; charset=utf-8",
     success: function(data) {
-      console.log('data:', data);
       testGeoJSON = data;
-      console.log(testGeoJSON);
-
       updateNeighborhoodLayer(data);
     }
   });
@@ -172,7 +174,6 @@ function clickFeature(e) {
   */
 
   instrument_no = e.target.feature.properties.instrument_no;
-  //console.log('instrument_no:', instrument_no);
   window.location.href = "/realestate/sale/" + instrument_no;
 }
 
@@ -281,10 +282,20 @@ function initialMapFunction(data) {
   addLensLogoToMap();
   addDataToMap(data);
 
+  var nbhd_text;
+
+  if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
+    nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+  }
+
   if (Object.keys(dataLayer._layers).length === 0) { //if there aren't any points on the map
     map.setView([29.996953, -90.048277], 11);
   } else {
-    map.fitBounds(dataLayer.getBounds(), {paddingTopLeft: [5, 5], paddingBottomRight: [5, 5]});
+    if (typeof nbhd_text === 'undefined') {
+      map.fitBounds(dataLayer.getBounds(), {paddingTopLeft: [2, 2], paddingBottomRight: [2, 2]});
+    } else {
+      selectedNeighborhood(nbhd_text);
+    }
   }
   
   //tableHover(dataLayer);
