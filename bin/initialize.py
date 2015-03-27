@@ -22,7 +22,7 @@ from sqlalchemy.ext.declarative import declarative_base
 # import pythonEmail
 # import scrape
 
-from landrecords import clean, db, parsers
+from landrecords import clean, db, parsers, publish, stat_analysis
 from landrecords.settings import dev_config
 
 pp = pprint.PrettyPrinter()
@@ -142,201 +142,6 @@ def geocode():
         WHERE a.document_id = locations.document_id;""")
     logger.info('Finished geocoding')
     conn.commit()
-
-
-def publish(initial_date=None, until_date=None):
-    '''
-    Checks geocoded ratings, dates, etc. to decide whether to publish or not
-    '''
-
-    print "Determining whether to publish records..."
-    logger.info('Publish')
-
-    session.query(
-        db.Location.rating,
-        db.Location.location_publish
-    ).filter(
-        db.Location.rating <= 3
-    ).update({"location_publish": "1"})
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    session.query(
-        db.Location.rating,
-        db.Location.location_publish
-    ).filter(
-        db.Location.rating > 3
-    ).update({"location_publish": "0"})
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Long less than -90.140388 is west of New Orleans:
-    session.query(
-        db.Location.longitude,
-        db.Location.location_publish
-    ).filter(
-        db.Location.longitude < -90.140388
-    ).update({
-        "location_publish": "0"
-    })
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Long greater than -89 is east of New Orleans:
-    session.query(
-        db.Location.longitude,
-        db.Location.location_publish
-    ).filter(
-        db.Location.longitude > -89.0
-    ).update({
-        "location_publish": "0"
-    })
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Lat less than 29.864543 is south of New Orleans:
-    session.query(
-        db.Location.latitude,
-        db.Location.location_publish
-    ).filter(
-        db.Location.latitude < 29.864543
-    ).update({
-        "location_publish": "0"
-    })
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Lat less than 29.864543 is north of New Orleans:
-    session.query(
-        db.Location.latitude,
-        db.Location.location_publish
-    ).filter(
-        db.Location.latitude > 30.181719
-    ).update({
-        "location_publish": "0"
-    })
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    '''
-    Decide whether to publish or not based on Detail information, such as dates
-    '''
-
-    # Assume publishable, then check for reasons not to publish.
-    session.query(db.Detail.detail_publish).update({"detail_publish": "1"})
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    session.query(
-        db.Detail.document_date,
-        db.Detail.document_recorded,
-        db.Detail.detail_publish
-    ).filter(
-        (db.Detail.document_date is None) |
-        (db.Detail.document_recorded is None)
-    ).update(
-        {"detail_publish": "0"}
-    )
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Convert date strings to datetime format
-    new_initial_date = datetime.strptime(initial_date, '%Y-%m-%d')
-    logger.debug(new_initial_date)
-    new_until_date = datetime.strptime(until_date, '%Y-%m-%d')
-    logger.debug(new_until_date)
-    current_date = new_initial_date
-    logger.debug(current_date)
-
-    # Evaluate "30 days ago" based on that particular day
-    while current_date != new_until_date:
-        # Update date range
-        old_date = current_date - timedelta(days=180)
-        previous_date = current_date - timedelta(days=1)
-
-        # Copy datetime objects to date strings
-        old_date_string = old_date.strftime('%Y-%m-%d')
-        previous_date_string = previous_date.strftime('%Y-%m-%d')
-        current_date_string = current_date.strftime('%Y-%m-%d')
-
-        with session.begin_nested():
-            # For sales recorded on a given day, check if the document date is
-            # unbelievable (too old or in the future)
-
-            session.query(
-                db.Detail.document_recorded,
-                db.Detail.document_date,
-                db.Detail.detail_publish
-            ).filter(
-                db.Detail.document_recorded == '%s' % current_date_string
-            ).filter(
-                db.Detail.document_date < '%s' % old_date_string
-            ).update({"detail_publish": "0"})
-
-            logger.info('query')
-            session.flush()
-            logger.info('flush')
-
-            session.query(
-                db.Detail.document_recorded,
-                db.Detail.document_date,
-                db.Detail.detail_publish
-            ).filter(
-                db.Detail.document_recorded == '%s' % current_date_string
-            ).filter(
-                db.Detail.document_date > '%s' % previous_date_string
-            ).update({
-                "detail_publish": "0"
-            })
-
-            logger.info('query')
-            session.flush()
-            logger.info('flush')
-
-        current_date = current_date + timedelta(days=1)
-        logger.debug(current_date)
-
-    # Not sure about these, so check them all for now to be safe
-    session.query(
-        db.Detail.amount,
-        db.Detail.detail_publish
-    ).filter(
-        db.Detail.amount <= 0
-    ).update({
-        "detail_publish": "0"
-    })
-
-    logger.info('query')
-    session.flush()
-    logger.info('flush')
-
-    # Anything over $20,000,000 wouldn't be impossible, but is rare
-    session.query(
-        db.Detail.amount,
-        db.Detail.detail_publish
-    ).filter(
-        db.Detail.amount >= 20000000
-    ).update({
-        "detail_publish": "0"
-    })
-
-    logger.info('query')
-
-    session.commit()
 
 
 def cleanup(initial_date=None, until_date=None):
@@ -496,173 +301,84 @@ def cleanup(initial_date=None, until_date=None):
     session.commit()
     logger.info('post commit')
 
-'''
-stat_analysis.py
-'''
 
-# def runQueriesForEmail(initial_date = None, until_date = None):
-#     # email_file = "logs/email-%s.txt" % datetime.now().strftime('%Y-%m-%d')
-#     # open(email_file, 'w').close()# Blank slate
-#     # f = open(email_file, 'a')
+def generate_email(initial_date=None, until_date=None):
+    stat = stat_analysis.StatAnalysis('cleaned', initial_date, until_date)
 
-#     email_string = ''
+    # todo: handle if either or both dates not specified?
+    email_string = (
+        '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={1}' +
+        '</p>' +
+        '\n' +
+        '\n' +
+        '<p>{2} sales recorded on {3} to {4}.' +
+        '</p>' +
+        '\n' +
+        '\n' +
+        '<p>{5} records not published because of questionable data.' +
+        '</p>' +
+        '\n' +
+        '\n' +
+        '<p>{6} records not published because location could not be found.' +
+        '</p>' +
+        '\n' +
+        '\n' +
+        '<p>http://vault.thelensnola.org/realestate/dashboard' +
+        '</p>' +
+        '\n' +
+        '\n' +
+        '<p>High: ${7}</p>' +
+        '\n' +
+        '\n' +
+        '<p>Low: ${8}</p>' +
+        '\n' +
+        '\n'
+    ).format(
+        initial_date.strftime('%m/%d/%Y'),
+        until_date.strftime('%m/%d/%Y'),
+        format(stat.count(), ','),
+        initial_date.strftime('%A, %b. %-d, %Y'),
+        until_date.strftime('%A, %b. %-d, %Y'),
+        format(stat.detail_not_published(), ','),
+        format(stat.location_not_published(), ','),
+        format(stat.highest_amount(), ','),
+        format(stat.lowest_amount(), ',')
+    )
 
+    rows = stat.all_records()
 
-#     '''
-#     Cleaned table has new records now. Can use straightforward SQL queries on
-#     Cleaned.
-#     '''
+    message = ''
+    for row in rows:
+        if row['document_date'] is None:
+            message += '<p><strong>Sale date</strong><br>None<br>\n'
+        else:
+            message += (
+                '<p><strong>Sale date</strong><br>' +
+                row['document_date'].strftime('%A, %b. %-d, %Y') +
+                '<br>\n')
+        message += (
+            '<strong>Amount</strong><br>${0}<br>\n' +
+            '<strong>Buyers</strong><br>{1}<br>\n' +
+            '<strong>Sellers</strong><br>{2}<br>\n' +
+            '<strong>Address</strong><br>{3}<br>\n' +
+            '<strong>Location info</strong><br>{4}<br>\n' +
+            '<strong>Zip</strong><br>{5}<br>\n' +
+            '<strong>Neighborhood</strong><br>{6}</p>\n'
+        ).format(
+            format(row['amount'], ','),
+            row['buyers'],
+            row['sellers'],
+            row['address'],
+            row['location_info'],
+            row['zip_code'],
+            row['neighborhood']
+        )
 
-#     # f.write('<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={0}
-#     # </p>\n\n'.format((datetime.now() - timedelta(days=1)).strftime(
-#     # '%m/%d/%Y')))
+        email_string += message.encode('utf8')
+        email_string += '\n'
+        message = ''
 
-#     email_string += '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={0}</p>\n\n'.format((datetime.now() - timedelta(days=1)).strftime('%m/%d/%Y'))
-
-#     '''
-#     Number of new records
-#     '''
-
-#     count_sql = """
-#         SELECT COUNT(*)
-#         FROM cleaned
-#         WHERE document_recorded >= '%s' AND document_recorded <= '%s';
-#     """ % (initial_date, until_date)
-
-#     count_result = engine.execute(count_sql)
-#     for r in count_result:
-#         count = r.count
-#         logger.debug(count)
-#         # f.write('<p>%s sales recorded on %s.</p>\n\n' % (format(count, ','),
-#         # (datetime.now() - timedelta(days=1)).strftime('%A, %b. %-d, %Y')))
-#         email_string += '<p>%s sales recorded on %s.</p>\n\n' % (format(count, ','), (datetime.now() - timedelta(days=1)).strftime('%A, %b. %-d, %Y'))
-
-#     '''
-#     detail_publish = 0
-#     '''
-
-#     detail_no_pub_sql = """
-#         SELECT COUNT(*)
-#         FROM cleaned
-#         WHERE detail_publish = '0' AND document_recorded >= '%s' AND
-#         document_recorded <= '%s';""" % (initial_date, until_date)
-
-#     count_result = engine.execute(detail_no_pub_sql)
-#     for r in count_result:
-#         count = r.count
-#         logger.debug(count)
-#         # f.write('<p>%s records not published because of questionable data.
-#         # </p>\n\n' % (format(count, ',')))
-#         email_string += '<p>%s records not published because of questionable data.</p>\n\n' % (format(count, ','))
-
-#     '''
-#     location_publish = 0
-#     '''
-
-#     location_no_pub_sql = """
-#         SELECT COUNT(*)
-#         FROM cleaned
-#         WHERE location_publish = '0' AND document_recorded >= '%s' AND document_recorded <= '%s';
-#     """ % (initial_date, until_date)
-
-#     count_result = engine.execute(location_no_pub_sql)
-#     for r in count_result:
-#         count = r.count
-#         logger.debug(count)
-#         # f.write('<p>%s records not published because location could not be
-#         # found.</p>\n\n' % (format(count, ',')))
-#         email_string += '<p>%s records not published because location could not be found.</p>\n\n' % (format(count, ','))
-
-#     # f.write('<p>http://vault.thelensnola.org/realestate/dashboard</p>\n\n')
-#     email_string += '<p>http://vault.thelensnola.org/realestate/dashboard</p>\n\n'
-
-#     '''
-#     Highest amount
-#     '''
-
-#     high_amount_sql = """
-#         SELECT amount
-#         FROM cleaned
-#         WHERE document_recorded >= '%s' AND document_recorded <= '%s' ORDER BY amount DESC LIMIT 1;
-#     """ % (initial_date, until_date)
-
-#     high_result = engine.execute(high_amount_sql)
-
-#     for u in high_result:
-#         high_count = u.amount
-#         logger.debug(high_count)
-#         # f.write('<p>High: %s</p>\n\n' % ('$' + format(high_count, ',')))
-#         email_string += '<p>High: %s</p>\n\n' % ('$' + format(high_count, ','))
-
-#     '''
-#     Lowest amount
-#     '''
-
-#     low_amount_sql = """
-#         SELECT amount
-#         FROM cleaned
-#         WHERE document_recorded >= '%s' AND document_recorded <= '%s'
-#         ORDER BY amount ASC
-#         LIMIT 1;
-#     """ % (initial_date, until_date)
-
-#     low_result = engine.execute(low_amount_sql)
-
-#     for u in low_result:
-#         low_count = u.amount
-#         logger.debug(low_count)
-#         # f.write('<p>Low: %s</p>\n\n' % ('$' + format(low_count, ',')))
-#         email_string += '<p>Low: %s</p>\n\n' % ('$' + format(low_count, ','))
-
-#     '''
-#     Writing all new records here because want it at end of email message.
-#     'rows' is from Cleaned commit output
-#     '''
-
-#     sql = """SELECT amount, document_date, document_recorded, address,
-#         location_info, sellers, buyers, instrument_no, latitude, longitude,
-#         zip_code, detail_publish, permanent_flag, location_publish,
-#         neighborhood
-#         FROM cleaned
-#         WHERE document_recorded >= '%s' AND document_recorded <= '%s';
-#     """ % (initial_date, until_date)
-
-#     logger.info('Get date range SQL')
-
-#     result = engine.execute(sql)
-
-#     logger.info('Executed SQL')
-
-#     rows = []
-#     for row in result:
-#         logger.debug(row)
-#         row = dict(row)
-#         rows.append(row)
-
-#     message = ''
-#     for row in rows:
-#         if row['document_date'] == None:
-#             message += '<p><strong>Sale date</strong><br>None<br>\n'
-#         else:
-#             message += '<p><strong>Sale date</strong><br>' + row['document_date'].strftime('%A, %b. %-d, %Y') + '<br>\n'
-#         message += '<strong>Amount</strong><br>$' + format(row['amount'], ',') + '<br>\n'
-#         message += '<strong>Buyers</strong><br>' + row['buyers'] + '<br>\n'
-#         message += '<strong>Sellers</strong><br>' + row['sellers'] + '<br>\n'
-#         message += '<strong>Address</strong><br>' + row['address'] + '<br>\n'
-#         message += '<strong>Location info</strong><br>' + row['location_info'] + '<br>\n'
-#         message += '<strong>Zip</strong><br>' + row['zip_code'] + '<br>\n'
-#         message += '<strong>Neighborhood</strong><br>' + row['neighborhood'] + '</p>\n'
-#         # message = message + row['document_date'] + '\n'
-#         # f.write(message.encode('utf8'))
-#         email_string += message.encode('utf8')
-#         # f.write('\n')
-#         email_string += '\n'
-#         message = ''
-
-#     # f.close()
-
-#     # print email_string
-#     return email_string
+    return email_string
 
 
 def copy_dashboard_to_cleaned():
@@ -1265,8 +981,10 @@ def check_permanent_status_of_temp_sales():
 def do_it_all(initial_date='2014-02-18', until_date=yesterday_date):
 
     build(initial_date=initial_date, until_date=until_date)
-    # geocode() #CAUTION! Geocoding entire archive takes ~45 minutes.
-    # publish(initial_date=initial_date, until_date=until_date)
+    geocode()  # CAUTION! Geocoding entire archive takes ~45 minutes.
+    publish.PublishChecker(
+        initial_date=initial_date, until_date=until_date
+    ).check_them_all()
     # clean(initial_date=initial_date, until_date=until_date)
     # if initial_date != until_date: # Assumes any range of dates also wants
     # this function.
@@ -1292,7 +1010,7 @@ if __name__ == '__main__':
     initialize_log('initialize')
 
     try:
-        do_it_all(initial_date='2014-02-18', until_date='2014-02-20')
+        do_it_all(initial_date='2014-02-18', until_date='2014-02-18')
         # Default is to build entire archive since 2014/02/18
         # doItAll(initial_date='2014-02-18', until_date=yesterday_date)
     except Exception, e:

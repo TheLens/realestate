@@ -1,15 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import re
-import pprint
 from bs4 import BeautifulSoup
-from sqlalchemy import insert, create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
-
-from landrecords import db
-
-pp = pprint.PrettyPrinter()
 
 
 class AllPurposeParser(object):
@@ -155,12 +147,6 @@ class VendorParser(object):
 
         return cell
 
-    def add_to_session(self):
-        # todo: this
-        i = insert(db.Vendor)
-        i = i.values(dict_output)
-        session.execute(i)
-
 
 class VendeeParser(object):
 
@@ -210,12 +196,6 @@ class VendeeParser(object):
                         cell = None
 
         return cell
-
-    def add_to_session(self):
-        # todo: this
-        i = insert(db.Vendee)
-        i = i.values(dict_output)
-        session.execute(i)
 
 
 class LocationParser(object):
@@ -299,9 +279,3 @@ class LocationParser(object):
             if (j - 8) % 10 == 0:
 
                 return cell
-
-    def add_to_session(self):
-        # todo: this
-        i = insert(db.Location)
-        i = i.values(dict_output)
-        session.execute(i)
