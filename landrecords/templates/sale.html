@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% include 'head.html' %}
+    </head>
+    <body>
+        {% include 'banner.html' %}
+        <div id="map-table-wrapper">
+            <div class="row">
+                <div class="small-12 medium-5 medium-push-7 columns">
+                    <div class="row">
+                        <div class="small-12 columns">
+                            {% for newrow in newrows %}
+                                <div class="no-wrap" id="document_date">{{ newrow.document_date }}</div>
+                                <div class="no-wrap" id="amount">{{ newrow.amount }}</div>
+                                <div class="single_sale_listing" id="address"><strong>Address</strong><br>{{ newrow.address }}</div>
+                                <div class="single_sale_listing" id="location_info"><strong>Location Info</strong><br>{{ newrow.location_info }}</div>
+                                <div class="single_sale_listing" id="neighborhood"><strong>Neighborhood</strong><br>{{ newrow.neighborhood }}</div>
+                                <div class="single_sale_listing" id="zip_code"><strong>ZIP code</strong><br>{{ newrow.zip_code }}</div>
+                                <div class="single_sale_listing" id="sellers"><strong>Sellers</strong><br>{{ newrow.sellers }}</div>
+                                <div class="single_sale_listing" id="buyers"><strong>Buyers</strong><br>{{ newrow.buyers }}</div>
+                                <div class="single_sale_listing" id="instrument_no no-wrap">
+                                    <div>
+                                        <strong>Instrument Number</strong>
+                                    </div>
+                                    <div>
+                                        {{ newrow.instrument_no }}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="small-12 columns" id="learn-more">
+                            <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">Learn more about this data.</a>
+                        </div>
+                        <!-- <div class="small-12 columns" id="assessor">
+                            {{ assessor|safe }}
+                        </div> -->
+                    </div>
+                </div>
+                <div class="small-12 medium-7 medium-pull-5 columns map-wrapper">
+                    <div id="map" class="map"></div>
+                </div>
+            </div>
+        </div>
+        {% include 'footer.html' %}
+        <div id="tooltip"></div>
+        {% include 'js.html' %}
+        <script type="text/javascript" src={{ js }}></script>
+        <script type="text/javascript" src={{ salejs }}></script>
+        <script type="text/javascript">
+            if ({{ jsdata|tojson }} !== 'None') {
+                //console.log('jsdata');
+                initialMapFunction({{ jsdata|tojson }});
+            }
+        </script>
+        </script>
+    </body>
+</html>

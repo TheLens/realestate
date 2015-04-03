@@ -6,12 +6,11 @@ import psycopg2
 from sqlalchemy import create_engine
 from fabric.api import local
 
-from landrecords import db
-from landrecords.settings import dev_config
+from landrecords import db, config
 
 
 def make_db():
-    engine = create_engine('%s' % (dev_config.SERVER_ENGINE),
+    engine = create_engine('%s' % (config.SERVER_ENGINE),
                            implicit_returning=True)
     db.Base.metadata.create_all(engine)
 
@@ -38,7 +37,7 @@ def make_db():
 def import_neighorhoods():
     local("""
         shp2pgsql -I %s/neighborhoods/Neighborhood_Statistical_Areas \
-        neighborhoods | psql -d landrecords""" % (dev_config.GEO_DIR))
+        neighborhoods | psql -d landrecords""" % (config.GEO_DIR))
     # If need to alter geometry's SRID
     cur.execute("SELECT updategeometrysrid('neighborhoods','geom',3452);")
     cur.execute("""
@@ -60,7 +59,7 @@ def import_neighorhoods():
 # def import_squares():
 #     local("""
 #         shp2pgsql -I %s/squares/NOLA_Squares_20140221 squares \
-#         | psql -d landrecords""" % (dev_config.GEO_DIR))
+#         | psql -d landrecords""" % (config.GEO_DIR))
 #     cur.execute("SELECT updategeometrysrid('squares','geom',3452);")
 #     cur.execute("""
 #         ALTER TABLE squares
@@ -75,7 +74,7 @@ def spatial_index_on_cleaned_geom():
         USING GIST(geom);"''')
 
 if __name__ == '__main__':
-    conn = psycopg2.connect("%s" % (dev_config.SERVER_CONNECTION))
+    conn = psycopg2.connect("%s" % (config.SERVER_CONNECTION))
     cur = conn.cursor()
 
     import_neighorhoods()

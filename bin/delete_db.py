@@ -12,11 +12,11 @@ from sqlalchemy.schema import (
     ForeignKeyConstraint,
     DropConstraint
 )
-from landrecords.settings import dev_config
+from landrecords import config
 
 # https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/DropEverything
 
-engine = create_engine('%s' % (dev_config.SERVER_ENGINE))
+engine = create_engine('%s' % (config.SERVER_ENGINE))
 
 conn = engine.connect()
 
@@ -38,18 +38,17 @@ all_fks = []
 # Backup dashboard table, if it exists
 # Might need to full VACUUM to get rid of deleted rows
 try:
-    local('pg_dump -Fc landrecords -t dashboard > ' + dev_config.BACKUP_DIR +
+    local('pg_dump -Fc landrecords -t dashboard > ' + config.BACKUP_DIR +
           '/dashboard_table_$(date +%Y-%m-%d).sql')
 except:
     print 'Could not dump dashboard table.'
 
-'''
-# todo: uncomment
+
 try:
     local('psql landrecords -c "VACUUM;"')
 except:
     print 'Could not vacuum.'
-'''
+
 
 for table_name in inspector.get_table_names():
     fks = []
