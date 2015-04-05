@@ -2,34 +2,17 @@
 
 import re
 import pprint
-import logging
 from datetime import datetime
 
+from landrecords.lib.log import Log
+
 pp = pprint.PrettyPrinter()
-
-
-def initialize_log():
-    global logger
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('logs/initialize.log')
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter('''
-        %(asctime)s - %(filename)s - %(funcName)s - %(levelname)s - %(lineno)d
-        - %(message)s''')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
 
 
 class Utils(object):
 
     def __init__(self):
+        self.log = Log('utils').logger
         self.zip_codes = [70112, 70113, 70114, 70115, 70116, 70117, 70118,
                           70119, 70121, 70122, 70123, 70124, 70125, 70126,
                           70127, 70128, 70129, 70130, 70131, 70139, 70140,

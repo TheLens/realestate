@@ -3,10 +3,14 @@
 import re
 from bs4 import BeautifulSoup
 
+from landrecords.lib.log import Log
+
 
 class AllPurposeParser(object):
 
     def __init__(self, html):
+        self.log = Log('parse').logger
+
         self.document_id = self.get_document_id(html)
 
     def get_document_id(self, html):
@@ -19,6 +23,8 @@ class AllPurposeParser(object):
 class DetailParser(object):
 
     def __init__(self, html):
+        self.log = Log('parse').logger
+
         soup = BeautifulSoup(open(html))
         rows = self.parse_rows(soup)
 
@@ -65,12 +71,20 @@ class DetailParser(object):
         return int(float(amount))
 
     def form_dict(self):
-        return self.__dict__
+        dict_output = self.__dict__
+
+        self.log.debug(dict_output)
+
+        del dict_output['log']
+
+        return dict_output
 
 
 class VendorParser(object):
 
     def __init__(self, html):
+        self.log = Log('parse').logger
+
         soup = BeautifulSoup(open(html))
         rows = self.parse_rows(soup)
 
@@ -87,7 +101,6 @@ class VendorParser(object):
         list_output = []
 
         for i, row in enumerate(rows):
-            # print 'form_list row:', row
             if i % 2 == 1:
                 dict_output = {
                     'vendor_blank': self.get_field(row, 0),
@@ -99,6 +112,8 @@ class VendorParser(object):
                     'document_id': self.document_id
                 }
                 list_output.append(dict_output)
+
+        self.log.debug(list_output)
 
         return list_output
 
@@ -116,6 +131,8 @@ class VendorParser(object):
 class VendeeParser(object):
 
     def __init__(self, html):
+        self.log = Log('parse').logger
+
         soup = BeautifulSoup(open(html))
         rows = self.parse_rows(soup)
 
@@ -144,6 +161,8 @@ class VendeeParser(object):
                 }
                 list_output.append(dict_output)
 
+        self.log.debug(list_output)
+
         return list_output
 
     def get_field(self, row, cell_id):
@@ -160,6 +179,8 @@ class VendeeParser(object):
 class LocationParser(object):
 
     def __init__(self, html):
+        self.log = Log('parse').logger
+
         soup = BeautifulSoup(open(html))
         rows = self.parse_rows(soup)
 
@@ -204,6 +225,8 @@ class LocationParser(object):
 
             # Check if new mini table:
             # if (i - 9) % 10:  # This is the first row in a new table!
+
+        self.log.debug(list_output)
 
         # print '\nlist_output:', list_output
         return list_output

@@ -424,20 +424,20 @@ $("body").on("click", ".pageback", function () {
   }
 });
 
-function populateSearchParameters(parameters) {
-  document.getElementById('name_address_box').value = parameters.name_address;
-  document.getElementById('amount1').value = (parameters.amountlow !== '' ? '$' : '') + parameters.amountlow;
-  document.getElementById('amount2').value = (parameters.amounthigh !== '' ? '$' : '') + parameters.amounthigh;
-  document.getElementById('date1').value = parameters.begindate;
-  document.getElementById('date2').value = parameters.enddate;
-  if (parameters.name_address === '') {
-    if (parameters.neighborhood !== '') {
-      document.getElementById('name_address_box').value = parameters.neighborhood;
+function populateSearchParameters(data) {
+  document.getElementById('name_address_box').value = data.name_address;
+  document.getElementById('amount1').value = (data.amountlow !== '' ? '$' : '') + data.amountlow;
+  document.getElementById('amount2').value = (data.amounthigh !== '' ? '$' : '') + data.amounthigh;
+  document.getElementById('date1').value = data.begindate;
+  document.getElementById('date2').value = data.enddate;
+  if (data.name_address === '') {
+    if (data.neighborhood !== '') {
+      document.getElementById('name_address_box').value = data.neighborhood;
     } else {
-      document.getElementById('name_address_box').value = parameters.zip_code;
+      document.getElementById('name_address_box').value = data.zip_code;
     }
   }
-  if(parameters.amountlow !== '' || parameters.amounthigh !== '' || parameters.begindate !== '' || parameters.enddate !== '') {
+  if(data.amountlow !== '' || data.amounthigh !== '' || data.begindate !== '' || data.enddate !== '') {
     document.getElementById('filters').style.display = 'block';
     document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
   }

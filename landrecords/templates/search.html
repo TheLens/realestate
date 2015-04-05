@@ -10,7 +10,7 @@
             <div class="small-12 columns">
                 <div class="row">
                     <div class="small-12 text-left columns">
-                        <div id="results_language">{{ results_language }}</div>
+                        <div id="results_language">{{ data.results_language }}</div>
                     </div>
                 </div>
             </div>
@@ -29,7 +29,7 @@
             <div class="small-12 large-4 columns" id="table-footer-wrapper">
                 <div class="row">
                     <div class="small-12 columns">
-                        <div class="table-wrapper" id="table-wrapper" data-page="{{ page }}" data-totalpages="{{ totalpages }}" data-pagelength="{{ pagelength }}">
+                        <div class="table-wrapper" id="table-wrapper" data-page="{{ data.page }}" data-totalpages="{{ data.totalpages }}" data-pagelength="{{ data.pagelength }}">
                             <table id="myTable" class="tablesorter">
                                 <thead>
                                     <tr>
@@ -56,7 +56,7 @@
                                     {% endfor %}
                                 </tbody>
                             </table>
-                            <div id="results-not-found" style="display:{{ show_results }};">No results found. Please try another search.</div>
+                            <div id="results-not-found" style="display:{{ data.results_css_display }};">No results found. Please try another search.</div>
                         </div>
                         <!-- <div class="table-container-fade"></div> -->
                         <div class="row" id="footer">
@@ -67,7 +67,7 @@
                                 <i class="fa fa-arrow-left"></i> Back
                             </div>
                             <div class="small-4 text-center current-page columns">
-                                Page <span id="page">{{ page }}</span> of <span id="totalpages">{{ totalpages }}</span>
+                                Page <span id="page">{{ data.page }}</span> of <span id="totalpages">{{ data.totalpages }}</span>
                             </div>
                             <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward" id="forward_button">
                                 Forward <i class="fa fa-arrow-right"></i>
@@ -94,10 +94,10 @@
         <script type="text/javascript" src={{ searchAreajs }}></script>
         <script type="text/javascript" src={{ mapjs }}></script>
         <script type="text/javascript">
-            if ({{ parameters|tojson }} !== 'None') {
+            if ({{ data|tojson }} !== 'None') {
                 //console.log('parameters');
                 //Populate search parameters
-                populateSearchParameters({{ parameters|tojson }})
+                populateSearchParameters({{ data|tojson }})
             }
             if ({{ jsdata|tojson }} !== 'None') {
                 //console.log('jsdata');

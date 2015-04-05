@@ -1,40 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import logging.handlers
-import os
 import psycopg2
 
 from landrecords import config
-
-
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
+from landrecords.lib.log import Log
 
 
 class Geocoder(object):
 
     def __init__(self):
-        self.logger = initialize_log('geocoder')
+        self.log = Log('geocoder').logger
 
         self.conn = psycopg2.connect(config.SERVER_CONNECTION)
         self.cur = self.conn.cursor()

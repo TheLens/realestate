@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 
 from sqlalchemy import create_engine
+
 from landrecords import config
+from landrecords.lib.log import Log
 
 
 class StatAnalysis(object):
 
     def __init__(self, table, begin_date, end_date, amount_low, amount_high):
+        self.log = Log('stat_analysis').logger
+
         self.table = table
         self.begin_date = begin_date
         self.end_date = end_date

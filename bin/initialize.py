@@ -2,17 +2,14 @@
 
 import psycopg2
 import pprint
-import logging
-import logging.handlers
-import os
 from fabric.api import local
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from landrecords import (
-    config
-)
+
+from landrecords import config
+from landrecords.lib.log import Log
 from landrecords.lib import (
     build,
     # check_assessor_urls,
@@ -41,29 +38,6 @@ today_date = datetime.now
 year = (datetime.now() - timedelta(days=1)).strftime('%Y')  # "2014"
 month = (datetime.now() - timedelta(days=1)).strftime('%m')  # "09"
 day = (datetime.now() - timedelta(days=1)).strftime('%d')  # "09"
-
-
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
 
 
 def generate_email(initial_date=None, until_date=None):
@@ -149,7 +123,7 @@ def send_email(subject='Subject',
                body='Body',
                initial_date=yesterday_date,
                until_date=yesterday_date):
-    logger.info('sendEmail')
+    log.info('sendEmail')
     # if os.path.isfile("logs/email-%s.txt" % datetime.now()
     # .strftime('%Y-%m-%d')):
     #     os.remove("logs/email-%s.txt" % datetime.now().strftime('%Y-%m-%d'))
@@ -161,7 +135,7 @@ def send_email(subject='Subject',
 
 
 def update_cleaned_geom():
-    logger.info('updateCleanedGeom')
+    log.info('updateCleanedGeom')
     local('''psql landrecords -c
         "UPDATE cleaned
         SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);"''')
@@ -175,44 +149,43 @@ def do_it_all(initial_date='2014-02-18', until_date=yesterday_date):
     ).check_them_all()
     clean.Clean(initial_date=initial_date, until_date=until_date)
 
-    # if initial_date != until_date: # Assumes any range of dates also wants
-    # this function.
-    # Don't uncomment: copyDashboardToCleaned()
-    update_cleaned_geom()
+    # # if initial_date != until_date: # Assumes any range of dates also wants
+    # # this function.
+    # # Don't uncomment: copyDashboardToCleaned()
+    # update_cleaned_geom()
 
-    check_temp_status.CheckTemp().check_permanent_status_of_new_sales()
-    check_temp_status.CheckTemp().check_permanent_status_of_temp_sales()
+    # check_temp_status.CheckTemp().check_permanent_status_of_new_sales()
+    # check_temp_status.CheckTemp().check_permanent_status_of_temp_sales()
 
-    body = generate_email(
-        initial_date='2015-03-13',
-        until_date=until_date)
-    mail(
-        subject="Land records summary for %s to %s" % (
-            initial_date, until_date),
-        body=body,
-        frm='tthoren@thelensnola.org',
-        to=['tthoren@thelensnola.org'])
+    # body = generate_email(
+    #     initial_date='2015-03-13',
+    #     until_date=until_date)
+    # mail(
+    #     subject="Land records summary for %s to %s" % (
+    #         initial_date, until_date),
+    #     body=body,
+    #     frm='tthoren@thelensnola.org',
+    #     to=['tthoren@thelensnola.org'])
 
     # check_assessor_urls().check(
     #     initial_date=initial_date, until_date=until_date)
 
 if __name__ == '__main__':
-    logger = initialize_log('initialize')
+    log = Log('initialize').logger
 
     try:
         do_it_all(initial_date='2014-02-18', until_date='2014-02-18')
         # Default is to build entire archive since 2014/02/18
         # doItAll(initial_date='2014-02-18', until_date=yesterday_date)
     except Exception, e:
-        logger.error(e, exc_info=True)
-        mail(subject="Error running Land Record's initialize.py script",
-             body='Check initialize.log for more details.',
-             frm='tthoren@thelensnola.org',
-             to=['tthoren@thelensnola.org'])
+        log.error(e, exc_info=True)
+        mail.Mail(subject="Error running Land Record's initialize.py script",
+                  body='Check initialize.log for more details.',
+                  frm='tthoren@thelensnola.org',
+                  to=['tthoren@thelensnola.org'])
 
     session.close()
     cur.close()
     conn.close()
-    logging.shutdown()
     print "Done!"
-    logger.info('Done!')
+    log.info('Done!')

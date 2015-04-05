@@ -5,12 +5,16 @@ import mimetypes
 from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
 from landrecords import config
+from landrecords.lib.log import Log
 
 
 class Mail(object):
 
     def __init__(self, **kwargs):
+        self.log = Log('mail').logger
+
         for key, value in kwargs.items():
             setattr(self, key, value)
 

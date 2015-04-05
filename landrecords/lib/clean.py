@@ -1,46 +1,22 @@
 # -*- coding: utf-8 -*-
 
 import re
-import os
-import logging
-import logging.handlers
 from sqlalchemy import create_engine, insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords import config, db
 from landrecords.lib.libraries import Library
-
-
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
+from landrecords.lib.log import Log
 
 
 class Clean(object):
 
     def __init__(self, initial_date=None, until_date=None):
+        self.log = Log('clean').logger
+
         self.initial_date = initial_date
         self.until_date = until_date
-        self.logger = initialize_log('clean')
 
         base = declarative_base()
         self.engine = create_engine(config.SERVER_ENGINE)
@@ -130,7 +106,7 @@ class Clean(object):
 
         rows = []
         for row in result:
-            self.logger.debug(row)
+            self.log.debug(row)
             row = dict(row)
             rows.append(row)
 
@@ -210,7 +186,7 @@ class Clean(object):
 
         rows = []
         for row in result:
-            self.logger.debug(row)
+            self.log.debug(row)
             row = dict(row)
             row['neighborhood'] = "None"
             rows.append(row)
@@ -220,7 +196,7 @@ class Clean(object):
     def commit_rows(self, rows):
         print 'Cleaning...'
         for row in rows:
-            self.logger.debug(row)
+            self.log.debug(row)
             try:
                 with self.session.begin_nested():
                     i = insert(db.Cleaned)
@@ -229,7 +205,7 @@ class Clean(object):
                     self.session.flush()
             except Exception, e:
                 print 'Error!', e
-                self.logger.error(e, exc_info=True)
+                self.log.error(e, exc_info=True)
                 self.session.rollback()
 
         self.session.commit()
@@ -364,7 +340,7 @@ class Clean(object):
                                     ', ' +
                                     l.strip())
                     except Exception, e:
-                        self.logger.error(e, exc_info=True)
+                        self.log.error(e, exc_info=True)
                         continue
 
                 if all_addresses_text == '':
@@ -414,7 +390,7 @@ class Clean(object):
                                     ', ' +
                                     l.strip())
                     except Exception, e:
-                        self.logger.error(e, exc_info=True)
+                        self.log.error(e, exc_info=True)
                         print 'Error!', e
                         continue
 
@@ -434,36 +410,36 @@ class Clean(object):
             # unit = re.match(
             #     r"^.*UNIT\: (.*)\, CONDO", location_info).group(1)
 
-            self.logger.info('Final values:')
+            self.log.info('Final values:')
 
             # Write over current row's values with newer, cleaner, smarter,
             # better values
             rows[i]['sellers'] = sellers.strip(
                 ' ,'
             ).replace('  ', ' ').replace(' ,', ',')
-            self.logger.debug(rows[i]['sellers'])
+            self.log.debug(rows[i]['sellers'])
 
             rows[i]['buyers'] = buyers.strip(
                 ' ,'
             ).replace('  ', ' ').replace(' ,', ',')
-            self.logger.debug(rows[i]['buyers'])
+            self.log.debug(rows[i]['buyers'])
 
             rows[i]['address'] = all_addresses_text.strip(
                 " ,"
             ).replace('  ', ' ').replace(' ,', ',')
-            self.logger.debug(rows[i]['address'])
+            self.log.debug(rows[i]['address'])
 
             rows[i]['location_info'] = all_locations_text.strip(
                 " ,"
             ).replace('  ', ' ').replace(' ,', ',')
-            self.logger.debug(rows[i]['location_info'])
+            self.log.debug(rows[i]['location_info'])
 
             rows[i]['amount'] = amt
-            self.logger.debug(rows[i]['amount'])
+            self.log.debug(rows[i]['amount'])
 
             rows[i]['neighborhood'] = neighborhood.replace(
                 '  ', ' '
             ).replace(' ,', ',')
-            self.logger.debug(rows[i]['neighborhood'])
+            self.log.debug(rows[i]['neighborhood'])
 
         return rows

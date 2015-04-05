@@ -1,46 +1,21 @@
 # -*- coding: utf-8 -*-
 
-import logging
-import logging.handlers
-import os
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords import config, db
-
-
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
+from landrecords.lib.log import Log
 
 
 class PublishChecker(object):
 
     def __init__(self, initial_date=None, until_date=None):
+        self.log = Log('publish').logger
+
         self.initial_date = initial_date
         self.until_date = until_date
-
-        self.logger = initialize_log('publish')
 
         base = declarative_base()
         engine = create_engine(config.SERVER_ENGINE)
@@ -79,9 +54,7 @@ class PublishChecker(object):
             "location_publish": "0"
         })
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def check_east_of_new_orleans(self):
         # Long greater than -89 is east of New Orleans:
@@ -94,9 +67,7 @@ class PublishChecker(object):
             "location_publish": "0"
         })
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def check_south_of_new_orleans(self):
         # Lat less than 29.864543 is south of New Orleans:
@@ -109,9 +80,7 @@ class PublishChecker(object):
             "location_publish": "0"
         })
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def check_north_of_new_orleans(self):
         # Lat less than 29.864543 is north of New Orleans:
@@ -124,9 +93,7 @@ class PublishChecker(object):
             "location_publish": "0"
         })
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def make_all_details_publishable(self):
         # Assume publishable, then check for reasons not to publish.
@@ -135,9 +102,8 @@ class PublishChecker(object):
         ).update({
             "detail_publish": "1"
         })
-        # logger.info('query')
+
         self.session.flush()
-        # logger.info('flush')
 
     def check_if_no_date(self):
         self.session.query(
@@ -151,18 +117,13 @@ class PublishChecker(object):
             {"detail_publish": "0"}
         )
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def check_relative_date(self):
         # Convert date strings to datetime format
         new_initial_date = datetime.strptime(self.initial_date, '%Y-%m-%d')
-        # logger.debug(new_initial_date)
         new_until_date = datetime.strptime(self.until_date, '%Y-%m-%d')
-        # logger.debug(new_until_date)
         current_date = new_initial_date
-        # logger.debug(current_date)
 
         # Evaluate "30 days ago" based on that particular day
         while current_date != new_until_date:
@@ -189,9 +150,7 @@ class PublishChecker(object):
                     db.Detail.document_date < '%s' % old_date_string
                 ).update({"detail_publish": "0"})
 
-                # logger.info('query')
                 self.session.flush()
-                # logger.info('flush')
 
                 self.session.query(
                     db.Detail.document_recorded,
@@ -205,12 +164,9 @@ class PublishChecker(object):
                     "detail_publish": "0"
                 })
 
-                # logger.info('query')
                 self.session.flush()
-                # logger.info('flush')
 
             current_date = current_date + timedelta(days=1)
-            # logger.debug(current_date)
 
     def check_low_amount(self):
         # Not sure about these, so check them all for now to be safe
@@ -223,9 +179,7 @@ class PublishChecker(object):
             "detail_publish": "0"
         })
 
-        # logger.info('query')
         self.session.flush()
-        # logger.info('flush')
 
     def check_high_amount(self):
         # Anything over $20,000,000 wouldn't be impossible, but is rare
@@ -237,8 +191,6 @@ class PublishChecker(object):
         ).update({
             "detail_publish": "0"
         })
-
-        # logger.info('query')
 
     def commit_session(self):
         self.session.commit()
@@ -256,4 +208,5 @@ class PublishChecker(object):
         self.check_relative_date()
         self.check_low_amount()
         self.check_high_amount()
+
         self.commit_session()

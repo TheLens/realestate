@@ -2,41 +2,16 @@
 
 from __future__ import absolute_import
 
-import os
-import logging
-import logging.handlers
 from fabric.api import local
 
 from landrecords import config
+from landrecords.lib.log import Log
 
 
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
-
-
-class Models(object):
+class Webhook(object):
 
     def __init__(self):
-        self.logger = initialize_log('webhook')
+        self.log = Log('webhooks').logger
 
     def main(self, data):
         self.git_pull(data)
@@ -49,30 +24,30 @@ class Models(object):
             if aws_string is None:
                 continue
 
-            self.logger.debug(aws_string)
+            self.log.debug(aws_string)
 
             local(aws_string)
 
-        self.logger.info('Done')
+        self.log.info('Done')
         return "None"
 
     def git_pull(self, data):
         try:
-            self.logger.info('try')
+            self.log.info('try')
             branch = data['ref']
-            self.logger.debug(branch)
+            self.log.debug(branch)
             if branch != 'refs/heads/master':
-                self.logger.info('Not master branch')
+                self.log.info('Not master branch')
                 return 'None'
         except:
-            self.logger.info('except')
+            self.log.info('except')
             return "None"
 
         local('git pull origin master')
 
     def form_aws_string(self, f):
         # Ex. f = 'scripts/templates/search.html'
-        self.logger.debug(f)
+        self.log.debug(f)
 
         file_path = f.split('static/')[-1]  # Ex. 'js/lens.js'
 
@@ -83,18 +58,18 @@ class Models(object):
 
     def gather_updated_files(self, data):
         try:
-            self.logger.info('try')
+            self.log.info('try')
             branch = data['ref']
-            self.logger.debug(branch)
+            self.log.debug(branch)
             if branch != 'refs/heads/master':
-                self.logger.info('Not master branch')
+                self.log.info('Not master branch')
                 return 'None'
         except:
-            self.logger.info('except')
+            self.log.info('except')
             return "None"
 
         github_branch = data['ref'].split('/')[-1]
-        self.logger.debug(github_branch)
+        self.log.debug(github_branch)
 
         # Ex: ['scripts/templates/search.html']
         added_files_list = data['commits'][0]['added']

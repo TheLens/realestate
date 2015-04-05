@@ -3,81 +3,95 @@
 from __future__ import absolute_import
 
 import math
-import os
 import urllib
-import logging
-import logging.handlers
 from datetime import datetime
 
 # from flask.ext.cache import Cache
 from flask import (
     # request,
-    render_template,
     jsonify
 )
 from sqlalchemy import (
     create_engine,
-    desc,
-    insert,
-    update
+    desc
 )
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords import config, db
 from landrecords.lib import check_assessor_urls
+from landrecords.lib.log import Log
 from landrecords.lib.utils import Utils
-
-
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
 
 
 class Models(object):
 
     def __init__(self, initial_date=None, until_date=None):
+        self.log = Log('models').logger
+
         self.initial_date = initial_date
         self.until_date = until_date
-        self.logger = initialize_log('models')
 
         self.PAGE_LENGTH = 10  # todo: determine this via front end.
         # May want to let users change in future. Also just for consistency.
 
         base = declarative_base()
-        self.engine = create_engine(config.SERVER_ENGINE)
-        base.metadata.create_all(self.engine)
-        sn = sessionmaker(bind=self.engine)
+        engine = create_engine(config.SERVER_ENGINE)
+        base.metadata.create_all(engine)
+        sn = sessionmaker(bind=engine)
 
         self.session = sn()
 
     def get_home(self):
-        yesterday_date = self.get_last_updated_date()
+        update_date = self.get_last_updated_date()
         neighborhoods = self.get_neighborhoods()
 
-        data = {'yesterday_date': yesterday_date,
+        data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
 
         self.session.close()
         return data
+
+    def query_search_term_limit_3(self, table, term):
+        q = self.session.query(
+            getattr(db.Cleaned, table)
+        ).filter(
+            getattr(db.Cleaned, table).ilike('%%%s%%' % term)
+        ).distinct().limit(3).all()
+
+        return q
+
+    def searchbar_input(self, term):
+        term = urllib.unquote(term).decode('utf8')
+
+        q_neighborhoods = self.query_search_term_limit_3('neighborhood', term)
+        q_zip = self.query_search_term_limit_3('zip_code', term)
+        q_locations = self.query_search_term_limit_3('address', term)
+        q_buyers = self.query_search_term_limit_3('buyers', term)
+        q_sellers = self.query_search_term_limit_3('sellers', term)
+
+        response = []
+
+        for i, u in enumerate(q_neighborhoods):
+            response.append({
+                "label": (u.neighborhood).title().replace('Mcd', 'McD'),
+                "category": "Neighborhoods"})
+
+        for i, u in enumerate(q_zip):
+            response.append({"label": u.zip_code, "category": "ZIP codes"})
+
+        for i, u in enumerate(q_locations):
+            response.append({"label": u.address, "category": "Addresses"})
+
+        for i, u in enumerate(q_buyers):
+            response.append({"label": u.buyers, "category": "Buyers"})
+
+        for i, u in enumerate(q_sellers):
+            response.append({"label": u.sellers, "category": "Sellers"})
+
+        return jsonify(
+            response=response
+        )
 
     def get_search(self, request):
         data = {}
@@ -94,10 +108,9 @@ class Models(object):
             if data[key] is None:
                 data[key] = ''
 
-        data = self.assign_data(data)
-        data = self.check_entry(data)
+        data = self.decode_data(data)
+        data = self.convert_entries_to_db_friendly(data)
 
-        # query_db all below:
         data['yesterday_date'] = self.get_last_updated_date()
         data['neighborhoods'] = self.get_neighborhoods()
 
@@ -140,22 +153,13 @@ class Models(object):
 
         data['results_language'] = self.construct_results_language(data)
 
-        parameters = {}
-        parameters['name_address'] = data['name_address']
-        parameters['amountlow'] = data['amountlow']
-        parameters['amounthigh'] = data['amounthigh']
-        parameters['begindate'] = data['begindate']
-        parameters['enddate'] = data['enddate']
-        parameters['neighborhood'] = data['neighborhood']
-        parameters['zip_code'] = data['zip_code']
-
         self.session.close()
 
-        return data, newrows, jsdata, parameters
+        return data, newrows, jsdata
 
     def post_search(self, data):
-        data = self.assign_data(data)
-        data = self.check_entry(data)
+        data = self.decode_data(data)
+        data = self.convert_entries_to_db_friendly(data)
 
         # If a geo query (search near me). Not yet a feature.
         # if 'latitude' in data and 'longitude' in data:
@@ -166,6 +170,58 @@ class Models(object):
         self.session.close()
 
         return response
+
+    def update_pager(self, data):
+        cond = (data['direction'] == 'back' or
+                data['direction'] == 'forward')
+
+        if data['direction'] is None:
+            data['page'] = 1
+            data['recordsoffset'] = (data['page'] - 1) * data['pagelength']
+        elif cond:
+            if data['direction'] == 'forward':
+                data['page'] = int(data['page']) + 1
+
+            if data['qlength'] == 0:
+                data['page'] = 0
+
+            if data['page'] == 0:
+                data['recordsoffset'] = 0
+            else:
+                if data['direction'] == 'back':
+                    data['page'] = int(data['page']) - 1
+                data['recordsoffset'] = (
+                    (data['page'] - 1) * data['pagelength'])
+                data['pagelength'] = data['pagelength']
+
+        return data
+
+    def filter_by_map(self, data):
+        q = self.map_query_length(data)
+        data['qlength'] = len(q)  # number of records
+        # total number of pages:
+        data['totalpages'] = int(math.ceil(
+            float(data['qlength']) / float(data['pagelength'])))
+
+        data = self.update_pager(data)
+
+        q = self.query_with_map_boundaries(data)
+
+        return q
+
+    def do_not_filter_by_map(self, data):
+        q = self.find_all_publishable_rows_fitting_criteria(data)
+        data['pagelength'] = self.PAGE_LENGTH
+        data['qlength'] = len(q)  # number of records
+        # total number of pages:
+        data['totalpages'] = int(math.ceil(
+            float(data['qlength']) / float(data['pagelength'])))
+
+        data = self.update_pager(data)
+
+        q = self.find_page_of_publishable_rows_fitting_criteria(data)
+
+        return q
 
     def mapquery_db(self, data):
         data['bounds'] = [
@@ -178,66 +234,10 @@ class Models(object):
         data['yesterday_date'] = self.get_last_updated_date()
 
         if data['mapbuttonstate'] is True:  # map filtering is on
-            q = self.map_query_length(data)
-            data['qlength'] = len(q)  # number of records
-            # total number of pages:
-            data['totalpages'] = int(math.ceil(
-                float(data['qlength']) / float(data['pagelength'])))
-
-            cond = (data['direction'] == 'back' or
-                    data['direction'] == 'forward')
-
-            if data['direction'] is None:
-                data['page'] = 1
-                data['recordsoffset'] = (data['page'] - 1) * data['pagelength']
-            elif cond:
-                if data['direction'] == 'forward':
-                    data['page'] = int(data['page']) + 1
-
-                if data['qlength'] == 0:
-                    data['page'] = 0
-
-                if data['page'] == 0:
-                    data['recordsoffset'] = 0
-                else:
-                    if data['direction'] == 'back':
-                        data['page'] = int(data['page']) - 1
-                    data['recordsoffset'] = (
-                        (data['page'] - 1) * data['pagelength'])
-
-            q = self.map_query1(data)
+            q = self.filter_by_map(data)
 
         if data['mapbuttonstate'] is False:  # map filtering is off
-            q = self.find_all_publishable_rows_fitting_criteria(data)
-            data['pagelength'] = self.PAGE_LENGTH
-            data['qlength'] = len(q)  # number of records
-            # total number of pages:
-            data['totalpages'] = int(math.ceil(
-                float(data['qlength']) / float(data['pagelength'])))
-
-            cond = (data['direction'] == 'back' or
-                    data['direction'] == 'forward')
-
-            if data['direction'] is None:
-                data['page'] = 1
-                data['recordsoffset'] = (data['page'] - 1) * data['pagelength']
-            elif cond:
-                if data['direction'] == 'forward':
-                    data['page'] = int(data['page']) + 1
-
-                if data['qlength'] == 0:
-                    data['page'] = 0
-
-                if data['page'] == 0:
-                    data['recordsoffset'] = 0
-                else:
-                    if data['direction'] == 'back':
-                        data['page'] = int(data['page']) - 1
-                    data['recordsoffset'] = (
-                        (data['page'] - 1) * data['pagelength'])
-                    data['pagelength'] = data['pagelength']
-
-            q = self.find_page_of_publishable_rows_fitting_criteria(data)
+            q = self.do_not_filter_by_map(data)
 
         for u in q:
             u.amount = Utils().get_num_with_curr_sign(u.amount)
@@ -251,11 +251,11 @@ class Models(object):
             "features": features
         }
 
-        data['results_css_display'] = 'none'
-
         if data['qlength'] == 0:
             data['page'] = 0
             data['results_css_display'] = 'block'
+        else:
+            data['results_css_display'] = 'none'
 
         data = self.revert_entries(data)
 
@@ -268,116 +268,6 @@ class Models(object):
         self.session.close()
 
         return data, newrows, jsdata
-
-    def dashboard_get(self):
-        q = self.session.query(
-            db.Cleaned
-        ).filter(
-            (db.Cleaned.detail_publish == '0') |
-            (db.Cleaned.location_publish == '0')
-        ).order_by(
-            db.Cleaned.document_recorded.desc()
-        ).all()
-
-        num_results = len(q)
-
-        for u in q:
-            u.amount = Utils().get_num_with_curr_sign(u.amount)
-            u.document_date = Utils().ymd_to_full_date(u.document_date)
-            u.document_recorded = Utils().ymd_to_full_date(u.document_recorded)
-            u.detail_publish = Utils().binary_to_english(u.detail_publish)
-            u.location_publish = Utils().binary_to_english(u.location_publish)
-
-        rows = []
-        for row in q:
-            row_dict = {}
-            row_dict['detail_publish'] = row.detail_publish
-            row_dict['location_publish'] = row.location_publish
-            row_dict['latitude'] = row.latitude
-            row_dict['longitude'] = row.longitude
-            row_dict['amount'] = row.amount
-            row_dict['document_recorded'] = row.document_recorded
-            row_dict['document_date'] = row.document_date
-
-            rows.append(row_dict)
-
-        self.session.close()
-        return render_template(
-            'dashboard.html',
-            js=config.JS,
-            dashboardjs=config.DASHBOARD_JS,
-            neighborhoodstopo=config.NEIGHBORHOODS_TOPO,
-            squarestopo=config.SQUARES_TOPO,
-            css=config.CSS,
-            num_results=num_results,
-            js_app_routing=config.JS_APP_ROUTING,
-            newrows=q,
-            jsrows=rows,
-            number_of_indexes=len(q)
-        )
-
-    def dashboard_post(self, data):
-        # User submitted a change through dashboard
-
-        for key in data:
-            data[key] = data[key].strip()
-
-        # Set fixed to false
-        data['fixed'] = False
-
-        doc_rec_date = data['document_recorded']
-        doc_rec_date = doc_rec_date.replace('March', 'Mar.')
-        doc_rec_date = doc_rec_date.replace('April', 'Apr.')
-        doc_rec_date = doc_rec_date.replace('May', 'May.')
-        doc_rec_date = doc_rec_date.replace('June', 'Jun.')
-        doc_rec_date = doc_rec_date.replace('July', 'Jul.')
-        doc_rec_date = datetime.strptime(doc_rec_date, '%A, %b. %d, %Y')
-        doc_rec_date = doc_rec_date.strftime('%Y-%m-%d')
-        data['document_recorded'] = doc_rec_date
-
-        doc_rec_date = data['document_date']
-        doc_rec_date = doc_rec_date.replace('March', 'Mar.')
-        doc_rec_date = doc_rec_date.replace('April', 'Apr.')
-        doc_rec_date = doc_rec_date.replace('May', 'May.')
-        doc_rec_date = doc_rec_date.replace('June', 'Jun.')
-        doc_rec_date = doc_rec_date.replace('July', 'Jul.')
-        doc_rec_date = datetime.strptime(doc_rec_date, '%A, %b. %d, %Y')
-        doc_rec_date = doc_rec_date.strftime('%Y-%m-%d')
-        data['document_date'] = doc_rec_date
-
-        '''
-        Insert/update dashboard log table
-        '''
-
-        q = self.session.query(
-            db.Dashboard.instrument_no
-        ).filter(
-            db.Dashboard.instrument_no == '%s' % (data['instrument_no'])
-        ).all()
-
-        input_length = len(q)
-
-        if input_length == 0:
-            # This sale has not been entered into dashboard table yet
-            i = insert(db.Dashboard)
-            i = i.values(data)
-            self.session.execute(i)
-            self.session.commit()
-        else:
-            # This sale has already been entered into dashboard table
-            u = update(db.Dashboard)
-            u = u.values(data)
-            u = u.where(db.Dashboard.instrument_no == '%s' % (
-                data['instrument_no']))
-
-            self.session.execute(u)
-            self.session.commit()
-
-        # Update changes in Cleaned table
-        self.update_cleaned()
-
-        self.session.close()
-        return 'hi'
 
     def get_sale(self, instrument_no):
         data = {}
@@ -399,6 +289,8 @@ class Models(object):
             location_info = u.location_info
             data['assessor_publish'] = u.assessor_publish
 
+        newrows = q
+
         features = self.build_features_json(q)
 
         jsdata = {
@@ -411,11 +303,11 @@ class Models(object):
                  data['assessor_publish'] == '')
 
         if conds:
-            data['assessor'] = """
-                Could not find this property on the Orleans Parish
-                Assessor's Office site. <a href='http://www.qpublic
-                .net/la/orleans/search1.html' target='_blank'>"
-                Search based on other criteria.</a>"""
+            data['assessor'] = (
+                "Could not find this property on the Orleans Parish" +
+                "Assessor's Office site. <a href='http://www.qpublic" +
+                ".net/la/orleans/search1.html' target='_blank'>" +
+                "Search based on other criteria.</a>")
         else:
             url_param = check_assessor_urls().form_assessor_url(
                 address, location_info)
@@ -431,7 +323,7 @@ class Models(object):
             return None, None, None
         else:
             self.session.close()
-            return data, jsdata, q
+            return data, jsdata, newrows
 
     def map_query_length(self, data):
         q = self.session.query(
@@ -465,7 +357,7 @@ class Models(object):
         return q
 
     # For when map filtering is turned on
-    def map_query1(self, data):
+    def query_with_map_boundaries(self, data):
         q = self.session.query(
             db.Cleaned
         ).filter(
@@ -560,7 +452,7 @@ class Models(object):
 
         return q
 
-    def check_entry(self, data):
+    def convert_entries_to_db_friendly(self, data):
         if data['amountlow'] == '':
             data['amountlow'] = 0
         if data['amounthigh'] == '':
@@ -585,9 +477,11 @@ class Models(object):
         return data
 
     def build_features_json(self, q):
+        self.log.debug(len(q))
         features = []
         features_dict = {}
         for u in q:
+            self.log.debug(u.buyers)
             if u.location_publish == "0":
                 u.document_date = u.document_date + "*"
                 continue
@@ -614,7 +508,7 @@ class Models(object):
 
         return features
 
-    def assign_data(self, data):
+    def decode_data(self, data):
         search_term = data['name_address']
         data['name_address'] = urllib.unquote(search_term).decode('utf8')
 
@@ -653,222 +547,245 @@ class Models(object):
 
         return neighborhoods
 
-    def update_cleaned(self):
-        q = self.session.query(
-            db.Dashboard
-        ).filter(
-            db.Dashboard.fixed is False
-        ).all()
-
-        rows = []
-        for row in q:
-            row_dict = {}
-            row_dict['instrument_no'] = row.instrument_no
-            row_dict['detail_publish'] = row.detail_publish
-            row_dict['location_publish'] = row.location_publish
-            row_dict['document_date'] = row.document_date
-            row_dict['amount'] = row.amount
-            row_dict['address'] = row.address
-            row_dict['location_info'] = row.location_info
-            row_dict['sellers'] = row.sellers
-            row_dict['buyers'] = row.buyers
-            row_dict['document_recorded'] = row.document_recorded
-            row_dict['latitude'] = row.latitude
-            row_dict['longitude'] = row.longitude
-            row_dict['zip_code'] = row.zip_code
-            row_dict['neighborhood'] = row.neighborhood
-
-            rows.append(row_dict)
-
-        for row in rows:
-            # This sale has already been entered into dashboard table
-            u = update(db.Cleaned)
-            u = u.values(row)
-            u = u.where(
-                db.Cleaned.instrument_no == '%s' % row['instrument_no'])
-            self.session.execute(u)
-            self.session.commit()
-
-            # This sale has already been entered into dashboard table
-            u = update(db.Dashboard)
-            u = u.values({"fixed": True})
-            u = u.where(
-                db.Dashboard.instrument_no == '%s' % row['instrument_no'])
-            self.session.execute(u)
-            self.session.commit()
-
-    def searchbar_input(self, term):
-        search_term = urllib.unquote(term).decode('utf8')
-
-        q_neighborhoods = self.session.query(
-            db.Cleaned.neighborhood
-        ).filter(
-            db.Cleaned.neighborhood.ilike('%%%s%%' % search_term)
-        ).distinct().limit(3).all()
-
-        q_zip = self.session.query(
-            db.Cleaned.zip_code
-        ).filter(
-            db.Cleaned.zip_code.ilike('%%%s%%' % search_term)
-        ).distinct().limit(3).all()
-
-        q_locations = self.session.query(
-            db.Cleaned.detail_publish,
-            db.Cleaned.address
-        ).filter(
-            db.Cleaned.detail_publish == '1'
-        ).filter(
-            db.Cleaned.address.ilike('%%%s%%' % search_term)
-        ).limit(3).all()
-
-        q_buyers = self.session.query(
-            db.Cleaned.detail_publish,
-            db.Cleaned.buyers
-        ).filter(
-            db.Cleaned.detail_publish == '1'
-        ).filter(
-            db.Cleaned.buyers.ilike('%%%s%%' % search_term)
-        ).limit(3).all()
-
-        q_sellers = self.session.query(
-            db.Cleaned.detail_publish,
-            db.Cleaned.sellers
-        ).filter(
-            db.Cleaned.detail_publish == '1'
-        ).filter(
-            db.Cleaned.sellers.ilike('%%%s%%' % search_term)
-        ).limit(3).all()
-
-        response = []
-
-        for i, u in enumerate(q_neighborhoods):
-            response.append({
-                "label": (u.neighborhood).title().replace('Mcd', 'McD'),
-                "category": "Neighborhoods"})
-
-        for i, u in enumerate(q_zip):
-            response.append({"label": u.zip_code, "category": "ZIP codes"})
-
-        for i, u in enumerate(q_locations):
-            response.append({"label": u.address, "category": "Addresses"})
-
-        for i, u in enumerate(q_buyers):
-            response.append({"label": u.buyers, "category": "Buyers"})
-
-        for i, u in enumerate(q_sellers):
-            response.append({"label": u.sellers, "category": "Sellers"})
-
-        return jsonify(
-            response=response
-        )
-
-    def construct_results_language(self, data):
+    def plural_or_not(self, data):
         if data['qlength'] == 1:
             plural_or_not = "sale"
         else:
             plural_or_not = "sales"
 
-        final_sentence = str(Utils().get_number_with_commas(data['qlength'])) + \
-            ' ' + str(plural_or_not) + ' found'
-        # 10 records found
+        return plural_or_not
 
-        conds = (data['name_address'] == '' and
-                 data['amountlow'] == '' and
-                 data['amounthigh'] == '' and
-                 data['begindate'] == '' and
-                 data['enddate'] == '' and
-                 data['neighborhood'] == '' and
-                 data['zip_code'] == '')
-        if conds:
-            if data['mapbuttonstate'] is True:
-                final_sentence += ' in the current map view.'
-                # 10 records found.
+    def add_keyword_language(self, final_sentence, data):
+        if data['name_address'] != '':
+            if len(data['name_address'].split()) > 1:
+                final_sentence += ' for key phrase "' + \
+                    data['name_address'] + '"'
+                # for 'keyword'
             else:
-                final_sentence += '.'  # 10 records found.
-        else:
-            if data['name_address'] != '':
-                if len(data['name_address'].split()) > 1:
-                    final_sentence += ' for key phrase "' + \
-                        data['name_address'] + '"'
-                    # 10 records found for 'keyword'
-                else:
-                    final_sentence += ' for keyword "' + \
-                        data['name_address'] + '"'
-                    # 10 records found for 'keyword'
+                final_sentence += ' for keyword "' + \
+                    data['name_address'] + '"'
+                # for 'keyword'
 
-            if data['neighborhood'] != '':
-                if data['zip_code'] != '':
-                    final_sentence += " in the " + data['neighborhood'] + \
-                        " neighborhood and " + data['zip_code']
-                    # 10 records found for 'keyword' in Mid-City and 70119
-                else:
-                    final_sentence += " in the " + data['neighborhood'] + \
-                        " neighborhood"
-                    # 10 records found for 'keyword' in Mid-City
-            elif data['zip_code'] != '':
-                final_sentence += " in ZIP code " + data['zip_code']
-                # 10 records found for 'keyword' in 70119
+        return final_sentence
 
-            if data['amountlow'] != '':
-                if data['amounthigh'] != '':
-                    final_sentence += " where the price was between " + \
-                        Utils().get_num_with_curr_sign(data['amountlow']) + \
-                        + " and " + \
-                        Utils().get_num_with_curr_sign(data['amounthigh'])
-                    # 10 records found for 'keyword' in Mid-City, where the
-                    # amount is between $10 and $20
-                else:
-                    final_sentence += " where the price was greater than " + \
-                        Utils().get_num_with_curr_sign(data['amountlow'])
-                    # 10 records found for 'keyword' in Mid-City, where the
-                    # amount is greater than $10
-            elif data['amounthigh'] != '':
-                final_sentence += " where the price was less than " + \
+    def add_nbhd_zip_language(self, final_sentence, data):
+        if data['neighborhood'] != '':
+            if data['zip_code'] != '':
+                final_sentence += " in the " + data['neighborhood'] + \
+                    " neighborhood and " + data['zip_code']
+                # in the Mid-City neighborhood and 70119
+            else:
+                final_sentence += " in the " + data['neighborhood'] + \
+                    " neighborhood"
+                # in the Mid-City neighborhood
+        elif data['zip_code'] != '':
+            final_sentence += " in ZIP code " + data['zip_code']
+            # in ZIP code 70119
+
+        return final_sentence
+
+    def add_amount_language(self, final_sentence, data):
+        if data['amountlow'] != '':
+            if data['amounthigh'] != '':
+                final_sentence += " where the price was between " + \
+                    Utils().get_num_with_curr_sign(data['amountlow']) + \
+                    + " and " + \
                     Utils().get_num_with_curr_sign(data['amounthigh'])
-                # 10 records found for 'keyword' in Mid-City, where the amount
-                # is less than $20
+                # where the amount is between $10 and $20
+            else:
+                final_sentence += " where the price was greater than " + \
+                    Utils().get_num_with_curr_sign(data['amountlow'])
+                # where the amount is greater than $10
+        elif data['amounthigh'] != '':
+            final_sentence += " where the price was less than " + \
+                Utils().get_num_with_curr_sign(data['amounthigh'])
+            # where the amount is less than $20
 
-            if data['begindate'] != '':
-                if data['enddate'] != '':
-                    final_sentence += " between " + \
-                        Utils().ymd_to_full_date(
-                            data['begindate'],
-                            no_day=True) + \
-                        ", and " + \
-                        Utils().ymd_to_full_date(
-                            data['enddate'],
-                            no_day=True)
-                    # 10 records found for 'keyword' in Mid-City, where the
-                    # amount is between $10 and $20, between Feb. 10, 2014,
-                    # and Feb. 12, 2014
-                else:
-                    final_sentence += " after " + \
-                        Utils().ymd_to_full_date(
-                            data['begindate'],
-                            no_day=True)
-                    # 10 records found for 'keyword' in Mid-City, where the
-                    # amount is greater than $10, after Feb. 10, 2014.
-            elif data['enddate'] != '':
-                final_sentence += " before " + \
+        return final_sentence
+
+    def add_date_language(self, final_sentence, data):
+        if data['begindate'] != '':
+            if data['enddate'] != '':
+                final_sentence += " between " + \
+                    Utils().ymd_to_full_date(
+                        data['begindate'],
+                        no_day=True) + \
+                    ", and " + \
                     Utils().ymd_to_full_date(
                         data['enddate'],
                         no_day=True)
-                # 10 records found for 'keyword' in Mid-City, where the amount
-                # is less than $20, before Feb. 20, 2014.
-
-            if data['mapbuttonstate'] is True:
-                final_sentence += " in the current map view"
-
-            if final_sentence[-1] == "'" or final_sentence[-1] == '"':
-                last_character = final_sentence[-1]
-                l = list(final_sentence)
-                l[-1] = '.'
-                l.append(last_character)
-                final_sentence = ''.join(l)
+                # between Feb. 10, 2014, and Feb. 12, 2014
             else:
-                final_sentence += '.'
+                final_sentence += " after " + \
+                    Utils().ymd_to_full_date(
+                        data['begindate'],
+                        no_day=True)
+                # after Feb. 10, 2014.
+        elif data['enddate'] != '':
+            final_sentence += " before " + \
+                Utils().ymd_to_full_date(
+                    data['enddate'],
+                    no_day=True)
+            # before Feb. 20, 2014.
 
         return final_sentence
+
+    def add_map_filtering_language(self, final_sentence, data):
+        if data['mapbuttonstate'] is True:
+            final_sentence += ' in the current map view'
+
+        return final_sentence
+
+    def add_final_sentence_language(self, final_sentence, data):
+        # Punctuation comes before quotation marks
+
+        if final_sentence[-1] == "'" or final_sentence[-1] == '"':
+            last_character = final_sentence[-1]
+            l = list(final_sentence)
+            l[-1] = '.'
+            l.append(last_character)
+            final_sentence = ''.join(l)
+        else:
+            final_sentence += '.'
+
+        return final_sentence
+
+    def add_initial_language(self, plural_or_not, data):
+        final_sentence = str(Utils().get_number_with_commas(
+            data['qlength'])) + ' ' + plural_or_not + ' found'
+
+        return final_sentence
+
+    def construct_results_language(self, data):
+        plural_or_not = self.plural_or_not(data)
+
+        final_sentence = self.add_initial_language(plural_or_not, data)
+
+        final_sentence = self.add_keyword_language(final_sentence, data)
+
+        final_sentence = self.add_nbhd_zip_language(final_sentence, data)
+
+        final_sentence = self.add_amount_language(final_sentence, data)
+
+        final_sentence = self.add_date_language(final_sentence, data)
+
+        final_sentence = self.add_map_filtering_language(final_sentence, data)
+
+        final_sentence = self.add_final_sentence_language(final_sentence, data)
+
+        return final_sentence
+
+    # def dashboard_get(self):
+    #     q = self.session.query(
+    #         db.Cleaned
+    #     ).filter(
+    #         (db.Cleaned.detail_publish == '0') |
+    #         (db.Cleaned.location_publish == '0')
+    #     ).order_by(
+    #         db.Cleaned.document_recorded.desc()
+    #     ).all()
+
+    #     num_results = len(q)
+
+    #     for u in q:
+    #         u.amount = Utils().get_num_with_curr_sign(u.amount)
+    #         u.document_date = Utils().ymd_to_full_date(u.document_date)
+    #         u.document_recorded = Utils().ymd_to_full_date(
+    # u.document_recorded)
+    #         u.detail_publish = Utils().binary_to_english(u.detail_publish)
+    #         u.location_publish = Utils().binary_to_english(
+    # u.location_publish)
+
+    #     rows = []
+    #     for row in q:
+    #         row_dict = {}
+    #         row_dict['detail_publish'] = row.detail_publish
+    #         row_dict['location_publish'] = row.location_publish
+    #         row_dict['latitude'] = row.latitude
+    #         row_dict['longitude'] = row.longitude
+    #         row_dict['amount'] = row.amount
+    #         row_dict['document_recorded'] = row.document_recorded
+    #         row_dict['document_date'] = row.document_date
+
+    #         rows.append(row_dict)
+
+    #     self.session.close()
+    #     return render_template(
+    #         'dashboard.html',
+    #         js=config.JS,
+    #         dashboardjs=config.DASHBOARD_JS,
+    #         neighborhoodstopo=config.NEIGHBORHOODS_TOPO,
+    #         squarestopo=config.SQUARES_TOPO,
+    #         css=config.CSS,
+    #         num_results=num_results,
+    #         js_app_routing=config.JS_APP_ROUTING,
+    #         newrows=q,
+    #         jsrows=rows,
+    #         number_of_indexes=len(q)
+    #     )
+
+    # def dashboard_post(self, data):
+    #     # User submitted a change through dashboard
+
+    #     for key in data:
+    #         data[key] = data[key].strip()
+
+    #     # Set fixed to false
+    #     data['fixed'] = False
+
+    #     doc_rec_date = data['document_recorded']
+    #     doc_rec_date = doc_rec_date.replace('March', 'Mar.')
+    #     doc_rec_date = doc_rec_date.replace('April', 'Apr.')
+    #     doc_rec_date = doc_rec_date.replace('May', 'May.')
+    #     doc_rec_date = doc_rec_date.replace('June', 'Jun.')
+    #     doc_rec_date = doc_rec_date.replace('July', 'Jul.')
+    #     doc_rec_date = datetime.strptime(doc_rec_date, '%A, %b. %d, %Y')
+    #     doc_rec_date = doc_rec_date.strftime('%Y-%m-%d')
+    #     data['document_recorded'] = doc_rec_date
+
+    #     doc_rec_date = data['document_date']
+    #     doc_rec_date = doc_rec_date.replace('March', 'Mar.')
+    #     doc_rec_date = doc_rec_date.replace('April', 'Apr.')
+    #     doc_rec_date = doc_rec_date.replace('May', 'May.')
+    #     doc_rec_date = doc_rec_date.replace('June', 'Jun.')
+    #     doc_rec_date = doc_rec_date.replace('July', 'Jul.')
+    #     doc_rec_date = datetime.strptime(doc_rec_date, '%A, %b. %d, %Y')
+    #     doc_rec_date = doc_rec_date.strftime('%Y-%m-%d')
+    #     data['document_date'] = doc_rec_date
+
+    #     '''
+    #     Insert/update dashboard log table
+    #     '''
+
+    #     q = self.session.query(
+    #         db.Dashboard.instrument_no
+    #     ).filter(
+    #         db.Dashboard.instrument_no == '%s' % (data['instrument_no'])
+    #     ).all()
+
+    #     input_length = len(q)
+
+    #     if input_length == 0:
+    #         # This sale has not been entered into dashboard table yet
+    #         i = insert(db.Dashboard)
+    #         i = i.values(data)
+    #         self.session.execute(i)
+    #         self.session.commit()
+    #     else:
+    #         # This sale has already been entered into dashboard table
+    #         u = update(db.Dashboard)
+    #         u = u.values(data)
+    #         u = u.where(db.Dashboard.instrument_no == '%s' % (
+    #             data['instrument_no']))
+
+    #         self.session.execute(u)
+    #         self.session.commit()
+
+    #     # Update changes in Cleaned table
+    #     self.update_cleaned()
+
+    #     self.session.close()
+    #     return 'hi'
 
     # def geoquery_db(self, data):
     #     q = self.find_all_publishable_rows_fitting_criteria(data)
@@ -953,3 +870,47 @@ class Models(object):
     #         totalpages=data['totalpages'],
     #         pagelength=data['pagelength']
     #     )
+
+    # def update_cleaned(self):
+    #     q = self.session.query(
+    #         db.Dashboard
+    #     ).filter(
+    #         db.Dashboard.fixed is False
+    #     ).all()
+
+    #     rows = []
+    #     for row in q:
+    #         row_dict = {}
+    #         row_dict['instrument_no'] = row.instrument_no
+    #         row_dict['detail_publish'] = row.detail_publish
+    #         row_dict['location_publish'] = row.location_publish
+    #         row_dict['document_date'] = row.document_date
+    #         row_dict['amount'] = row.amount
+    #         row_dict['address'] = row.address
+    #         row_dict['location_info'] = row.location_info
+    #         row_dict['sellers'] = row.sellers
+    #         row_dict['buyers'] = row.buyers
+    #         row_dict['document_recorded'] = row.document_recorded
+    #         row_dict['latitude'] = row.latitude
+    #         row_dict['longitude'] = row.longitude
+    #         row_dict['zip_code'] = row.zip_code
+    #         row_dict['neighborhood'] = row.neighborhood
+
+    #         rows.append(row_dict)
+
+    #     for row in rows:
+    #         # This sale has already been entered into dashboard table
+    #         u = update(db.Cleaned)
+    #         u = u.values(row)
+    #         u = u.where(
+    #             db.Cleaned.instrument_no == '%s' % row['instrument_no'])
+    #         self.session.execute(u)
+    #         self.session.commit()
+
+    #         # This sale has already been entered into dashboard table
+    #         u = update(db.Dashboard)
+    #         u = u.values({"fixed": True})
+    #         u = u.where(
+    #             db.Dashboard.instrument_no == '%s' % row['instrument_no'])
+    #         self.session.execute(u)
+    #         self.session.commit()

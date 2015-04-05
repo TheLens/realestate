@@ -3,9 +3,7 @@
 from __future__ import absolute_import
 
 import urllib
-import os
-import logging
-from flask.ext.cache import Cache
+# from flask.ext.cache import Cache
 from flask import (
     Flask,
     render_template,
@@ -15,37 +13,80 @@ from flask import (
 from functools import wraps
 
 from landrecords import config
+from landrecords.lib.log import Log
 from landrecords.models import Models
 from landrecords.views import Views
 
 app = Flask(__name__)
 
-cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+
+log = Log('app').logger
 
 
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
+# @cache.memoize(timeout=5000)
+@app.route("%s/" % (config.APP_ROUTING), methods=['GET'])
+def home():
+    log.debug('home')
 
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
+    data = Models().get_home()
 
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
+    view = Views().get_home(data)
 
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
+    return view
 
-    # Add the handlers to the logger
-    logger.addHandler(fh)
 
-    return logger
+# @cache.memoize(timeout=5000)
+@app.route("%s/input" % (config.APP_ROUTING), methods=['GET', 'POST'])
+def searchbar_input():
+    term = request.args.get('q')
 
-logger = initialize_log('app')
+    data = Models().searchbar_input(term)
+
+    return data
+
+
+# @cache.memoize(timeout=5000)
+@app.route("%s/search/" % (config.APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/search" % (config.APP_ROUTING), methods=['GET', 'POST'])
+def search():
+    if request.method == 'GET':
+        log.debug('search GET')
+
+        data, newrows, jsdata = Models().get_search(request)
+
+        view = Views().get_search(data, newrows, jsdata)
+
+    if request.method == 'POST':
+        log.debug('search POST')
+
+        data = request.get_json()
+
+        data, newrows, jsdata = Models().post_search(data)
+
+        view = Views().post_search(data, newrows, jsdata)
+
+    return view
+
+
+# @cache.memoize(timeout=5000)
+@app.route("%s/sale/<instrument_no>" % (config.APP_ROUTING), methods=['GET'])
+def sale(instrument_no=None):
+    log.debug('sale')
+
+    instrument_no = urllib.unquote(instrument_no).decode('utf8')
+
+    data, jsdata, newrows = Models().get_sale(instrument_no)
+
+    if data is None:
+        page_not_found()
+    else:
+        return Views().get_sale(data, jsdata, newrows)
+
+
+'''
+Dashboard
+'''
 
 
 def check_auth(username, password):
@@ -75,102 +116,47 @@ def requires_auth(f):
     return decorated
 
 
-@cache.memoize(timeout=5000)
-@app.errorhandler(404)
-def page_not_found():
-    logger.debug('404 error')
-
-    return render_template('404.html',
-                           css=config.CSS,
-                           js=config.JS,
-                           indexjs=config.INDEX_JS), 404
-
-
-@app.route("%s/webhook" % (config.APP_ROUTING), methods=['POST'])
-def webhook():
-    logger.debug('webhook')
-
-    data = request.get_json()
-
-    webhook.Webhook().main(data)
-
-
-@cache.memoize(timeout=5000)
-@app.route("%s/" % (config.APP_ROUTING), methods=['GET'])
-def home():
-    logger.debug('home')
-
-    model_data = Models().get_home()
-
-    view = Views().get_home(model_data)
-
-    return view
-
-
-@cache.memoize(timeout=5000)
-@app.route("%s/search/" % (config.APP_ROUTING), methods=['GET', 'POST'])
-@app.route("%s/search" % (config.APP_ROUTING), methods=['GET', 'POST'])
-def search():
-    if request.method == 'GET':
-        logger.debug('search GET')
-
-        data, newrows, jsdata, parameters = Models().get_search(request)
-
-        view = Views().get_search(data, newrows, jsdata, parameters)
-
-    if request.method == 'POST':
-        logger.debug('search POST')
-
-        data = request.get_json()
-
-        data, newrows, jsdata = Models().post_search(data)
-
-        view = Views().post_search(data, newrows, jsdata)
-
-    return view
-
-
-@cache.memoize(timeout=5000)
+# @cache.memoize(timeout=5000)
 @app.route("%s/dashboard/" % (config.APP_ROUTING), methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
     if request.method == 'GET':
-        logger.debug('dashboard GET')
+        log.debug('dashboard GET')
 
         return Views().get_dashboard()
 
     if request.method == 'POST':
-        logger.debug('dashboard POST')
+        log.debug('dashboard POST')
 
         data = request.get_json()
 
         return Views().post_dashboard(data)
 
 
-@cache.memoize(timeout=5000)
-@app.route("%s/sale/<instrument_no>" % (config.APP_ROUTING), methods=['GET'])
-def sale(instrument_no=None):
-    logger.debug('sale')
-
-    instrument_no = urllib.unquote(instrument_no).decode('utf8')
-
-    if request.method == 'GET':
-        data, jsdata, q = Models().get_sale(instrument_no)
-
-        if data is None:
-            page_not_found()
-        else:
-            return Views().get_sale(data, jsdata, q)
+'''
+Misc.
+'''
 
 
-@cache.memoize(timeout=5000)
-@app.route("%s/input" % (config.APP_ROUTING), methods=['GET', 'POST'])
-def searchbar_input():
-    term = request.args.get('q')
+@app.route("%s/webhook" % (config.APP_ROUTING), methods=['POST'])
+def webhook():
+    log.debug('webhook')
 
-    data = Models().searchbar_input(term)
+    data = request.get_json()
 
-    return data
+    webhook.Webhook().main(data)
+
+
+# @cache.memoize(timeout=5000)
+@app.errorhandler(404)
+def page_not_found():
+    log.debug('404 error')
+
+    return render_template('404.html',
+                           css=config.CSS,
+                           js=config.JS,
+                           indexjs=config.INDEX_JS), 404
+
 
 if __name__ == '__main__':
     app.run(

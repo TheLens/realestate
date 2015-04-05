@@ -2,50 +2,26 @@
 
 import urllib2
 import re
-import os
-import logging
-import logging.handlers
 import time
 import random
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from landrecords.lib.log import Log
 from landrecords import (
     config,
     db
 )
 
 
-def initialize_log(name):
-    if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
-        os.remove('%s/%s.log' % (config.LOG_DIR, name))
-
-    logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
-
-    # Create file handler which logs debug messages or higher
-    fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
-    fh.setLevel(logging.DEBUG)
-
-    # Create formatter and add it to the handlers
-    formatter = logging.Formatter(
-        '%(asctime)s - %(filename)s - %(funcName)s - '
-        '%(levelname)s - %(lineno)d - %(message)s')
-    fh.setFormatter(formatter)
-
-    # Add the handlers to the logger
-    logger.addHandler(fh)
-
-    return logger
-
-
 class Assessor(object):
 
     def __init__(self, initial_date=None, until_date=None):
+        self.log = Log('assessor').logger
+
         self.initial_date = initial_date
         self.until_date = until_date
-        self.logger = initialize_log('check_assessor_urls')
 
         base = declarative_base()
         self.engine = create_engine(config.SERVER_ENGINE)

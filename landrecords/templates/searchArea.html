@@ -54,7 +54,7 @@
                                 <label>&nbsp;</label>
                                 <select id="neighborhood">
                                     <option selected value="">Select</option>
-                                    {% for neighborhood in neighborhoods %}
+                                    {% for neighborhood in data.neighborhoods %}
                                     <option value="{{ neighborhood }}">{{ neighborhood }}</option>
                                     {% endfor %}
                                     <!-- <label>&nbsp;</label>
