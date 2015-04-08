@@ -1,0 +1,40 @@
+# -*- coding: utf-8 -*-
+
+'''
+todo: this entire thing. don't use it for now.
+'''
+
+import logging
+import logging.handlers
+import os
+from landrecords import config
+
+
+# class Log(logging.FileHandler):
+class Log(object):
+
+    def __init__(self, name):
+        self.name = name
+        self.logger = self.initialize_log(self.name)
+
+    def initialize_log(self, name):
+        if os.path.isfile('%s/%s.log' % (config.LOG_DIR, name)):
+            os.remove('%s/%s.log' % (config.LOG_DIR, name))
+
+        logger = logging.getLogger(__name__)
+        logger.setLevel(logging.DEBUG)
+
+        # Create file handler which logs debug messages or higher
+        fh = logging.FileHandler('%s/%s.log' % (config.LOG_DIR, name))
+        fh.setLevel(logging.DEBUG)
+
+        # Create formatter and add it to the handlers
+        formatter = logging.Formatter(
+            '%(asctime)s - %(filename)s - %(funcName)s - '
+            '%(levelname)s - %(lineno)d - %(message)s')
+        fh.setFormatter(formatter)
+
+        # Add the handlers to the logger
+        logger.addHandler(fh)
+
+        return logger
