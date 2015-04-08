@@ -2,7 +2,7 @@
 
 import re
 import glob
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -27,341 +27,283 @@ class CheckTemp(object):
 
         self.session = sn()
 
-        rows = self.get_rows_with_neighborhood()
-        clean_rows = self.clean_rows(rows)
-        self.commit_rows(clean_rows)
-
-        rows = self.get_rows_without_neighborhood()
-        clean_rows = self.clean_rows(rows)
-        self.commit_rows(clean_rows)
-
-    def check_permanent_status_of_new_sales(self):
-        '''
-        Examine first-time sales and assign True or False for permanent_flag.
-        '''
-
-        self.log.info('checkPermanentStatusOfNewSales')
-
-        # Find the date range of sales to look at. This is only to reduce the
-        # number of iterations needed by the for-loop below.
-
-        earliest_none_date = ''
-        latest_none_date = ''
-
+    def earliest_date_no_flag(self):
         q = self.session.query(
             func.min(db.Detail.document_recorded).label('early_date')
         ).filter(
-            db.Detail.permanent_flag is None
-        )
+            db.Detail.permanent_flag.is_(None)  # To satisfy PEP8
+        ).all()
 
         for u in q:
             earliest_none_date = u.early_date
 
-        print 'earliest_none_date:', earliest_none_date
-        self.log.debug(earliest_none_date)
+        earliest_none_datetime = datetime.combine(
+            earliest_none_date, datetime.min.time())
 
+        return earliest_none_datetime
+
+    def latest_date_no_flag(self):
         q = self.session.query(
             func.max(db.Detail.document_recorded).label('late_date')
         ).filter(
-            db.Detail.permanent_flag is None
-        )
+            db.Detail.permanent_flag.is_(None)
+        ).all()
 
         for u in q:
             latest_none_date = u.late_date
 
-        print 'latest_none_date:', latest_none_date
-        self.log.debug(latest_none_date)
+        latest_none_datetime = datetime.combine(
+            latest_none_date, datetime.min.time())
+
+        return latest_none_datetime
+
+    def find_early_perm_date_when_scraped(self, current_iteration_date):
+        pattern = r'%s/raw/' % config.DATA_DIR + \
+                  r'%s/' % current_iteration_date + \
+                  r'permanent-date-range-when-scraped_(\d+)-(\d+).html'
+
+        file_path = glob.glob(
+            '%s/raw/%s/permanent-date-range-when-scraped_*.html' % (
+                config.DATA_DIR, current_iteration_date))[0]
+
+        early_permanent_date = re.match(pattern, file_path).group(1)
+
+        early_permanent_datetime = datetime.strptime(
+            early_permanent_date,
+            '%m%d%Y')  # ).strftime('%Y-%m-%d')
+
+        return early_permanent_datetime
+
+    def find_late_perm_date_when_scraped(self, current_iteration_date):
+        pattern = r'%s/raw/' % config.DATA_DIR + \
+                  r'%s/' % current_iteration_date + \
+                  r'permanent-date-range-when-scraped_(\d+)-(\d+).html'
+
+        file_path = glob.glob(
+            '%s/raw/%s/permanent-date-range-when-scraped_*.html' % (
+                config.DATA_DIR, current_iteration_date))[0]
+
+        late_permanent_date = re.match(pattern, file_path).group(2)
+
+        late_permanent_datetime = datetime.strptime(
+            late_permanent_date,
+            '%m%d%Y')  # ).strftime('%Y-%m-%d')
+
+        return late_permanent_datetime
+
+    def update_this_dates_permanent_flag(self,
+                                         current_datetime,
+                                         early_permanent_datetime,
+                                         late_permanent_datetime):
+        cond = (early_permanent_datetime <= current_datetime and
+                current_datetime <= late_permanent_datetime)
+
+        if cond:
+            self.session.query(
+                db.Detail
+            ).filter(
+                db.Detail.document_recorded == '%s' % current_datetime
+            ).update({"permanent_flag": True})
+
+            self.session.query(
+                db.Cleaned
+            ).filter(
+                db.Cleaned.document_recorded == '%s' % current_datetime
+            ).update({"permanent_flag": True})
+            self.session.commit()
+        else:
+            self.session.query(
+                db.Detail
+            ).filter(
+                db.Detail.document_recorded == '%s' % current_datetime
+            ).update({"permanent_flag": False})
+
+            self.session.query(
+                db.Cleaned
+            ).filter(
+                db.Cleaned.document_recorded == '%s' % current_datetime
+            ).update({"permanent_flag": False})
+            self.session.commit()
+
+    def check_permanent_status_of_new_sales(self):
+        'Examine first-time sales and assign'
+        'True or False for permanent_flag.'
+
+        # todo: Is this function called for sales that have already been given
+        # a False flag? Need to change that if so, because this only looks
+        # for sales with no flag. Could change to check for None or False.
+
+        # Get dates to inspect
+        earliest_datetime = self.earliest_date_no_flag()
+        latest_datetime = self.latest_date_no_flag()
 
         # For all folders (dates)
-        for folder in sorted(glob.glob('%s/raw/*' % (config.DATA_DIR))):
-            # self.log.debug(folder)
+        while earliest_datetime != (latest_datetime + timedelta(days=1)):
+            current_iteration_date = earliest_datetime.strftime('%Y-%m-%d')
 
-            cur_it_date = folder.split('/')[-1]
-            # self.log.debug(cur_it_date)
+            early_permanent_datetime = self.find_early_perm_date_when_scraped(
+                current_iteration_date)
 
-            try:
-                cur_it_datetime = datetime.strptime(cur_it_date, '%m-%d-%Y')
-                # self.log.debug(cur_it_datetime)
-            except Exception, e:
-                self.log.error(e, exc_info=True)
-                continue
-
-            try:
-                earliest_none_datetime = datetime.combine(
-                    earliest_none_date, datetime.min.time())
-                # self.log.debug(earliest_none_datetime)
-            except Exception, e:
-                self.log.error(e, exc_info=True)
-                continue
-
-            if cur_it_datetime < earliest_none_datetime:
-                continue
+            late_permanent_datetime = self.find_late_perm_date_when_scraped(
+                current_iteration_date)
 
             # For this date that is currently considered temporary (whether by
             # default or because it was previously confirmed to be temporary),
             # check on the permanent date range at the time of the scrape.
-            this_path = '%s/permanent-date-range-when-scraped_*.html' % (
-                folder)
-            for pathname in sorted(glob.glob(this_path)):
-                # For all records (within each day)
-                # print 'pathname:', pathname
-                self.log.debug(pathname)
 
-                perm_range_when_scr_d1 = re.match(
-                    r"../data/" +
-                    cur_it_date +
-                    r"/permanent-date-range-when-scraped_(\d+)-(\d+).html",
-                    pathname).group(1)
+            self.update_this_dates_permanent_flag(earliest_datetime,
+                                                  early_permanent_datetime,
+                                                  late_permanent_datetime)
 
-                print 'perm_range_when_scr_d1:'
-                print perm_range_when_scr_d1
+            earliest_datetime += timedelta(days=1)
 
-                self.log.debug(perm_range_when_scr_d1)
+    '''
+    Check to see if temporary sales
+    can now be scraped as permanent
+    '''
 
-                perm_range_when_scr_d1 = datetime.strptime(
-                    perm_range_when_scr_d1,
-                    '%m%d%Y')  # ).strftime('%Y-%m-%d')
-                self.log.debug(perm_range_when_scr_d1)
+    def earliest_date_temp_flag(self):
+        q = self.session.query(
+            func.min(db.Detail.document_recorded).label('early_date')
+        ).filter(
+            db.Detail.permanent_flag.is_(False)  # To satisfy PEP8
+        ).all()
 
-                perm_range_when_scr_d2 = re.match(
-                    r"../data/" +
-                    cur_it_date +
-                    r"/permanent-date-range-when-scraped_(\d+)-(\d+).html",
-                    pathname).group(2)
+        for u in q:
+            earliest_temp_date = u.early_date
 
-                print 'perm_range_when_scr_d2:'
-                print perm_range_when_scr_d2
+        if earliest_temp_date is not None:
+            earliest_temp_datetime = datetime.combine(
+                earliest_temp_date, datetime.min.time())
 
-                self.log.debug(perm_range_when_scr_d2)
+            self.log.debug(earliest_temp_datetime)
 
-                perm_range_when_scr_d2 = datetime.strptime(
-                    perm_range_when_scr_d2,
-                    '%m%d%Y')  # ).strftime('%Y-%m-%d')
-                self.log.debug(perm_range_when_scr_d2)
+            return earliest_temp_datetime
+        else:
+            return None
 
-                cond = (perm_range_when_scr_d1 <= cur_it_datetime and
-                        cur_it_datetime <= perm_range_when_scr_d2)
+    def latest_permanent_datetime(self):
+        pattern = r'%s/' % (config.DATA_DIR) + \
+                  r'most-recent-permanent-date-range/(\d+)-(\d+).html'
 
-                if cond:
-                    self.log.info('query')
-                    self.session.query(
-                        db.Detail
-                    ).filter(
-                        db.Detail.document_recorded == '%s' % cur_it_date
-                    ).update({"permanent_flag": True})
-                    self.log.info('query')
-                    self.session.query(
-                        db.Cleaned
-                    ).filter(
-                        db.Cleaned.document_recorded == '%s' % cur_it_date
-                    ).update({"permanent_flag": True})
-                    self.log.info('commit')
-                    self.session.commit()
-                else:
-                    self.log.info('query')
-                    self.session.query(
-                        db.Detail
-                    ).filter(
-                        db.Detail.document_recorded == '%s' % cur_it_date
-                    ).update({"permanent_flag": False})
-                    self.log.info('query')
-                    self.session.query(
-                        db.Cleaned
-                    ).filter(
-                        db.Cleaned.document_recorded == '%s' % cur_it_date
-                    ).update({"permanent_flag": False})
-                    self.log.info('commit')
-                    self.session.commit()
-            print '\n'
+        file_path = glob.glob(
+            '%s/most-recent-permanent-date-range/*.html' % (
+                config.DATA_DIR))[0]
 
-            # If reached final date, then end.
-            if cur_it_date == latest_none_date:
-                break
+        global_permanent_range_last_date = re.match(
+            pattern, file_path).group(2)
+
+        global_permanent_range_last_datetime = datetime.strptime(
+            global_permanent_range_last_date,
+            '%m%d%Y')  # ).strftime('%Y-%m-%d')
+
+        return global_permanent_range_last_datetime
+
+    def find_newly_permanent_date_range(
+            self,
+            start_temp_datetime,
+            end_permanent_datetime):
+
+        # Find difference between permanent end date and temp start date.
+        # If positive or zero, then those two dates form the scrape range.
+
+        date_diff = end_permanent_datetime - start_temp_datetime
+
+        if date_diff.days >= 0:
+            # There is at least one day currently labeled as "temporary" that
+            # now falls within "permanent" date range.
+            dates_to_redo = [
+                start_temp_datetime, end_permanent_datetime]
+            return dates_to_redo
+        else:
+            # The "temporary" sales are all still in the temporary date range
+            return None
 
     def check_permanent_status_of_temp_sales(self):
         '''
-        Compare most recently downloaded permanent date range against sales
-        that were previously determined to have permanent_flag = False to see
-        if any sales should be re-scraped.
+        Compare latest permanent date range to the range of sales in our
+        database that are labeled "temporary." If any of those temporary sales
+        now fall within the permanent range, re-scrape and re-initialize.
         '''
 
-        # Find the date range of temporary sales to look at. This is only to
-        # reduce the number of iterations needed by the for-loop below.
+        # Don't need to know temporary end date or permanent start date.
+        # Only need to know temporary start date and permanent end date
+        # to determine the dates that were temporary but are now permanent.
+        # See find_date_range_to_rescrape_and_initialize() for logic.
 
-        earliest_temp_date = ''
-        latest_temp_date = ''
+        earliest_temp_datetime = self.earliest_date_temp_flag()
 
-        q = self.session.query(
-            db.Detail
-        ).filter(
-            db.Detail.permanent_flag is False
-        ).order_by(
-            # update Cleaned in order Dashboard changes were made
-            db.Detail.document_recorded
-        ).limit(1).all()
-
-        self.log.debug(q)
-
-        for u in q:
-            self.log.debug(u)
-            earliest_temp_date = u.document_recorded
-            self.log.debug(earliest_temp_date)
-
-        q = self.session.query(
-            db.Detail
-        ).filter(
-            db.Detail.permanent_flag is False
-        ).order_by(
-            # update Cleaned in order Dashboard changes were made
-            db.Detail.document_recorded.desc()
-        ).limit(1).all()
-
-        for u in q:
-            latest_temp_date = u.document_recorded
-            self.log.debug(latest_temp_date)
-
-        dates_to_redo = []
-
-        permanent_range_first_date = ''
-        permanent_range_last_date = ''
-
-        this_path = '%s/most-recent-permanent-date-range_*.html' % (
-            config.DATA_DIR)
-        # Find most recently updated permanent date range.
-        for pathname in glob.glob(this_path):
-            self.log.debug(pathname)
-
-            permanent_range_first_date = re.match(
-                r"../data/most-recent-permanent-date-range_(\d+)-(\d+).html",
-                pathname).group(1)
-            permanent_range_first_date = datetime.strptime(
-                permanent_range_first_date,
-                '%m%d%Y')  # ).strftime('%Y-%m-%d')
-            self.log.debug(permanent_range_first_date)
-
-            permanent_range_last_date = re.match(
-                r"../data/most-recent-permanent-date-range_(\d+)-(\d+).html",
-                pathname).group(2)
-            permanent_range_last_date = datetime.strptime(
-                permanent_range_last_date,
-                '%m%d%Y')  # ).strftime('%Y-%m-%d')
-            self.log.debug(permanent_range_last_date)
-
-        # For all folders (dates)
-        for folder in sorted(glob.glob('%s/raw/*' % (config.DATA_DIR))):
-            cur_it_date = folder.split('/')[-1]
-
-            try:
-                cur_it_datetime = datetime.strptime(
-                    cur_it_date, '%m-%d-%Y')
-            except Exception, e:
-                self.log.error(e, exc_info=True)
-                continue
-
-            try:
-                earliest_temp_datetime = datetime.combine(
-                    earliest_temp_date, datetime.min.time())
-            except Exception, e:
-                self.log.error(e, exc_info=True)
-                continue
-
-            if cur_it_datetime < earliest_temp_datetime:
-                continue
-
-            self.log.debug(cur_it_date)
-            self.log.debug(cur_it_datetime)
-            self.log.debug(earliest_temp_datetime)
-
-            cond = (permanent_range_first_date <= cur_it_datetime and
-                    cur_it_datetime <= permanent_range_last_date)
-            if cond:
-                self.log.info('date_to_redo.append')
-                dates_to_redo.append(cur_it_datetime)
-
-            # else:
-                # Do nothing. Keep records and don't change permanent_flag
-
-            # If reached final date, then end.
-            if cur_it_date == latest_temp_date:
-                self.log.info('break')
-                break
-
-        # print 'date_to_redo:'
-        # print dates_to_redo
-
-        try:
-            early_date = min(dates_to_redo)
-            self.log.debug(early_date)
-
-            late_date = max(dates_to_redo)
-            self.log.debug(late_date)
-        except Exception, e:
-            # Nothing left to do because no records are "temporary"
-            self.log.error(e, exc_info=True)
+        if earliest_temp_datetime is None:  # No temporary sales
             return
 
-        self.scrape_days(early_date, late_date)
+        global_permanent_range_last_datetime = self.latest_permanent_datetime()
 
-        def scrape_days(self, early_date, late_date):
-            early_datetime = datetime.strptime(early_date, '%Y-%m-%d')
-            self.log.debug(early_datetime)
-            late_datetime = datetime.strptime(late_date, '%Y-%m-%d')
-            self.log.debug(early_datetime)
+        dates_to_redo = self.find_newly_permanent_date_range(
+            earliest_temp_datetime,
+            global_permanent_range_last_datetime)
 
-            # Scrape those days over again
-            self.log.info('scrape')
-            try:
-                scrape.Scraper().main(
-                    from_date=early_datetime,
-                    until_date=late_datetime)
-            except Exception, e:
-                self.log.error(e, exc_info=True)
+        if dates_to_redo is not None:
+            self.scrape_days(dates_to_redo[0], dates_to_redo[1])
 
-        self.delete_existing_records(early_date, late_date)
+    def scrape_days(self, early_date, late_date):
+        early_datetime = datetime.strptime(early_date, '%Y-%m-%d')
+        self.log.debug(early_datetime)
+        late_datetime = datetime.strptime(late_date, '%Y-%m-%d')
+        self.log.debug(early_datetime)
 
-        def delete_existing_records(self, early_date, late_date):
-            # Delete existing records for this date
-            location_sql = """
-                DELETE FROM locations USING details
-                WHERE details.document_id = locations.document_id
-                AND details.document_recorded >= '%s'
-                AND details.document_recorded <= '%s'
-            """ % (early_date, late_date)
-            self.engine.execute(location_sql)
+        # Scrape those days over again
+        self.log.info('scrape')
+        try:
+            scrape.Scraper().main(
+                from_date=early_datetime,
+                until_date=late_datetime)
+        except Exception, e:
+            self.log.error(e, exc_info=True)
 
-            vendor_sql = """
-                DELETE FROM vendors USING details
-                WHERE details.document_id = vendors.document_id
-                AND details.document_recorded >= '%s'
-                AND details.document_recorded <= '%s'
-            """ % (early_date, late_date)
-            self.engine.execute(vendor_sql)
+    def delete_using_sql_query(self, early_date, late_date, table):
+        sql = """DELETE FROM {0} USING details
+                 WHERE details.document_id = {0}.document_id
+                 AND details.document_recorded >= {1}
+                 AND details.document_recorded <= {2}
+              """.format(table, early_date, late_date)
 
-            vendee_sql = """
-                DELETE FROM vendees USING details
-                WHERE details.document_id = vendees.document_id
-                AND details.document_recorded >= '%s'
-                AND details.document_recorded <= '%s'
-            """ % (early_date, late_date)
-            self.engine.execute(vendee_sql)
+        return sql
 
-            detail_sql = """
-                DELETE FROM details
-                WHERE document_recorded >= '%s'
-                AND document_recorded <= '%s'
-            """ % (early_date, late_date)
-            self.engine.execute(detail_sql)
+    def delete_sql_query(self, early_date, late_date, table):
+        sql = """DELETE FROM {0}
+                 WHERE document_recorded >= {1}
+                 AND document_recorded <= {2}
+              """.format(table, early_date, late_date)
 
-            cleaned_sql = """
-                DELETE FROM cleaned
-                WHERE document_recorded >= '%s'
-                AND document_recorded <= '%s'
-            """ % (early_date, late_date)
-            self.engine.execute(cleaned_sql)
+        return sql
 
-        def rebuild_days(self, early_date, late_date):
-            # Build those newly scraped records.
-            # This will set perm_flag = True in
-            # checkPermanentStatusOfNewSales().
-            self.log.info('doitall')
-            # todo: initialize.do_it_all(early_date, late_date)
+    def delete_existing_records(self, early_date, late_date):
+        # Delete existing records for this date
+        # Order matters
+
+        location_sql = self.delete_using_sql_query(
+            early_date, late_date, 'locations')
+        self.engine.execute(location_sql)
+
+        vendor_sql = self.delete_using_sql_query(
+            early_date, late_date, 'vendors')
+        self.engine.execute(vendor_sql)
+
+        vendee_sql = self.delete_using_sql_query(
+            early_date, late_date, 'vendees')
+        self.engine.execute(vendee_sql)
+
+        detail_sql = self.delete_sql_query(
+            early_date, late_date, 'details')
+        self.engine.execute(detail_sql)
+
+        cleaned_sql = self.delete_sql_query(
+            early_date, late_date, 'cleaned')
+        self.engine.execute(cleaned_sql)
+
+    def rebuild_days(self, early_date, late_date):
+        # Build those newly scraped records.
+        # This will set perm_flag = True in
+        # checkPermanentStatusOfNewSales().
+        self.log.info('doitall')
+        # todo: initialize.do_it_all(early_date, late_date)

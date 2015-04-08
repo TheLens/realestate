@@ -191,7 +191,7 @@ class Dashboard(Base):
     detail_publish = Column(String)
     location_publish = Column(String)
     neighborhood = Column(String)
-    fixed = Column(Boolean)
+    copied_to_cleaned = Column(Boolean)
 
     def __init__(self,
                  id,

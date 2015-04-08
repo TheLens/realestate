@@ -31,35 +31,25 @@ class Geocoder(object):
             SET full_address = street_number::text || ' ' ||
             address::text || ', New Orleans, LA';""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' ST ', ' SAINT ');""")
+            SET full_address = replace(full_address, ' ST ', ' SAINT ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' FIRST ', ' 1ST ');""")
+            SET full_address = replace(full_address, ' FIRST ', ' 1ST ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' SECOND ', ' 2ND ');""")
+            SET full_address = replace(full_address, ' SECOND ', ' 2ND ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' THIRD ', ' 3RD ');""")
+            SET full_address = replace(full_address, ' THIRD ', ' 3RD ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' FOURTH ', ' 4TH ');""")
+            SET full_address = replace(full_address, ' FOURTH ', ' 4TH ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' FIFTH ', ' 5TH ');""")
+            SET full_address = replace(full_address, ' FIFTH ', ' 5TH ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' SIXTH ', ' 6TH ');""")
+            SET full_address = replace(full_address, ' SIXTH ', ' 6TH ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' SEVENTH ', ' 7TH ');""")
+            SET full_address = replace(full_address, ' SEVENTH ', ' 7TH ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' EIGHTH ', ' 8TH ');""")
+            SET full_address = replace(full_address, ' EIGHTH ', ' 8TH ');""")
         self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address,
-             ' NINTH ', ' 9TH ');""")
+            SET full_address = replace(full_address, ' NINTH ', ' 9TH ');""")
 
         '''
         An altered version of the following batch geocoding code:

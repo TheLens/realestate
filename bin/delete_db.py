@@ -2,7 +2,7 @@
 
 from __future__ import absolute_import
 
-from fabric.api import local
+from subprocess import call
 from sqlalchemy.engine import reflection
 from sqlalchemy import create_engine
 from sqlalchemy.schema import (
@@ -12,63 +12,84 @@ from sqlalchemy.schema import (
     ForeignKeyConstraint,
     DropConstraint
 )
+
+from landrecords.lib.log import Log
 from landrecords import config
 
-# https://bitbucket.org/zzzeek/sqlalchemy/wiki/UsageRecipes/DropEverything
 
-engine = create_engine('%s' % (config.SERVER_ENGINE))
+class Delete(object):
 
-conn = engine.connect()
+    def __init__(self):
+        self.log = Log('initialize').logger
 
-# the transaction only applies if the DB supports
-# transactional DDL, i.e. Postgresql, MS SQL Server
-trans = conn.begin()
+        engine = create_engine('%s' % (config.SERVER_ENGINE))
+        self.conn = engine.connect()
+        self.trans = self.conn.begin()
+        self.inspector = reflection.Inspector.from_engine(engine)
 
-inspector = reflection.Inspector.from_engine(engine)
+        # https://bitbucket.org/zzzeek/sqlalchemy/
+        # wiki/UsageRecipes/DropEverything
 
-# gather all data first before dropping anything.
-# some DBs lock after things have been dropped in
-# a transaction.
+    def main(self):
+        self.dump_dashboard_table()
+        self.vacuum_database()
+        self.drop_tables()
 
-metadata = MetaData()
+    def dump_dashboard_table(self):
+        # Backup dashboard table, if it exists
+        try:
+            call(['pg_dump',
+                  '-Fc',
+                  'landrecords',
+                  '-t',
+                  'dashboard',
+                  '-f',
+                  '{0}'.format(config.BACKUP_DIR) +
+                  '/dashboard_table_{0}.sql'.format(config.TODAY_DATE)])
+        except Exception, e:
+            print e
 
-tbs = []
-all_fks = []
+    def vacuum_database(self):
+        # Make sure to get rid of deleted rows
+        try:
+            call(['psql',
+                  'landrecords',
+                  '-c',
+                  'VACUUM;'])
+        except Exception, e:
+            print e
 
-# Backup dashboard table, if it exists
-# Might need to full VACUUM to get rid of deleted rows
-try:
-    local('pg_dump -Fc landrecords -t dashboard > ' + config.BACKUP_DIR +
-          '/dashboard_table_$(date +%Y-%m-%d).sql')
-except:
-    print 'Could not dump dashboard table.'
+    def drop_tables(self):
+        # gather all data first before dropping anything.
+        # some DBs lock after things have been dropped in
+        # a transaction.
 
+        metadata = MetaData()
+        tbs = []
+        all_fks = []
 
-try:
-    local('psql landrecords -c "VACUUM;"')
-except:
-    print 'Could not vacuum.'
+        for table_name in self.inspector.get_table_names():
+            fks = []
+            for fk in self.inspector.get_foreign_keys(table_name):
+                if not fk['name']:
+                    continue
+                fks.append(
+                    ForeignKeyConstraint((), (), name=fk['name'])
+                )
+            t = Table(table_name, metadata, *fks)
+            tbs.append(t)
+            all_fks.extend(fks)
 
+        for fkc in all_fks:
+            self.conn.execute(DropConstraint(fkc))
 
-for table_name in inspector.get_table_names():
-    fks = []
-    for fk in inspector.get_foreign_keys(table_name):
-        if not fk['name']:
-            continue
-        fks.append(
-            ForeignKeyConstraint((), (), name=fk['name'])
-        )
-    t = Table(table_name, metadata, *fks)
-    tbs.append(t)
-    all_fks.extend(fks)
+        for table in tbs:
+            # This table is part of PostGIS extension.
+            if table.name == 'spatial_ref_sys':
+                continue
+            self.conn.execute(DropTable(table))
 
-for fkc in all_fks:
-    conn.execute(DropConstraint(fkc))
-print tbs
-for table in tbs:
-    # This table is part of PostGIS extension.
-    if table.name == 'spatial_ref_sys':
-        continue
-    conn.execute(DropTable(table))
+        self.trans.commit()
 
-trans.commit()
+if __name__ == '__main__':
+    Delete()

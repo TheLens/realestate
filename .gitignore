@@ -2,14 +2,12 @@
 backups
 data
 docs
-landrecords/settings
 logs
 misc
-tests
 
 #files
 *config.py
-test.*
+landrecords/config.py
 *.pyc
 *.DS_Store
 *.sql

@@ -15,35 +15,20 @@ from landrecords.lib.log import Log
 
 class Scraper(object):
 
-    def __init__(self, from_date, until_date):
+    def __init__(self,
+                 initial_date=datetime(2014, 2, 18),
+                 until_date=datetime.strptime(
+                     config.YESTERDAY_DATE, '%Y-%m-%d')):
         self.log = Log('scrape').logger
 
-        self.from_date = from_date
+        self.initial_date = initial_date
         self.until_date = until_date
-        self.start_date = datetime(2014, 2, 18)
-        self.today_date = datetime.now()
-        self.yesterday_date = datetime.now() - timedelta(days=1)
+
         self.driver = webdriver.PhantomJS(
-            executable_path='/usr/local/bin/phantomjs',
+            executable_path='%s/bin/phantomjs' % config.PROJECT_DIR,
+            service_log_path='%s/ghostdriver.log' % config.LOG_DIR,
             port=0)
         # self.driver = webdriver.Firefox(timeout=60)
-
-        self.login()
-
-        try:
-            self.cycle_through_dates(from_date, until_date)
-        except Exception, e:
-            self.log.error(e, exc_info=True)
-            mail(
-                subject="Error running Land Record's scrape.py script",
-                body='Check scrape.log for more details.',
-                frm='tthoren@thelensnola.org',
-                to=['tthoren@thelensnola.org'])
-        finally:
-            self.logout()
-            self.driver.close()
-            self.driver.quit()
-            self.log.info('Done!')
 
     '''
     Login page
@@ -88,7 +73,7 @@ class Scraper(object):
     Navigate search page
     '''
 
-    def load_search_page(self, year, month, day):
+    def load_search_page(self):
         self.driver.get(
             "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
             "SearchEntry.aspx")
@@ -111,18 +96,27 @@ class Scraper(object):
         second_date = second_date.replace('/', '')
         self.log.debug(second_date)
 
+        return first_date, second_date
+
+    def get_date_range_html(self):
         date_range_html = self.driver.page_source
 
         return date_range_html
 
-    def delete_permanent_date_range_when_scraped_file(self):
+    def delete_permanent_date_range_when_scraped_file(self, year, month, day):
         self.log.info('Delete old permanent-date-range-when-scraped*.html')
-        for fl in glob.glob("%s/raw/%s-%s-%s/permanent-date-range-when" +
-                            "-scraped*.html" % (
-                                config.DATA_DIR, year, month, day)):
+        for fl in glob.glob("%s/raw/" % (config.DATA_DIR) +
+                            "%s-%s-%s/" % (year, month, day) +
+                            "permanent-date-range-when-scraped*.html"):
             os.remove(fl)
 
-    def save_permanent_date_range_when_scraped_file(self):
+    def save_permanent_date_range_when_scraped_file(self,
+                                                    year,
+                                                    month,
+                                                    day,
+                                                    date_range_html,
+                                                    first_date,
+                                                    second_date):
         # Save permanent date range for this individual sale.
         self.log.info('Save new permanent-date-range-when-scraped*.html file')
         individual_html_out = open(
@@ -135,39 +129,43 @@ class Scraper(object):
 
     def delete_permanent_date_range_file(self):
         # Delete old file first
-        self.log.info('Delete old most-recent-permanent-date-range/*.html file')
+        self.log.info(
+            'Delete old most-recent-permanent-date-range/*.html file')
         for fl in glob.glob("%s/most-recent-permanent-date-range/*.html"
                             % (config.DATA_DIR)):
                 os.remove(fl)
 
-    def save_permanent_date_range_file(self):
+    def save_permanent_date_range_file(self,
+                                       date_range_html,
+                                       first_date,
+                                       second_date):
         self.log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open("""
-            %s/most-recent-permanent-date-range/%s-%s.html
-            """ % (config.DATA_DIR, first_date, second_date),
-            "w")
+        overall_html_out = open("%s/" % (config.DATA_DIR) +
+                                "most-recent-permanent-date-range/" +
+                                "%s-%s.html" % (first_date, second_date),
+                                "w")
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
         time.sleep(2.2)
 
-    def navigate_search_page(self):
+    def navigate_search_page(self, year, month, day):
         self.load_search_page()
-        self.find_permanent_date_range()
-        self.delete_permanent_date_range_when_scraped_file()
-        self.save_permanent_date_range_when_scraped_file()
+        first_date, second_date = self.find_permanent_date_range()
+        date_range_html = self.get_date_range_html()
+        self.delete_permanent_date_range_when_scraped_file(year, month, day)
+        self.save_permanent_date_range_when_scraped_file(
+            year, month, day, date_range_html, first_date, second_date)
         self.delete_permanent_date_range_file()
-        self.save_permanent_date_range_file()
+        self.save_permanent_date_range_file(
+            date_range_html, first_date, second_date)
 
     '''
     Search parameters
     '''
 
-    def click_advanced_tab(self, year, month, day):
+    def click_advanced_tab(self):
         self.log.info('search_parameters')
-
-        search_date = month + day + year
-        self.log.debug(search_date)
 
         # Advanced tab
         self.log.info('Find advanced tab')
@@ -177,26 +175,19 @@ class Scraper(object):
         advanced_tab_elem.click()
         time.sleep(1.2)
 
-    def enter_date_filed_from(self):
-        self.log.info('Find date from input')
+    def enter_date_filed_from(self, search_date):
         date_file_from_elem = self.driver.find_element_by_id(
             "x:2002578730.0:mkr:3")
-        self.log.info('Click in input')
         date_file_from_elem.click()
-        self.log.info('Enter begin date')
         date_file_from_elem.send_keys(search_date)
 
-    def enter_date_filed_to(self):
-        self.log.info('Find date to input')
+    def enter_date_filed_to(self, search_date):
         date_file_to_elem = self.driver.find_element_by_id(
             "x:625521537.0:mkr:3")
-        self.log.info('Click in input')
         date_file_to_elem.click()
-        self.log.info('Enter end date')
         date_file_to_elem.send_keys(search_date)
 
     def select_document_type(self):
-        self.log.info('Find SALE document type')
         document_type_elem = self.driver.find_element_by_id(
             "cphNoMargin_f_dclDocType_291")
         self.log.info('Select SALE document type')
@@ -210,10 +201,10 @@ class Scraper(object):
         search_button_elem.click()
         time.sleep(2.2)
 
-    def search_parameters(self):
+    def search_parameters(self, search_date):
         self.click_advanced_tab()
-        self.enter_date_filed_from()
-        self.enter_date_filed_to()
+        self.enter_date_filed_from(search_date)
+        self.enter_date_filed_to(search_date)
         self.select_document_type()
         self.click_search_button()
 
@@ -221,7 +212,7 @@ class Scraper(object):
     Parse results
     '''
 
-    def find_current_page_number(self, year, month, day):
+    def parse_results(self, year, month, day):
         # Find current page number
         try:
             self.log.info('Find item_list_elem')  # todo: Better description
@@ -273,8 +264,9 @@ class Scraper(object):
 
                 single_sale_url = (
                     "http://onlinerecords.orleanscivilclerk.com/" +
-                    "RealEstate/SearchResults.aspx?global_id=%s" +
-                    "&type=dtl" % (document_id))
+                    "RealEstate/SearchResults.aspx?" +
+                    "global_id=%s" % (document_id) +
+                    "&type=dtl")
 
                 self.log.debug(single_sale_url)
 
@@ -286,10 +278,11 @@ class Scraper(object):
                     self.log.error(e, exc_info=True)
 
                 self.log.info('Save this sale HTML')
-                html_out = open("""
-                    %s/raw/%s-%s-%s/form-html/%s.html
-                    """ % (config.DATA_DIR, year, month, day, document_id),
-                    "w")
+                html_out = open("%s/" % (config.DATA_DIR) +
+                                "raw/" +
+                                "%s-%s-%s/" % (year, month, day) +
+                                "form-html/%s.html" % (document_id),
+                                "w")
                 html_out.write((self.driver.page_source).encode('utf-8'))
                 html_out.close()
 
@@ -330,22 +323,13 @@ class Scraper(object):
         self.log.info('Click logout button')
         logout_elem.click()
 
-    def cycle_through_dates(self, from_date, until_date):
-        self.log.info('cycle_through_dates')
+    def cycle_through_dates(self):
+        current_date = self.initial_date
 
-        self.log.debug(from_date)
-        self.log.debug(until_date)
-
-        end_date = until_date + timedelta(days=1)
-        self.log.debug(end_date)
-
-        while from_date.strftime('%Y-%m-%d') != end_date.strftime('%Y-%m-%d'):
-            self.log.debug(from_date)
-            self.log.debug(end_date)
-
-            year = (from_date).strftime('%Y')  # "2014"
-            month = (from_date).strftime('%m')  # "09"
-            day = (from_date).strftime('%d')  # "09"
+        while current_date != (self.until_date + timedelta(days=1)):
+            year = current_date.strftime('%Y')  # "2014"
+            month = current_date.strftime('%m')  # "09"
+            day = current_date.strftime('%d')  # "09"
 
             self.log.debug(year + '-' + month + '-' + day)
 
@@ -365,10 +349,33 @@ class Scraper(object):
                 self.log.info('Making %s', formdir)
                 os.makedirs(formdir)
 
+            search_date = month + day + year
+
             # The good stuff
             self.navigate_search_page(year, month, day)
-            self.search_parameters(year, month, day)
+            self.search_parameters(search_date)
             self.parse_results(year, month, day)
 
-            from_date = from_date + timedelta(days=1)
-            self.log.debug(from_date)
+            current_date += timedelta(days=1)
+            self.log.debug(current_date)
+
+    def main(self):
+        self.login()
+
+        try:
+            self.cycle_through_dates()
+        except Exception, e:
+            self.log.error(e, exc_info=True)
+            mail(
+                subject="Error running Land Record's scrape.py script",
+                body='Check scrape.log for more details.',
+                frm='tthoren@thelensnola.org',
+                to=['tthoren@thelensnola.org'])
+        finally:
+            self.logout()
+            self.driver.close()
+            self.driver.quit()
+            self.log.info('Done!')
+
+if __name__ == '__main__':
+    Scraper().main()

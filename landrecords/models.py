@@ -38,27 +38,30 @@ class Models(object):
         base = declarative_base()
         engine = create_engine(config.SERVER_ENGINE)
         base.metadata.create_all(engine)
-        sn = sessionmaker(bind=engine)
-
-        self.session = sn()
+        self.sn = sessionmaker(bind=engine)
 
     def get_home(self):
+        session = self.sn()
+
         update_date = self.get_last_updated_date()
         neighborhoods = self.get_neighborhoods()
 
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
 
-        self.session.close()
+        session.close()
         return data
 
     def query_search_term_limit_3(self, table, term):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             getattr(db.Cleaned, table)
         ).filter(
             getattr(db.Cleaned, table).ilike('%%%s%%' % term)
         ).distinct().limit(3).all()
 
+        session.close()
         return q
 
     def searchbar_input(self, term):
@@ -111,7 +114,7 @@ class Models(object):
         data = self.decode_data(data)
         data = self.convert_entries_to_db_friendly(data)
 
-        data['yesterday_date'] = self.get_last_updated_date()
+        data['update_date'] = self.get_last_updated_date()
         data['neighborhoods'] = self.get_neighborhoods()
 
         q = self.find_all_publishable_rows_fitting_criteria(data)
@@ -130,7 +133,7 @@ class Models(object):
         for u in q:
             u.amount = Utils().get_num_with_curr_sign(u.amount)
             u.document_date = Utils().ymd_to_full_date(
-                u.document_date, no_day=True)
+                (u.document_date).strftime('%Y-%m-%d'), no_day=True)
 
         features = self.build_features_json(q)
 
@@ -153,8 +156,6 @@ class Models(object):
 
         data['results_language'] = self.construct_results_language(data)
 
-        self.session.close()
-
         return data, newrows, jsdata
 
     def post_search(self, data):
@@ -166,8 +167,6 @@ class Models(object):
         #     response = self.geoquery_db(data)
         # else:
         response = self.mapquery_db(data)
-
-        self.session.close()
 
         return response
 
@@ -231,7 +230,7 @@ class Models(object):
             data['bounds']['_southWest']['lng']
         ]
 
-        data['yesterday_date'] = self.get_last_updated_date()
+        data['update_date'] = self.get_last_updated_date()
 
         if data['mapbuttonstate'] is True:  # map filtering is on
             q = self.filter_by_map(data)
@@ -242,7 +241,7 @@ class Models(object):
         for u in q:
             u.amount = Utils().get_num_with_curr_sign(u.amount)
             u.document_date = Utils().ymd_to_full_date(
-                u.document_date, no_day=True)
+                (u.document_date).strftime('%Y-%m-%d'), no_day=True)
 
         features = self.build_features_json(q)
 
@@ -265,15 +264,15 @@ class Models(object):
         # todo: remove?
         # Or necessary because it might change when the session is closed
 
-        self.session.close()
-
         return data, newrows, jsdata
 
     def get_sale(self, instrument_no):
-        data = {}
-        data['yesterday_date'] = self.get_last_updated_date()
+        session = self.sn()
 
-        q = self.session.query(
+        data = {}
+        data['update_date'] = self.get_last_updated_date()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -284,7 +283,7 @@ class Models(object):
         for u in q:
             u.amount = Utils().get_num_with_curr_sign(u.amount)
             u.document_date = Utils().ymd_to_full_date(
-                u.document_date, no_day=True)
+                (u.document_date).strftime('%Y-%m-%d'), no_day=True)
             address = u.address
             location_info = u.location_info
             data['assessor_publish'] = u.assessor_publish
@@ -319,14 +318,16 @@ class Models(object):
                 "website.</a>" % (data['assessor_url'])
 
         if len(q) == 0:
-            self.session.close()
+            session.close()
             return None, None, None
         else:
             self.session.close()
             return data, jsdata, newrows
 
     def map_query_length(self, data):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -353,12 +354,16 @@ class Models(object):
             (db.Cleaned.longitude <= data['bounds'][1]) &
             (db.Cleaned.longitude >= data['bounds'][3])
         ).all()
+
+        session.close()
 
         return q
 
     # For when map filtering is turned on
     def query_with_map_boundaries(self, data):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -392,10 +397,14 @@ class Models(object):
             '%d' % data['pagelength']
         ).all()
 
+        session.close()
+
         return q
 
     def find_all_publishable_rows_fitting_criteria(self, data):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -418,10 +427,14 @@ class Models(object):
             db.Cleaned.amount <= '%s' % data['amounthigh']
         ).all()
 
+        session.close()
+
         return q
 
     def find_page_of_publishable_rows_fitting_criteria(self, data):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -449,6 +462,8 @@ class Models(object):
         ).limit(
             '%d' % data['pagelength']
         ).all()
+
+        session.close()
 
         return q
 
@@ -518,7 +533,9 @@ class Models(object):
         return data
 
     def get_last_updated_date(self):
-        q = self.session.query(
+        session = self.sn()
+
+        q = session.query(
             db.Cleaned
         ).filter(
             db.Cleaned.detail_publish == '1'
@@ -530,12 +547,16 @@ class Models(object):
 
         for u in q:
             updated_date = Utils().ymd_to_full_date(
-                u.document_recorded, no_day=True)
+                (u.document_recorded).strftime('%Y-%m-%d'), no_day=True)
+
+        session.close()
 
         return updated_date
 
     def get_neighborhoods(self):
-        q = self.session.query(db.Neighborhood.gnocdc_lab).all()
+        session = self.sn()
+
+        q = session.query(db.Neighborhood.gnocdc_lab).all()
 
         neighborhoods = []
 
@@ -544,6 +565,8 @@ class Models(object):
                 (hood.gnocdc_lab).title().replace('Mcd', 'McD'))
 
         neighborhoods.sort()
+
+        session.close()
 
         return neighborhoods
 
@@ -676,7 +699,9 @@ class Models(object):
         return final_sentence
 
     # def dashboard_get(self):
-    #     q = self.session.query(
+    # session = self.sn()
+    #
+    #     q = session.query(
     #         db.Cleaned
     #     ).filter(
     #         (db.Cleaned.detail_publish == '0') |
@@ -689,9 +714,10 @@ class Models(object):
 
     #     for u in q:
     #         u.amount = Utils().get_num_with_curr_sign(u.amount)
-    #         u.document_date = Utils().ymd_to_full_date(u.document_date)
+    #         u.document_date = Utils().ymd_to_full_date(
+    #     (u.document_date).strftime('%Y-%m-%d'))
     #         u.document_recorded = Utils().ymd_to_full_date(
-    # u.document_recorded)
+    # (u.document_date).strftime('%Y-%m-%d'))
     #         u.detail_publish = Utils().binary_to_english(u.detail_publish)
     #         u.location_publish = Utils().binary_to_english(
     # u.location_publish)
@@ -709,7 +735,7 @@ class Models(object):
 
     #         rows.append(row_dict)
 
-    #     self.session.close()
+    #     session.close()
     #     return render_template(
     #         'dashboard.html',
     #         js=config.JS,
@@ -756,8 +782,8 @@ class Models(object):
     #     '''
     #     Insert/update dashboard log table
     #     '''
-
-    #     q = self.session.query(
+    #     session = self.sn()
+    #     q = session.query(
     #         db.Dashboard.instrument_no
     #     ).filter(
     #         db.Dashboard.instrument_no == '%s' % (data['instrument_no'])
@@ -769,8 +795,8 @@ class Models(object):
     #         # This sale has not been entered into dashboard table yet
     #         i = insert(db.Dashboard)
     #         i = i.values(data)
-    #         self.session.execute(i)
-    #         self.session.commit()
+    #         session.execute(i)
+    #         session.commit()
     #     else:
     #         # This sale has already been entered into dashboard table
     #         u = update(db.Dashboard)
@@ -778,16 +804,18 @@ class Models(object):
     #         u = u.where(db.Dashboard.instrument_no == '%s' % (
     #             data['instrument_no']))
 
-    #         self.session.execute(u)
-    #         self.session.commit()
+    #         session.execute(u)
+    #         session.commit()
 
     #     # Update changes in Cleaned table
     #     self.update_cleaned()
 
-    #     self.session.close()
+    #     session.close()
     #     return 'hi'
 
     # def geoquery_db(self, data):
+    #     session = self.sn()
+    #
     #     q = self.find_all_publishable_rows_fitting_criteria(data)
 
     #     data['qlength'] = len(q)  # number of records
@@ -800,7 +828,7 @@ class Models(object):
     #     data['recordsoffset'] = (data['page'] - 1) * data['pagelength']
 
     #     # Near me query
-    #     q = self.session.query(
+    #     q = session.query(
     #         db.Cleaned
     #     ).filter(
     #         func.ST_Distance_Sphere(
@@ -839,7 +867,7 @@ class Models(object):
     #     for u in q:
     #         u.amount = Utils().get_num_with_curr_sign(u.amount)
     #         u.document_date = Utils().ymd_to_full_date(
-    #             u.document_date, no_day=True)
+    #             (u.document_date).strftime('%Y-%m-%d'), no_day=True)
 
     #     features = self.build_features_json(q)
 
@@ -860,10 +888,10 @@ class Models(object):
 
     #     data['results_language'] = self.construct_results_language(data)
 
-    #     self.session.close()
+    #     session.close()
     #     return jsonify(
     #         tabletemplate=tabletemplate,
-    #         yesterday_date=data['yesterday_date'],
+    #         update_date=data['update_date'],
     #         jsdata=jsdata,
     #         results_language=data['results_language'],
     #         page=data['page'],
@@ -872,7 +900,9 @@ class Models(object):
     #     )
 
     # def update_cleaned(self):
-    #     q = self.session.query(
+    #     session = self.sn()
+    #
+    #     q = session.query(
     #         db.Dashboard
     #     ).filter(
     #         db.Dashboard.fixed is False
@@ -904,13 +934,15 @@ class Models(object):
     #         u = u.values(row)
     #         u = u.where(
     #             db.Cleaned.instrument_no == '%s' % row['instrument_no'])
-    #         self.session.execute(u)
-    #         self.session.commit()
+    #         session.execute(u)
+    #         session.commit()
 
     #         # This sale has already been entered into dashboard table
     #         u = update(db.Dashboard)
     #         u = u.values({"fixed": True})
     #         u = u.where(
     #             db.Dashboard.instrument_no == '%s' % row['instrument_no'])
-    #         self.session.execute(u)
-    #         self.session.commit()
+    #         session.execute(u)
+    #         session.commit()
+    #
+    #     session.close()

@@ -4,6 +4,87 @@
 class Library(object):
 
     def __init__(self):
+        # Taken from:
+        # http://en.wikipedia.
+        # org/wiki/Street_or_road_name#Street_type_designations
+        self.assessor_abbreviations = [
+            # Major roads
+            ['HIGHWAY', 'HW'],
+            ['FREEWAY', ''],
+            ['AUTOROUTE', ''],
+            ['AUTOBAHN', ''],
+            ['EXPRESSWAY', ''],
+            ['AUTOSTRASSE', ''],
+            ['AUTOSTRADA', ''],
+            ['BYWAY', ''],
+            ['AUTO-ESTRADA', ''],
+            ['MOTORWAY', ''],
+            ['PIKE', ''],
+            ['AVENUE', 'AV'],
+            ['BOULEVARD', 'BL'],
+            ['ROAD', 'RD'],
+            ['STREET', 'ST'],
+            # Small roads
+            ['ALLEY', ''],
+            ['BAY', ''],
+            ['BEND', ''],
+            ['DRIVE', 'DR'],
+            ['FAIRWAY', ''],
+            ['GARDENS', ''],
+            ['GATE', ''],
+            ['GROVE', ''],
+            ['HEIGHTS', ''],
+            ['HIGHLANDS', ''],
+            ['KNOLL', ''],
+            ['LANE', 'LN'],
+            ['MANOR', ''],
+            ['MEWS', ''],
+            ['PATHWAY', ''],
+            ['TERRACE', ''],
+            ['TRAIL', ''],
+            ['VALE', ''],
+            ['VIEW', ''],
+            ['WALK', ''],
+            ['WAY', ''],
+            ['WYND', ''],
+            # Culs-de-sac
+            ['CLOSE', ''],
+            ['COURT', 'CT'],
+            ['PLACE', 'PL'],
+            ['COVE', ''],
+            # Shapes
+            ['CIRCLE', ''],
+            ['CRESCENT', ''],
+            ['DIAGONAL', ''],
+            ['LOOP', ''],
+            ['QUADRANT', ''],
+            ['SQUARE', ''],
+            # Geographic attributes
+            ['HILL', ''],
+            ['GRADE', ''],
+            ['CAUSEWAY', ''],
+            ['CANYON', ''],
+            ['RIDGE', ''],
+            ['PARKWAY', 'PW'],
+            # Functions
+            ['ESPLANADE', ''],
+            ['APPROACH', ''],
+            ['FRONTAGE', ''],
+            ['PARADE', ''],
+            ['PARK', ''],
+            ['PLAZA', ''],
+            ['PROMENADE', ''],
+            ['QUAY', ''],
+            ['BYPASS', ''],
+            ['STRAVENUE', ''],
+
+            # Post cleanup
+            ['AVE.', 'AV'],
+            ['BLVD.', 'BL'],
+            ['ROAD', 'RD'],
+            ['ST.', 'ST'],
+            ['DR.', 'DR']
+        ]
         self.acronyms = [
             [' Iii ', ' III '],
             [' Ii ', ' II '],

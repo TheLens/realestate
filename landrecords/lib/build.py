@@ -22,9 +22,7 @@ class Build(object):
         base = declarative_base()
         engine = create_engine(config.SERVER_ENGINE)
         base.metadata.create_all(engine)
-        sn = sessionmaker(bind=engine)
-
-        self.session = sn()
+        self.sn = sessionmaker(bind=engine)
 
     def build_all(self):
         self.build_details()
@@ -34,7 +32,10 @@ class Build(object):
 
     def build_details(self):
         print 'Building details...'
-        # For all folders (days)
+        self.dict_parse('DetailParser', 'Detail')
+
+    def dict_parse(self, parser_name, table):
+        session = self.sn()
 
         initial_datetime = datetime.strptime(self.initial_date, '%Y-%m-%d')
         until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d')
@@ -42,23 +43,26 @@ class Build(object):
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')
 
-            for f in sorted(glob.glob('%s/raw/%s/form-html/*.html' % (config.DATA_DIR, current_date))):
+            for f in sorted(glob.glob('%s/' % (config.DATA_DIR) +
+                                      'raw/%s/' % (current_date) +
+                                      'form-html/*.html')):
 
-                dict_output = parsers.DetailParser(f).form_dict()
+                dict_output = getattr(parsers, parser_name)(f).form_dict()
 
                 try:
-                    with self.session.begin_nested():
-                        i = insert(db.Detail)
+                    with session.begin_nested():
+                        i = insert(getattr(db, table))
                         i = i.values(dict_output)
-                        self.session.execute(i)
-                        self.session.flush()
+                        session.execute(i)
+                        session.flush()
                 except Exception, e:
                     self.log.debug(e, exc_info=True)
-                    self.session.rollback()
+                    session.rollback()
 
             initial_datetime += timedelta(days=1)
 
-        self.session.commit()
+        session.commit()
+        session.close()
 
     def build_vendors(self):
         print 'Building vendors...'
@@ -73,29 +77,34 @@ class Build(object):
         self.list_parse('LocationParser', 'Location')
 
     def list_parse(self, parser_name, table):
+        session = self.sn()
+
         initial_datetime = datetime.strptime(self.initial_date, '%Y-%m-%d')
         until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d')
 
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')
 
-            for f in sorted(glob.glob('%s/raw/%s/form-html/*.html' % (config.DATA_DIR, current_date))):
+            for f in sorted(glob.glob('%s/' % (config.DATA_DIR) +
+                                      'raw/%s/' % (current_date) +
+                                      'form-html/*.html')):
 
                 list_output = getattr(parsers, parser_name)(f).list_output
 
                 try:
-                    with self.session.begin_nested():
+                    with session.begin_nested():
                         i = insert(getattr(db, table))
 
                         # Because might have multiple rows:
                         for o in list_output:
                             i = i.values(o)
-                            self.session.execute(i)
-                            self.session.flush()
+                            session.execute(i)
+                            session.flush()
                 except Exception, e:
                     self.log.debug(e, exc_info=True)
-                    self.session.rollback()
+                    session.rollback()
 
             initial_datetime += timedelta(days=1)
 
-        self.session.commit()
+        session.commit()
+        session.close()

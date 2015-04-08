@@ -8,6 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+from landrecords.lib.libraries import Library
 from landrecords.lib.log import Log
 from landrecords import (
     config,
@@ -30,35 +31,26 @@ class Assessor(object):
 
         self.session = sn()
 
-        rows = self.get_rows_with_neighborhood()
-        clean_rows = self.clean_rows(rows)
-        self.commit_rows(clean_rows)
-
-        rows = self.get_rows_without_neighborhood()
-        clean_rows = self.clean_rows(rows)
-        self.commit_rows(clean_rows)
-
-    def check_assessor_links(self, initial_date=None, until_date=None):
+    def check_assessor_links(self):
         q = self.session.query(
             db.Cleaned
         ).filter(
-            db.Cleaned.document_recorded >= '%s' % (initial_date)
+            db.Cleaned.document_recorded >= '%s' % (self.initial_date)
         ).filter(
-            db.Cleaned.document_recorded <= '%s' % (until_date)
+            db.Cleaned.document_recorded <= '%s' % (self.until_date)
         ).filter(
             db.Cleaned.assessor_publish == '0'
         ).all()
 
-        error_html = self.get_error_page_html(
-            "http://qpublic9.qpublic.net/la_orleans_display.php?KEY=7724-"
-            "BURTHESTt")
+        error_html = open(
+            "%s/assessor-error-html/error.html" % (config.DATA_DIR), 'r')
 
         num_records = len(q)
         print '%d records to check.' % num_records
 
         for u in q:
             print '%d records left.' % num_records
-            num_records = num_records - 1
+            num_records -= 1
             address = u.address
             location_info = u.location_info
             instrument_no = u.instrument_no
@@ -67,7 +59,7 @@ class Assessor(object):
 
             if url_param is None:
                 '''
-                session.query(
+                self.session.query(
                     db.Cleaned.instrument_no,
                     db.Cleaned.assessor_publish
                 ).filter(
@@ -76,7 +68,7 @@ class Assessor(object):
                     "assessor_publish": "0"
                 })
 
-                session.commit()
+                self.session.commit()
                 '''
                 continue
 
@@ -167,86 +159,9 @@ class Assessor(object):
 
         street_type = street.split(' ')[-1]
 
-        # Taken from:
-        # http://en.wikipedia.org/wiki/Street_or_road_name#Street_type_designations
-        abbreviations = [
-            # Major roads
-            ['HIGHWAY', 'HW'],
-            ['FREEWAY', ''],
-            ['AUTOROUTE', ''],
-            ['AUTOBAHN', ''],
-            ['EXPRESSWAY', ''],
-            ['AUTOSTRASSE', ''],
-            ['AUTOSTRADA', ''],
-            ['BYWAY', ''],
-            ['AUTO-ESTRADA', ''],
-            ['MOTORWAY', ''],
-            ['PIKE', ''],
-            ['AVENUE', 'AV'],
-            ['BOULEVARD', 'BL'],
-            ['ROAD', 'RD'],
-            ['STREET', 'ST'],
-            # Small roads
-            ['ALLEY', ''],
-            ['BAY', ''],
-            ['BEND', ''],
-            ['DRIVE', 'DR'],
-            ['FAIRWAY', ''],
-            ['GARDENS', ''],
-            ['GATE', ''],
-            ['GROVE', ''],
-            ['HEIGHTS', ''],
-            ['HIGHLANDS', ''],
-            ['KNOLL', ''],
-            ['LANE', 'LN'],
-            ['MANOR', ''],
-            ['MEWS', ''],
-            ['PATHWAY', ''],
-            ['TERRACE', ''],
-            ['TRAIL', ''],
-            ['VALE', ''],
-            ['VIEW', ''],
-            ['WALK', ''],
-            ['WAY', ''],
-            ['WYND', ''],
-            # Culs-de-sac
-            ['CLOSE', ''],
-            ['COURT', 'CT'],
-            ['PLACE', 'PL'],
-            ['COVE', ''],
-            # Shapes
-            ['CIRCLE', ''],
-            ['CRESCENT', ''],
-            ['DIAGONAL', ''],
-            ['LOOP', ''],
-            ['QUADRANT', ''],
-            ['SQUARE', ''],
-            # Geographic attributes
-            ['HILL', ''],
-            ['GRADE', ''],
-            ['CAUSEWAY', ''],
-            ['CANYON', ''],
-            ['RIDGE', ''],
-            ['PARKWAY', 'PW'],
-            # Functions
-            ['ESPLANADE', ''],
-            ['APPROACH', ''],
-            ['FRONTAGE', ''],
-            ['PARADE', ''],
-            ['PARK', ''],
-            ['PLAZA', ''],
-            ['PROMENADE', ''],
-            ['QUAY', ''],
-            ['BYPASS', ''],
-            ['STRAVENUE', ''],
+        # From the libraries.py module
+        abbreviations = Library.assessor_abbreviations
 
-            # Post cleanup
-            ['AVE.', 'AV'],
-            ['BLVD.', 'BL'],
-            ['ROAD', 'RD'],
-            ['ST.', 'ST'],
-            ['DR.', 'DR']
-        ]
         street_type_abbr = street_type
         for abbreviation in abbreviations:
             abbr0 = abbreviation[0]
@@ -283,16 +198,25 @@ class Assessor(object):
 
         return url_param
 
-    def get_error_page_html(self, url):
+    def get_error_page_html(self):
+        '''Only meant to be run once to store a local version of error HTML'''
+
+        error_url = "http://qpublic9.qpublic.net/" + \
+                    "la_orleans_display.php?KEY=ERROR"
         error_req = urllib2.Request(
-            url,
+            error_url,
             headers={
                 'User-Agent': '''
                 Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_5) \
                 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.99 \
                 Safari/537.36'''})
         error_con = urllib2.urlopen(error_req)
+
         error_html = error_con.read()
+        f = open("%s/assessor-error-html/error.html" % (config.DATA_DIR), 'w')
+        f.write(error_html)
+        f.close()
+
         error_con.close()
 
         return error_html
@@ -315,11 +239,7 @@ class Assessor(object):
             return None
 
     def get_instrument_numbers(self):
-        Base.metadata.create_all(engine)
-        sn = sessionmaker(bind=engine)
-        session = sn()
-
-        q = session.query(
+        q = self.session.query(
             db.Cleaned.address,
             db.Cleaned.location_info
         ).all()
@@ -336,7 +256,7 @@ class Assessor(object):
             location = address + ', ' + location_info
             locations.append(location)
 
-        session.close()
+        self.session.close()
 
         for location in locations:
             url_params.append(self.form_assessor_url(location))
@@ -351,9 +271,8 @@ class Assessor(object):
 
         print "# of assessor URLs to check:", len(assessor_urls)
 
-        error_html = self.get_error_page_html("""
-            http://qpublic9.qpublic.net/la_orleans_display \
-            .php?KEY=7724-BURTHESTt""")
+        error_html = open(
+            "%s/assessor-error-html/error.html" % (config.DATA_DIR), 'r')
 
         problem_urls = []
 
@@ -372,8 +291,9 @@ class Assessor(object):
 
             time.sleep(random.randint(3, 5) + random.uniform(1.0, 2.0))
 
-    if __name__ == '__main__':
-        get_instrument_numbers()
-        # formAssessorURL("7471 Restgate Road, Unit: , Condo: , Weeks: ,
-        # Subdivision: Lake Forest No 8 Warwick East, District: 3rd, Square: 7,
-        # Lot: 2")
+if __name__ == '__main__':
+    '''Check that assessor URLS form correctly'''
+    # Assessor().get_error_page_html()
+    # formAssessorURL("7471 Restgate Road, Unit: , Condo: , Weeks: ,
+    # Subdivision: Lake Forest No 8 Warwick East, District: 3rd, Square: 7,
+    # Lot: 2")

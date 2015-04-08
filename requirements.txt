@@ -30,7 +30,6 @@ oauth2client==1.4.5
 oauthlib==0.7.2
 paramiko==1.14.1
 pep8==1.5.7
-pgcli==0.11.0
 postgres==2.1.2
 prompt-toolkit==0.25
 psycopg2==2.5.4

@@ -12,11 +12,17 @@ from landrecords.lib.log import Log
 
 class Mail(object):
 
-    def __init__(self, **kwargs):
+    def __init__(self,
+                 subject="Land records summary",
+                 body="Here is your email",
+                 frm='tthoren@thelensnola.org',
+                 to=['tthoren@thelensnola.org']):
         self.log = Log('mail').logger
 
-        for key, value in kwargs.items():
-            setattr(self, key, value)
+        self.subject = subject
+        self.body = body
+        self.frm = frm
+        self.to = to
 
     def send_email(self, msg):
         s = smtplib.SMTP('smtp.gmail.com', 587)

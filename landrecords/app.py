@@ -90,8 +90,8 @@ Dashboard
 
 
 def check_auth(username, password):
-    return (username == config.DASHBOARD_USERNAME
-            and password == config.DASHBOARD_PASSWORD)
+    return (username == config.DASHBOARD_USERNAME and
+            password == config.DASHBOARD_PASSWORD)
 
 
 def authenticate():

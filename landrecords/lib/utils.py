@@ -37,7 +37,7 @@ class Utils(object):
         else:
             return "None"
 
-    def ymd_to_full_date(self, value, no_day=None):
+    def ymd_to_full_date(self, value, no_day=False):
         # Receive yyyy-mm-dd. Return Day, Month Date, Year
         if value is not None:
             if (type(value) == unicode):
@@ -48,10 +48,13 @@ class Utils(object):
 
             else:
                 # value = str(value)
-                if no_day is None:
-                    readable_date = value.strftime('%A, %b. %-d, %Y')
+                if no_day is False:
+                    readable_datetime = datetime.strptime(value, '%Y-%m-%d')
+                    readable_date = readable_datetime.strftime(
+                        '%A, %b. %-d, %Y')
                 else:
-                    readable_date = value.strftime('%b. %-d, %Y')
+                    readable_datetime = datetime.strptime(value, '%Y-%m-%d')
+                    readable_date = readable_datetime.strftime('%b. %-d, %Y')
 
             readable_date = readable_date.replace('Mar.', 'March')
             readable_date = readable_date.replace('Apr.', 'April')

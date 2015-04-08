@@ -19,8 +19,6 @@ class Views(object):
         self.log = Log('views').logger
 
     def get_home(self, data):
-        print data
-
         return render_template(
             'index.html',
             data=data,
@@ -48,8 +46,6 @@ class Views(object):
         )
 
     def post_search(self, data, newrows, jsdata):
-        # For mapquery_db. May differ once add geoquery feature.
-
         tabletemplate = render_template(
             'table.html',
             newrows=newrows
@@ -72,34 +68,34 @@ class Views(object):
             css=config.CSS
         )
 
-    def get_dashboard(self, data, newrows, jsdata, parameters):
-        return render_template(
-            'search.html',
-            data=data,
-            newrows=newrows,
-            jsdata=jsdata,
-            parameters=parameters,
-            js=config.JS,
-            searchjs=config.SEARCH_JS,
-            searchAreajs=config.SEARCH_AREA_JS,
-            mapjs=config.MAP_JS,
-            css=config.CSS,
-            js_app_routing=config.JS_APP_ROUTING,
-            zip_codes=Utils().zip_codes
-        )
+    # def get_dashboard(self, data, newrows, jsdata, parameters):
+    #     return render_template(
+    #         'search.html',
+    #         data=data,
+    #         newrows=newrows,
+    #         jsdata=jsdata,
+    #         parameters=parameters,
+    #         js=config.JS,
+    #         searchjs=config.SEARCH_JS,
+    #         searchAreajs=config.SEARCH_AREA_JS,
+    #         mapjs=config.MAP_JS,
+    #         css=config.CSS,
+    #         js_app_routing=config.JS_APP_ROUTING,
+    #         zip_codes=Utils().zip_codes
+    #     )
 
-    def post_dashboard(self, data, newrows, jsdata, parameters):
-        return render_template(
-            'search.html',
-            data=data,
-            newrows=newrows,
-            jsdata=jsdata,
-            parameters=parameters,
-            js=config.JS,
-            searchjs=config.SEARCH_JS,
-            searchAreajs=config.SEARCH_AREA_JS,
-            mapjs=config.MAP_JS,
-            css=config.CSS,
-            js_app_routing=config.JS_APP_ROUTING,
-            zip_codes=Utils().zip_codes
-        )
+    # def post_dashboard(self, data, newrows, jsdata, parameters):
+    #     return render_template(
+    #         'search.html',
+    #         data=data,
+    #         newrows=newrows,
+    #         jsdata=jsdata,
+    #         parameters=parameters,
+    #         js=config.JS,
+    #         searchjs=config.SEARCH_JS,
+    #         searchAreajs=config.SEARCH_AREA_JS,
+    #         mapjs=config.MAP_JS,
+    #         css=config.CSS,
+    #         js_app_routing=config.JS_APP_ROUTING,
+    #         zip_codes=Utils().zip_codes
+    #     )

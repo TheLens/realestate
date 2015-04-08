@@ -8,14 +8,12 @@ from landrecords.lib.log import Log
 
 class StatAnalysis(object):
 
-    def __init__(self, table, begin_date, end_date, amount_low, amount_high):
+    def __init__(self, table, begin_date, end_date):
         self.log = Log('stat_analysis').logger
 
         self.table = table
         self.begin_date = begin_date
         self.end_date = end_date
-        self.amount_low = amount_low
-        self.amount_high = amount_high
 
         self.engine = create_engine(config.SERVER_ENGINE)
 
