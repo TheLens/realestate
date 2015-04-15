@@ -2,78 +2,77 @@
 
 import psycopg2
 
-from landrecords import config
+from sqlalchemy import create_engine, func, cast, Float
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+
+from landrecords.config import Config
+from landrecords import db
 from landrecords.lib.log import Log
 
+log = Log('initialize').logger
 
-class Geocoder(object):
+
+class Geocode(object):
 
     def __init__(self):
-        self.log = Log('geocoder').logger
-
-        self.conn = psycopg2.connect(config.SERVER_CONNECTION)
+        self.conn = psycopg2.connect(Config().SERVER_CONNECTION)
         self.cur = self.conn.cursor()
 
-        self.geocode()
+        base = declarative_base()
+        self.engine = create_engine(Config().SERVER_ENGINE)
+        base.metadata.create_all(self.engine)
+        sn = sessionmaker(bind=self.engine)
+
+        self.session = sn()
+
+    def update_locations_with_neighborhoods(self):
+        self.neighborhood_found()
+        self.no_neighborhood_found()
+
+    def neighborhood_found(self):
+        self.session.query(
+            # db.Neighborhood
+            db.Location
+        ).filter(
+            func.ST_Contains(
+                db.Neighborhood.geom,
+                func.ST_SetSRID(
+                    func.ST_Point(
+                        cast(db.Location.longitude, Float),
+                        cast(db.Location.latitude, Float)
+                    ),
+                    4326
+                )
+            )
+        ).update(
+            {db.Location.neighborhood: db.Neighborhood.gnocdc_lab},
+            synchronize_session='fetch'
+        )
+
+        self.session.commit()
+
+    def no_neighborhood_found(self):
+        self.session.query(
+            db.Location
+        ).filter(
+            db.Location.neighborhood.is_(None)
+        ).update(
+            {db.Location.neighborhood: "None"},
+            synchronize_session='fetch'
+        )
+
+        self.session.commit()
 
     def geocode(self):
-        print "Geocoding..."
+        log.debug('Geocoder')
 
-        '''
-        Geocodes existing records and/or new records — any records that
-        have not yet been geocoded.
-        Geocoder takes strings: 4029 Ulloa St, New Orleans, LA 70119
-        I took a shortcut. Instead of finding a way to concatenate the address
-        pieces on the fly, I concatenated them all into a new column, then read
-        from that column. Sloppy, but it works for now.
-        '''
-        self.cur.execute("""UPDATE locations
-            SET full_address = street_number::text || ' ' ||
-            address::text || ', New Orleans, LA';""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' ST ', ' SAINT ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FIRST ', ' 1ST ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SECOND ', ' 2ND ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' THIRD ', ' 3RD ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FOURTH ', ' 4TH ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FIFTH ', ' 5TH ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SIXTH ', ' 6TH ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SEVENTH ', ' 7TH ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' EIGHTH ', ' 8TH ');""")
-        self.cur.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' NINTH ', ' 9TH ');""")
+        '''An altered version of the following batch geocoding code:'''
+        '''http://postgis.net/docs/Geocode.html'''
+        '''It will only geocode entries without ratings (new records), so '''
+        '''this is good for batch processing or only processing new records.'''
 
-        '''
-        An altered version of the following batch geocoding code:
-        http://postgis.net/docs/Geocode.html
-        It will only geocode entries without ratings (new records), so this is
-        good for either batch processing or only processing new records.
-        self.cur.execute("UPDATE locations SET (rating, longitude, latitude) =
-        (COALESCE((g.geo).rating,-1), ST_X((g.geo).geomout)::numeric(8,5),
-        ST_Y((g.geo).geomout)::numeric(8,5)) FROM (SELECT document_id FROM
-        locations WHERE rating IS NULL ORDER BY document_id) As a  LEFT JOIN
-        (SELECT document_id, (geocode(full_address,1)) As geo FROM locations
-        As ag WHERE ag.rating IS NULL ORDER BY document_id) As g ON a.
-        document_id = g.document_id WHERE
-        a.document_id = locations.document_id;")
-
-        If restoring database or using a copy of a database creates
-        problems with
-        TIGER or geocode() function ("HINT:  No function matches the given name
-        and argument types. You might need to add explicit type casts."),
-        follow the instructions here and run `ALTER DATABASE landrecords SET
-        search_path=public, tiger;`: http://lists.osgeo.org/pipermail/postgis-
-        users/2011-October/031156.html
-        '''
-        self.cur.execute("""UPDATE locations
+        self.engine.execute("""UPDATE locations
             SET (rating, zip_code, longitude, latitude) = (
                 COALESCE((g.geo).rating, -1),
                 (g.geo).addy.zip,
@@ -93,4 +92,3 @@ class Geocoder(object):
                 ORDER BY document_id
             ) As g ON a.document_id = g.document_id
             WHERE a.document_id = locations.document_id;""")
-        self.conn.commit()

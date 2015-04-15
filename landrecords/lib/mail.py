@@ -6,8 +6,10 @@ from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from landrecords import config
+from landrecords.config import Config
 from landrecords.lib.log import Log
+
+log = Log('initialize').logger
 
 
 class Mail(object):
@@ -17,7 +19,8 @@ class Mail(object):
                  body="Here is your email",
                  frm='tthoren@thelensnola.org',
                  to=['tthoren@thelensnola.org']):
-        self.log = Log('mail').logger
+
+        log.debug('Mail')
 
         self.subject = subject
         self.body = body
@@ -29,8 +32,8 @@ class Mail(object):
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(config.GMAIL_USERNAME,
-                config.GMAIL_PASSWORD)
+        s.login(Config().GMAIL_USERNAME,
+                Config().GMAIL_PASSWORD)
         s.sendmail(self.frm, self.to, msg.as_string())
         s.quit()
 

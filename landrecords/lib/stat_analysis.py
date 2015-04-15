@@ -2,22 +2,24 @@
 
 from sqlalchemy import create_engine
 
-from landrecords import config
+from landrecords.config import Config
 from landrecords.lib.log import Log
+
+log = Log('initialize').logger
 
 
 class StatAnalysis(object):
 
     def __init__(self, table, begin_date, end_date):
-        self.log = Log('stat_analysis').logger
-
         self.table = table
         self.begin_date = begin_date
         self.end_date = end_date
 
-        self.engine = create_engine(config.SERVER_ENGINE)
+        self.engine = create_engine(Config().SERVER_ENGINE)
 
     def count(self):
+        '''Get number of records'''
+
         sql = """
             SELECT COUNT(*)
             FROM %s
@@ -25,6 +27,7 @@ class StatAnalysis(object):
             """ % (self.table, self.begin_date, self.end_date)
 
         result = self.engine.execute(sql)
+
         for r in result:
             count = r.count
             return count
@@ -147,3 +150,10 @@ class StatAnalysis(object):
             rows.append(row)
 
         return rows
+
+if __name__ == '__main__':
+    StatAnalysis(
+        'cleaned',
+        '2014-02-18',
+        '2014-02-18'
+    ).count()

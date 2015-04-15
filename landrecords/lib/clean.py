@@ -1,263 +1,327 @@
 # -*- coding: utf-8 -*-
 
 import re
+import pprint
+
 from subprocess import call
-from sqlalchemy import create_engine, insert
+from sqlalchemy import create_engine, insert, func, cast, Text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords import config, db
+from landrecords.config import Config
+from landrecords import db
 from landrecords.lib.libraries import Library
 from landrecords.lib.log import Log
 
+pp = pprint.PrettyPrinter()
+log = Log('initialize').logger
 
-class Clean(object):
 
-    def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('clean').logger
+class Join(object):
+
+    def __init__(self,
+                 initial_date=Config().OPENING_DAY,
+                 until_date=Config().YESTERDAY_DATE):
 
         self.initial_date = initial_date
         self.until_date = until_date
 
         base = declarative_base()
-        self.engine = create_engine(config.SERVER_ENGINE)
+        self.engine = create_engine(Config().SERVER_ENGINE)
+        base.metadata.create_all(self.engine)
+        sn = sessionmaker(bind=self.engine)
+
+        self.session = sn()
+
+    def get_details(self):
+        '''Gathers relevant Detail fields for Cleaned'''
+
+        subq = self.session.query(
+            db.Detail
+        ).filter(
+            db.Detail.document_recorded >= '%s' % self.initial_date
+        ).filter(
+            db.Detail.document_recorded <= '%s' % self.until_date
+        ).subquery()
+
+        log.debug(subq)
+
+        return subq
+
+    def get_vendees(self):
+        '''Gathers relevant Vendee fields for Cleaned'''
+
+        subq = self.session.query(
+            db.Vendee.document_id,
+            func.string_agg(
+                cast(db.Vendee.vendee_firstname, Text) + ' ' +
+                cast(db.Vendee.vendee_lastname, Text),
+                ', '
+            ).label('buyers')
+        ).group_by(
+            db.Vendee.document_id
+        ).subquery()
+
+        # log.debug(subq)
+
+        return subq
+
+    def get_vendors(self):
+        '''Gathers relevant Vendor fields for Cleaned'''
+
+        subq = self.session.query(
+            db.Vendor.document_id,
+            func.string_agg(
+                cast(db.Vendor.vendor_firstname, Text) + ' ' +
+                cast(db.Vendor.vendor_lastname, Text),
+                ', '
+            ).label('sellers')
+        ).group_by(
+            db.Vendor.document_id
+        ).subquery()
+
+        # log.debug(subq)
+
+        return subq
+
+    def get_locations(self):
+        '''Gathers relevant Location fields for Cleaned'''
+
+        subq = self.session.query(
+            db.Location.document_id,
+            func.min(db.Location.location_publish).label('location_publish'),
+            func.string_agg(
+                cast(db.Location.street_number, Text) + ' ' +
+                cast(db.Location.address, Text),
+                '; '
+            ).label('address'),
+            func.string_agg(
+                'Unit: ' + cast(db.Location.unit, Text) + ' ' +
+                'Condo: ' + cast(db.Location.condo, Text) + ' ' +
+                'Weeks: ' + cast(db.Location.weeks, Text) + ' ' +
+                'Subdivision: ' + cast(db.Location.subdivision, Text) + ' ' +
+                'District: ' + cast(db.Location.district, Text) + ' ' +
+                'Square: ' + cast(db.Location.square, Text) + ' ' +
+                'Lot: ' + cast(db.Location.lot, Text),
+                '; '
+            ).label('location_info')
+            # todo: Once SQLAlchemy supports this, add these fields this way.
+            # 'mode() WITHIN GROUP (ORDER BY locations.zip_code) AS zip_code',
+            # 'mode() WITHIN GROUP (ORDER BY locations.latitude) AS latitude',
+            # 'mode() WITHIN GROUP (ORDER BY locations.longitude) ' +
+            # ' AS longitude',
+            # 'mode() WITHIN GROUP (ORDER BY locations.neighborhood) ' +
+            # 'AS neighborhood'
+        ).group_by(
+            db.Location.document_id
+        ).subquery()
+
+        # log.debug(subq)
+
+        return subq
+
+    def join_subqueries(self):
+        '''Runs a JOIN on subqueries'''
+
+        # subq_details = self.get_details()
+        subq_vendees = self.get_vendees()
+        subq_vendors = self.get_vendors()
+        subq_location = self.get_locations()
+
+        q = self.session.query(
+            db.Detail.document_id,
+            db.Detail.amount,
+            db.Detail.document_date,
+            db.Detail.document_recorded,
+            db.Detail.instrument_no,
+            db.Detail.detail_publish,
+            db.Detail.permanent_flag,
+            subq_vendees.c.buyers,
+            subq_vendors.c.sellers,
+            subq_location.c.location_publish,
+            subq_location.c.address,
+            subq_location.c.location_info
+            # todo: Once SQLAlchemy supports WITHIN GROUP, uncomment these.
+            # subq_location.c.zip_code,
+            # subq_location.c.latitude,
+            # subq_location.c.longitude,
+            # subq_location.c.neighborhood
+        ).join(
+            subq_vendees
+        ).join(
+            subq_vendors
+        ).join(
+            subq_location
+        ).filter(
+            db.Detail.document_recorded >= '%s' % self.initial_date
+        ).filter(
+            db.Detail.document_recorded <= '%s' % self.until_date
+        ).all()
+
+        log.debug('len(q): %d' % len(q))
+
+        return q
+
+    def get_rows_from_query(self):
+        '''Convert query result to row of dicts'''
+
+        q = self.join_subqueries()
+
+        rows = []
+        for row in q:
+            d = row.__dict__
+            del d['_labels']  # todo: necessary?
+            rows.append(d)
+
+        log.debug('len(rows): %d' % len(rows))
+
+        return rows
+
+    def temp_hack_to_add_location_fields(self, incoming_rows):
+        '''SQLAlchemy doesn't yet support WITHIN GROUP, which is necessary'''
+        '''for using mode() aggregate function in PostgreSQL 9.4'''
+        '''(see get_locations() for normal use)'''
+        '''So instead, this hack will temporary do that job.'''
+
+        sql = """SELECT
+            document_id,
+            mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
+            mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
+            mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
+            mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood
+        FROM locations
+        GROUP BY document_id"""
+
+        result = self.engine.execute(sql)
+
+        rows = []
+
+        # Form dict
+        for row in result:
+            d = {
+                'document_id': row[0],
+                'zip_code': row[1],
+                'latitude': row[2],
+                'longitude': row[3],
+                'neighborhood': row[4],
+            }
+            rows.append(d)
+
+        # Merge fields
+        for a in incoming_rows:
+            for b in rows:
+                if a['document_id'] == b['document_id']:
+                    a['zip_code'] = b['zip_code']
+                    a['latitude'] = b['latitude']
+                    a['longitude'] = b['longitude']
+                    a['neighborhood'] = b['neighborhood']
+
+        for row in incoming_rows:
+            del row['document_id']  # Not part of Cleaned
+
+        return incoming_rows
+
+
+class Clean(object):
+
+    def __init__(self,
+                 initial_date=Config().OPENING_DAY,
+                 until_date=Config().YESTERDAY_DATE):
+
+        self.initial_date = initial_date
+        self.until_date = until_date
+
+        base = declarative_base()
+        self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
         sn = sessionmaker(bind=self.engine)
 
         self.session = sn()
 
     def update_cleaned_geom(self):
-        print 'Updating Cleaned geometry...'
+        '''Update the PostGIS geom field in the cleaned table'''
+
+        log.debug('Update Cleaned geometry')
+
         call(['psql',
               'landrecords',
               '-c',
               'UPDATE cleaned SET geom = ST_SetSRID(' +
               'ST_MakePoint(longitude, latitude), 4326);'])
 
-    def get_rows_with_neighborhood(self):
-        sql = """
-            WITH vendee AS (
-              SELECT document_id, string_agg(vendee_firstname::text || ' ' ||
-               vendee_lastname::text, ', ') AS buyers
-              FROM vendees
-              GROUP BY document_id
-            ), vendor AS (
-              SELECT document_id, string_agg(vendor_firstname::text || ' ' ||
-                 vendor_lastname::text, ', ') AS sellers
-              FROM vendors
-              GROUP BY document_id
-            ), location AS (
-              SELECT document_id,
-                     min(location_publish) AS location_publish,
-                     string_agg(
-                        street_number::text || ' ' ||
-                        address::text, '; ') AS address,
-                     string_agg(
-                        'Unit: ' || unit::text ||
-                        ', Condo: ' || condo::text ||
-                        ', Weeks: ' || weeks::text ||
-                        ', Subdivision: ' || subdivision::text ||
-                        ', District: ' || district::text ||
-                        ', Square: ' || square::text ||
-                        ', Lot: ' || lot::text, '; ') AS location_info,
-                     mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
-                     mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
-                     mode() WITHIN GROUP (ORDER BY longitude) AS longitude
-              FROM locations
-              GROUP BY document_id
-            ), hood AS (
-              SELECT document_id, longitude, latitude
-              FROM locations
-            ), neighborhood AS (
-              SELECT document_id,
-                     mode() WITHIN GROUP (ORDER BY gnocdc_lab) AS neighborhood
-              FROM neighborhoods, hood
-              WHERE ST_Contains(neighborhoods.geom, ST_SetSRID(ST_Point(
-                hood.longitude::float, hood.latitude::float),4326))
-              GROUP BY document_id
-            )
-            SELECT details.amount,
-                   details.document_date,
-                   details.document_recorded,
-                   location.address,
-                   location.location_info,
-                   vendor.sellers,
-                   vendee.buyers,
-                   details.instrument_no,
-                   location.latitude,
-                   location.longitude,
-                   location.zip_code,
-                   details.detail_publish,
-                   details.permanent_flag,
-                   location.location_publish,
-                   neighborhood.neighborhood
-            FROM details
-            JOIN location ON details.document_id = location.document_id
-            JOIN vendor ON details.document_id = vendor.document_id
-            JOIN vendee ON details.document_id = vendee.document_id
-            JOIN neighborhood ON details.document_id = neighborhood.document_id
-            WHERE document_recorded >= '%s' AND document_recorded <= '%s';
-        """ % (self.initial_date, self.until_date)
-
-        result = self.engine.execute(sql)
-
-        rows = []
-        for row in result:
-            row = dict(row)
-            rows.append(row)
-
-        return rows
-
-    def get_rows_without_neighborhood(self):
-        '''
-        No neighborhood found.
-        '''
-
-        sql = """
-            WITH vendee AS (
-              SELECT document_id, string_agg(vendee_firstname::text || ' ' ||
-               vendee_lastname::text, ', ') AS buyers
-              FROM vendees
-              GROUP BY document_id
-            ), vendor AS (
-              SELECT document_id, string_agg(vendor_firstname::text || ' ' ||
-               vendor_lastname::text, ', ') AS sellers
-              FROM vendors
-              GROUP BY document_id
-            ), location AS (
-              SELECT document_id,
-                     min(location_publish) AS location_publish,
-                     string_agg(
-                        street_number::text || ' ' ||
-                        address::text, '; ') AS address,
-                     string_agg('Unit: ' || unit::text ||
-                        ', Condo: ' || condo::text ||
-                        ', Weeks: ' || weeks::text ||
-                        ', Subdivision: ' || subdivision::text ||
-                        ', District: ' || district::text ||
-                        ', Square: ' || square::text ||
-                        ', Lot: ' || lot::text, '; ') AS location_info,
-                     mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
-                     mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
-                     mode() WITHIN GROUP (ORDER BY longitude) AS longitude
-              FROM locations
-              GROUP BY document_id
-            ), hood AS (
-              SELECT document_id, longitude, latitude
-              FROM locations
-            ), neighborhood AS (
-              SELECT document_id
-              FROM hood, (
-                SELECT ST_Union(geom) as geom from neighborhoods
-                ) as nbhd
-              WHERE NOT ST_Contains(nbhd.geom,
-                ST_SetSRID(
-                    ST_Point(hood.longitude::float, hood.latitude::float),
-                    4326))
-              GROUP BY document_id
-            )
-            SELECT details.amount,
-                   details.document_date,
-                   details.document_recorded,
-                   location.address,
-                   location.location_info,
-                   vendor.sellers,
-                   vendee.buyers,
-                   details.instrument_no,
-                   location.latitude,
-                   location.longitude,
-                   location.zip_code,
-                   details.detail_publish,
-                   details.permanent_flag,
-                   location.location_publish
-            FROM details
-            JOIN location ON details.document_id = location.document_id
-            JOIN vendor ON details.document_id = vendor.document_id
-            JOIN vendee ON details.document_id = vendee.document_id
-            JOIN neighborhood ON details.document_id = neighborhood.document_id
-            WHERE document_recorded >= '%s' AND document_recorded <= '%s';
-        """ % (self.initial_date, self.until_date)
-
-        result = self.engine.execute(sql)
-
-        rows = []
-        for row in result:
-            row = dict(row)
-            row['neighborhood'] = "None"
-            rows.append(row)
-
-        return rows
-
-    def commit_rows(self, rows):
-        for row in rows:
-            try:
-                with self.session.begin_nested():
-                    i = insert(db.Cleaned)
-                    i = i.values(row)
-                    self.session.execute(i)
-                    self.session.flush()
-            except Exception, e:
-                self.log.exception(e, exc_info=True)
-                self.session.rollback()
-
-        self.session.commit()
-
     def prep_rows(self, rows):
-        '''
-        This function takes in ALL CAPS and returns clean text.
-        '''
+        '''Returns all rows in Titlecase'''
 
         # This loop returns text that is not all-caps, but is still flawed:
         # to standardize upper and lowercases
-        for i, row in enumerate(rows):
-            # Read this row's values
-            sellers = row['sellers']
-            buyers = row['buyers']
-            address = row['address']
-            location_info = row['location_info']
-            neighborhood = row['neighborhood']
-
+        for row in rows:
             # Capitalizes the first letter in each word.
             # Results in words like Llc, Xiv, etc
-            sellers = sellers.title()
-            buyers = buyers.title()
-            address = address.title()
-            location_info = location_info.title()
-            neighborhood = neighborhood.title()
 
-            # Write over this rows values with newer, cleaner values
-            rows[i]['sellers'] = sellers
-            rows[i]['buyers'] = buyers
-            rows[i]['address'] = address
-            rows[i]['location_info'] = location_info
-            rows[i]['neighborhood'] = neighborhood
+            row['sellers'] = row['sellers'].title()
+            row['buyers'] = row['buyers'].title()
+            row['address'] = row['address'].title()
+            row['location_info'] = row['location_info'].title()
+            row['neighborhood'] = row['neighborhood'].title()
 
         return rows
 
-    def main(self):
-        print 'Cleaning...'
+    def prep_locations_for_geocoding(self):
+        '''
+        Geocodes existing records and/or new records — any records that
+        have not yet been geocoded.
+        Geocoder takes strings: 4029 Ulloa St, New Orleans, LA 70119
+        I took a shortcut. Instead of finding a way to concatenate the address
+        pieces on the fly, I concatenated them all into a new column, then read
+        from that column. Sloppy, but it works for now.
+        '''
 
-        nbhd_rows = self.get_rows_with_neighborhood()
-        no_nbhd_rows = self.get_rows_without_neighborhood()
-
-        rows = nbhd_rows + no_nbhd_rows
-
-        prepped_rows = self.prep_rows(rows)
-        clean_rows = self.clean_rows(prepped_rows)
-
-        self.commit_rows(clean_rows)
+        self.engine.execute("""UPDATE locations
+            SET full_address = street_number::text || ' ' ||
+            address::text || ', New Orleans, LA';""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' ST ', ' SAINT ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' FIRST ', ' 1ST ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' SECOND ', ' 2ND ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' THIRD ', ' 3RD ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' FOURTH ', ' 4TH ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' FIFTH ', ' 5TH ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' SIXTH ', ' 6TH ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' SEVENTH ', ' 7TH ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' EIGHTH ', ' 8TH ');""")
+        self.engine.execute("""UPDATE locations
+            SET full_address = replace(full_address, ' NINTH ', ' 9TH ');""")
 
     def check_for_acronyms(self, rows):
+        '''Correct acronyms'''
+
         # This loop scans for the above problem words and replaces them with
         # their substitutes:
-        for i, row in enumerate(rows):
+        for row in rows:
+
             # Check for occurences of problematic acronyms
             for acronym in Library().acronyms:
                 acronym0 = acronym[0]  # Problem acronym
                 acronym1 = acronym[1]  # Solution acronym
                 # If find problem acronym (acronym0) in a string,
                 # replace with solution acronym (acronym1)
+
+                # log.debug(row['sellers'])
+                # log.debug(type(row['sellers']))
+
                 row['sellers'] = re.sub(acronym0, acronym1, row['sellers'])
+
+                # log.debug(row['sellers'])
+                # log.debug(type(row['sellers']))
+
                 row['buyers'] = re.sub(acronym0, acronym1, row['buyers'])
                 row['address'] = re.sub(acronym0, acronym1, row['address'])
                 row['location_info'] = re.sub(
@@ -266,7 +330,9 @@ class Clean(object):
         return rows
 
     def check_for_mcnames(self, rows):
-        for i, row in enumerate(rows):
+        '''Correct Mc___ names'''
+
+        for row in rows:
             # Check for occurences of problematic "Mc" names. Corrections
             # assume that the letter after should be capitalized:
             for mcname in Library().mc_names:
@@ -281,7 +347,9 @@ class Clean(object):
         return rows
 
     def check_for_abbreviations(self, rows):
-        for i, row in enumerate(rows):
+        '''Correct abbreviations'''
+
+        for row in rows:
             # Check for problematic abbreviations:
             for abbreviation in Library().abbreviations:
                 abbreviation0 = abbreviation[0]
@@ -298,7 +366,9 @@ class Clean(object):
         return rows
 
     def check_for_adress_abbreviations(self, rows):
-        for i, row in enumerate(rows):
+        '''Correct address abbreviations'''
+
+        for row in rows:
             # Fix address abbreviations (for AP style purposes)
             for address_abbreviation in Library().streets:
                 address0 = address_abbreviation[0]
@@ -307,23 +377,38 @@ class Clean(object):
                     address0, address1, row['address'])
                 row['location_info'] = re.sub(
                     address0, address1, row['location_info'])
+                # Good for "E" to "E." too:
+                row['address'] = re.sub(
+                    address0, address1, row['address'])
 
         return rows
 
     def check_for_middle_initials(self, rows):
-        for i, row in enumerate(rows):
+        '''Correct middle initials'''
+
+        for row in rows:
             for middle_initial in Library().middle_initials:
                 middle_initial0 = middle_initial[0]
                 middle_initial1 = middle_initial[1]
+
+                # log.debug(row['sellers'])
+                # log.debug(type(row['sellers']))
+
                 row['sellers'] = re.sub(
                     middle_initial0, middle_initial1, row['sellers'])
+
+                # log.debug(row['sellers'])
+                # log.debug(type(row['sellers']))
+
                 row['buyers'] = re.sub(
                     middle_initial0, middle_initial1, row['buyers'])
 
         return rows
 
     def check_for_neighborhood_names(self, rows):
-        for i, row in enumerate(rows):
+        '''Correct neighborhood names'''
+
+        for row in rows:
             for neighborhood_name in Library().neighborhood_names:
                 name0 = neighborhood_name[0]
                 name1 = neighborhood_name[1]
@@ -332,8 +417,10 @@ class Clean(object):
 
         return rows
 
-    def misc_subs(self, rows):
-        for i, row in enumerate(rows):
+    def regex_subs(self, rows):
+        '''More than simple find-and-replace tasks'''
+
+        for row in rows:
             # Must do regex for "St" and others. Imagine "123 Star St".
             # Scanning for " St" in the above loop would catch the start of
             # the street name here. "St " wouldn't work either.
@@ -341,17 +428,15 @@ class Clean(object):
             row['address'] = re.sub(r"St$", r"St.", row['address'])
             row['address'] = re.sub(r"Ave$", r"Ave.", row['address'])
             row['address'] = re.sub(r"Dr$", r"Dr.", row['address'])
-            row['address'] = re.sub(r" N ", r" N. ", row['address'])
-            row['address'] = re.sub(r" S ", r" S. ", row['address'])
-            row['address'] = re.sub(r" E ", r" E. ", row['address'])
-            row['address'] = re.sub(r" W ", r" W. ", row['address'])
             row['sellers'] = re.sub(r"Inc$", r"Inc.", row['sellers'])
             row['buyers'] = re.sub(r"Inc$", r"Inc.", row['buyers'])
 
         return rows
 
     def convert_amounts(self, rows):
-        for i, row in enumerate(rows):
+        '''Convert string, with or without $ and commas, to rounded int'''
+
+        for row in rows:
             row['amount'] = str(row['amount'])
             row['amount'] = re.sub(r'\$', r'', row['amount'])  # remove the $
             row['amount'] = re.sub(r',', r'', row['amount'])  # remove comma
@@ -362,6 +447,8 @@ class Clean(object):
         return rows
 
     def clean_rows(self, rows):
+        '''Run rows through all cleaning methods'''
+
         rows = self.check_for_acronyms(rows)
         rows = self.check_for_mcnames(rows)
         rows = self.check_for_abbreviations(rows)
@@ -369,92 +456,120 @@ class Clean(object):
         rows = self.check_for_middle_initials(rows)
         rows = self.check_for_neighborhood_names(rows)
 
-        rows = self.misc_subs(rows)
+        rows = self.regex_subs(rows)
+        # log.debug(len(rows))
+
         rows = self.convert_amounts(rows)
+        # log.debug(len(rows))
 
-        # print 'rows:', rows
+        rows = self.other_stuff_addresses(rows)
+        # log.debug(len(rows))
 
-        rows = self.other_stuff_to_clean(rows)
+        rows = self.other_stuff_location_info(rows)
+        # log.debug(len(rows))
+
+        rows = self.clean_punctuation(rows)
+        # log.debug(len(rows))
 
         return rows
 
-    def other_stuff_to_clean(self, rows):
+    def clean_punctuation(self, rows):
+        '''Fix any errant punctuation (leading or trailing spaces or commas)'''
+        for row in rows:
+            row['sellers'] = row['sellers'].strip(
+                ' ,'
+            ).replace('  ', ' ').replace(' ,', ',')
+
+            row['buyers'] = row['buyers'].strip(
+                ' ,'
+            ).replace('  ', ' ').replace(' ,', ',')
+
+            row['address'] = row['address'].strip(
+                " ,"
+            ).replace('  ', ' ').replace(' ,', ',')
+
+            row['location_info'] = row['location_info'].strip(
+                " ,"
+            ).replace('  ', ' ').replace(' ,', ',')
+
+            row['neighborhood'] = row['neighborhood'].replace(
+                '  ', ' '
+            ).replace(' ,', ',')
+
+        return rows
+
+    def other_stuff_addresses(self, rows):
+        '''Run checks for addresses'''
+
         # This loop scans for the above problem words and replaces them with
         # their substitutes:
-        for i, row in enumerate(rows):
-            # Read the current rows values
-            sellers = row['sellers']
-            buyers = row['buyers']
-            address = row['address']
-            location_info = row['location_info']
-            amt = row['amount']
-            neighborhood = row['neighborhood']
 
+        # log.debug(rows)
+
+        for row in rows:
             all_addresses_text = ''
 
-            # self.log.debug(address)
+            address_list1 = row['address'].split(';')
 
-            address_list1 = address.split(';')
+            for i in address_list1:
+                address_list2 = i.split(',')
 
-            for row in address_list1:
-                # self.log.debug(row)
-                # unit: x, condo: 4, etc.
-                address_list2 = row.split(',')
-
-                individiual_address_text = ''
+                individual_address_text = ''
 
                 for l in address_list2:
-                    # self.log.debug(l)
-                    # condo: x
                     try:
                         # If first addition:
-                        if individiual_address_text == '':
-                            individiual_address_text = l.strip()
+                        if individual_address_text == '':
+                            individual_address_text = l.strip()
                         else:  # If second addition or later
-                            individiual_address_text = (
-                                individiual_address_text +
+                            individual_address_text = (
+                                individual_address_text +
                                 ', ' +
                                 l.strip())
                     except Exception, e:
-                        self.log.exception(e, exc_info=True)
+                        log.exception(e, exc_info=True)
                         continue
 
-                if all_addresses_text == '':
-                    if individiual_address_text != '':
-                        all_addresses_text = individiual_address_text.strip()
-                else:
-                    if individiual_address_text != '':
+                if all_addresses_text == '' and individual_address_text != '':
+                        all_addresses_text = individual_address_text.strip()
+                elif individual_address_text != '':
                         all_addresses_text = (
                             all_addresses_text +
                             '; ' +
-                            individiual_address_text.strip())
+                            individual_address_text.strip())
 
             # location_info = location_info.replace(';', ',')
             # So can split on commas for both semi-colons and commas
 
+            row['address'] = all_addresses_text
+
+        return rows
+
+    def other_stuff_location_info(self, rows):
+        '''Run checks for location_info'''
+
+        # This loop scans for the above problem words and replaces them with
+        # their substitutes:
+        for row in rows:
             # To remove district ordinal
-            location_info = location_info.replace('1st', '1')
-            location_info = location_info.replace('2nd', '2')
-            location_info = location_info.replace('3rd', '3')
-            location_info = location_info.replace('4th', '4')
-            location_info = location_info.replace('5th', '5')
-            location_info = location_info.replace('6th', '6')
-            location_info = location_info.replace('7th', '7')
+            row['location_info'] = row['location_info'].replace('1st', '1')
+            row['location_info'] = row['location_info'].replace('2nd', '2')
+            row['location_info'] = row['location_info'].replace('3rd', '3')
+            row['location_info'] = row['location_info'].replace('4th', '4')
+            row['location_info'] = row['location_info'].replace('5th', '5')
+            row['location_info'] = row['location_info'].replace('6th', '6')
+            row['location_info'] = row['location_info'].replace('7th', '7')
 
             all_locations_text = ''
 
-            list1 = location_info.split(';')
+            list1 = row['location_info'].split(';')
 
-            for row in list1:
-                # unit: x, condo: 4, etc.
-
-                list2 = row.split(',')
+            for i in list1:
+                list2 = i.split(',')
 
                 individiual_location_text = ''
 
                 for l in list2:
-                    # condo: x
-
                     try:
                         if l.strip()[-1] != ':':
                             # If first addition:
@@ -466,11 +581,8 @@ class Clean(object):
                                     ', ' +
                                     l.strip())
                     except Exception, e:
-                        self.log.exception(e, exc_info=True)
+                        log.exception(e, exc_info=True)
                         continue
-
-                    # print 'individiual_location_text:',
-                    # individiual_location_text
 
                 if all_locations_text == '':
                     if individiual_location_text != '':
@@ -482,31 +594,57 @@ class Clean(object):
                             '; ' +
                             individiual_location_text.strip())
 
-            # unit = re.match(
-            #     r"^.*UNIT\: (.*)\, CONDO", location_info).group(1)
-
-            # Write over current row's values with newer, cleaner, smarter,
-            # better values
-            rows[i]['sellers'] = sellers.strip(
-                ' ,'
-            ).replace('  ', ' ').replace(' ,', ',')
-
-            rows[i]['buyers'] = buyers.strip(
-                ' ,'
-            ).replace('  ', ' ').replace(' ,', ',')
-
-            rows[i]['address'] = all_addresses_text.strip(
-                " ,"
-            ).replace('  ', ' ').replace(' ,', ',')
-
-            rows[i]['location_info'] = all_locations_text.strip(
-                " ,"
-            ).replace('  ', ' ').replace(' ,', ',')
-
-            rows[i]['amount'] = amt
-
-            rows[i]['neighborhood'] = neighborhood.replace(
-                '  ', ' '
-            ).replace(' ,', ',')
+            row['location_info'] = all_locations_text
 
         return rows
+
+    def commit_rows(self, rows):
+        '''Commits JOIN-ed rows to the Cleaned table'''
+
+        log.debug('%d rows committed' % len(rows))
+
+        for row in rows:
+            try:
+                with self.session.begin_nested():
+                    i = insert(db.Cleaned)
+                    i = i.values(row)
+                    self.session.execute(i)
+                    self.session.flush()
+            except Exception, e:
+                log.exception(e, exc_info=True)
+                self.session.rollback()
+
+        self.session.commit()
+
+    def main(self):
+        log.debug('Clean')
+
+        # log.debug('rows')
+        rows = Join(
+            initial_date=self.initial_date,
+            until_date=self.until_date
+        ).get_rows_from_query()
+
+        rows = Join(
+            initial_date=self.initial_date,
+            until_date=self.until_date
+        ).temp_hack_to_add_location_fields(rows)
+
+        log.debug('len(rows): %d', len(rows))
+
+        # log.debug('prepped rows')
+        prepped_rows = self.prep_rows(rows)
+        # log.debug(len(prepped_rows))
+
+        # log.debug('clean rows')
+        clean_rows = self.clean_rows(prepped_rows)
+        # log.debug(len(clean_rows))
+
+        # log.debug('commit rows')
+        self.commit_rows(clean_rows)
+
+        # log.debug('prep_locations_for_geocoding')
+        self.prep_locations_for_geocoding()
+
+if __name__ == '__main__':
+    Clean().main()

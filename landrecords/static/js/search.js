@@ -44,13 +44,13 @@ function mapSearching() {
   var data = prepareData();
 
   var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   data.page = page;
-  data.totalpages = totalpages;
+  data.number_of_pages = number_of_pages;
   data.direction = null;
 
   data.bounds = map.getBounds();
-  data.mapbuttonstate = true;
+  data.map_button_state = true;
 
   var request = JSON.stringify(data);
 
@@ -69,12 +69,12 @@ function mapSearching() {
       }
 
       document.getElementById('page').innerHTML = info.page;
-      document.getElementById('totalpages').innerHTML = info.totalpages;
+      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
       table_wrapper.setAttribute('data-page', info.page);
-      table_wrapper.setAttribute('data-totalpages', info.totalpages);
-      table_wrapper.setAttribute('data-pagelength', info.pagelength);
+      table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
+      table_wrapper.setAttribute('data-page-length', info.page_length);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
@@ -92,7 +92,7 @@ function mapSearching() {
         updateMap(info.jsdata, 1, 0, 0);
       }
 
-      checkPagerButtons(info.page, info.totalpages)
+      checkPagerButtons(info.page, info.number_of_pages);
     }
   });
 }
@@ -158,9 +158,9 @@ function doSearch(category) {
   }
 
   data.bounds = map.getBounds();
-  data.mapbuttonstate = document.getElementById("mapButton").checked;
+  data.map_button_state = document.getElementById("mapButton").checked;
   data.page = $('#table-wrapper').attr('data-page');
-  data.totalpages = $('#table-wrapper').attr('data-totalpages');
+  data.number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   data.direction = null;
 
   var maprequest = JSON.stringify(data);
@@ -181,12 +181,12 @@ function doSearch(category) {
       }
       
       document.getElementById('page').innerHTML = info.page;
-      document.getElementById('totalpages').innerHTML = info.totalpages;
+      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
       table_wrapper.setAttribute('data-page', info.page);
-      table_wrapper.setAttribute('data-totalpages', info.totalpages);
-      table_wrapper.setAttribute('data-pagelength', info.pagelength);
+      table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
+      table_wrapper.setAttribute('data-page-length', info.page_length);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
@@ -204,19 +204,19 @@ function doSearch(category) {
         updateMap(info.jsdata, 0, 0, 0);
       }
 
-      checkPagerButtons(info.page, info.totalpages)
+      checkPagerButtons(info.page, info.number_of_pages);
     }
   });
 }
 
 $("body").on("click", ".pageforward", function () {
   var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   
   //console.log('\npage:',  page);
-  //console.log('totalpages:', totalpages);
+  //console.log('number_of_pages:', number_of_pages);
 
-  if (page !== totalpages) {
+  if (page !== number_of_pages) {
     var data = prepareData();
 
     var nbhd_text, zip_text;
@@ -270,14 +270,14 @@ $("body").on("click", ".pageforward", function () {
 
     data.bounds = map.getBounds();
 
-    var mapbuttonstate = document.getElementById("mapButton").checked;
-    data.mapbuttonstate = mapbuttonstate;
+    var map_button_state = document.getElementById("mapButton").checked;
+    data.map_button_state = map_button_state;
 
     //Find pagination details
-    var pagelength = $('#table-wrapper').attr('data-pagelength');
+    var page_length = $('#table-wrapper').attr('data-page-length');
     data.page = page;
-    data.totalpages = totalpages;
-    data.pagelength = pagelength;
+    data.number_of_pages = number_of_pages;
+    data.page_length = page_length;
     data.direction = 'forward';
 
     var maprequest = JSON.stringify(data);
@@ -288,12 +288,12 @@ $("body").on("click", ".pageforward", function () {
       contentType: "application/json; charset=utf-8",
       success: function (info) {
         document.getElementById('page').innerHTML = info.page;
-        document.getElementById('totalpages').innerHTML = info.totalpages;
+        document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
         table_wrapper.setAttribute('data-page', info.page);
-        table_wrapper.setAttribute('data-totalpages', info.totalpages);
-        table_wrapper.setAttribute('data-pagelength', info.pagelength);
+        table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
+        table_wrapper.setAttribute('data-page-length', info.page_length);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
@@ -309,10 +309,10 @@ $("body").on("click", ".pageforward", function () {
           updateMap(info.jsdata, 0, 1, 0);
         }
 
-        checkPagerButtons(info.page, info.totalpages)
+        checkPagerButtons(info.page, info.number_of_pages);
 
         //console.log('info.page:', info.page);
-        //console.log('info.totalpages:', info.totalpages);
+        //console.log('info.number_of_pages:', info.number_of_pages);
       }
     });
   }
@@ -320,7 +320,7 @@ $("body").on("click", ".pageforward", function () {
 
 $("body").on("click", ".pageback", function () {
   var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   if (page !== "1" && page !== "0") {
     var data = prepareData();
 
@@ -375,16 +375,16 @@ $("body").on("click", ".pageback", function () {
 
     data.bounds = map.getBounds();
 
-    var mapbuttonstate = document.getElementById("mapButton").checked;
-    data.mapbuttonstate = mapbuttonstate;
+    var map_button_state = document.getElementById("mapButton").checked;
+    data.map_button_state = map_button_state;
 
     //Find pagination details
     page = $('#table-wrapper').attr('data-page');
-    totalpages = $('#table-wrapper').attr('data-totalpages');
-    var pagelength = $('#table-wrapper').attr('data-pagelength');
+    number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+    var page_length = $('#table-wrapper').attr('data-page-length');
     data.page = page;
-    data.totalpages = totalpages;
-    data.pagelength = pagelength;
+    data.number_of_pages = number_of_pages;
+    data.page_length = page_length;
     data.direction = 'back';
 
     var maprequest = JSON.stringify(data);
@@ -396,12 +396,12 @@ $("body").on("click", ".pageback", function () {
       contentType: "application/json; charset=utf-8",
       success: function (info) {
         document.getElementById('page').innerHTML = info.page;
-        document.getElementById('totalpages').innerHTML = info.totalpages;
+        document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
         table_wrapper.setAttribute('data-page', info.page);
-        table_wrapper.setAttribute('data-totalpages', info.totalpages);
-        table_wrapper.setAttribute('data-pagelength', info.pagelength);
+        table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
+        table_wrapper.setAttribute('data-page-length', info.page_length);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
@@ -418,7 +418,7 @@ $("body").on("click", ".pageback", function () {
           updateMap(info.jsdata, 0, 1, 0);
         }
 
-        checkPagerButtons(info.page, info.totalpages);
+        checkPagerButtons(info.page, info.number_of_pages);
       }
     });
   }
@@ -443,22 +443,22 @@ function populateSearchParameters(data) {
   }
 }
 
-function checkPagerButtons(page, totalpages) {
+function checkPagerButtons(page, number_of_pages) {
   //console.log('yo:');
 
   if (typeof page === 'undefined') {
     page = $('#table-wrapper').attr('data-page');
   }
 
-  if (typeof totalpages === 'undefined') {
-    totalpages = $('#table-wrapper').attr('data-totalpages');
+  if (typeof number_of_pages === 'undefined') {
+    number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   }
 
   page = page.toString();
-  totalpages = totalpages.toString();
+  number_of_pages = number_of_pages.toString();
 
   ////console.log('page:', page);
-  ////console.log('totalpages:', totalpages);
+  ////console.log('number_of_pages:', number_of_pages);
 
   if (page === '1' || page === '0') {
     document.getElementById('back_button').style.color = 'gray';
@@ -468,7 +468,7 @@ function checkPagerButtons(page, totalpages) {
     document.getElementById('back_button').style.cursor = 'pointer';
   }
 
-  if (page === totalpages) {
+  if (page === number_of_pages) {
     document.getElementById('forward_button').style.color = 'gray';
     document.getElementById('forward_button').style.cursor = 'default';
   } else {
@@ -484,7 +484,6 @@ String.prototype.trunc = String.prototype.trunc ||
   function(n) {
     return this.length > n ? this.substr(0, n - 1) + ' ...' : this;
   };
-
 
 /*
  Not using for now.
@@ -519,13 +518,13 @@ function getLocation(data) {
 function geoSearch(data) {
   var bounds = map.getBounds();
   data.bounds = bounds;
-  var mapbuttonstate = document.getElementById("mapButton").checked;
-  data.mapbuttonstate = mapbuttonstate;
+  var map_button_state = document.getElementById("mapButton").checked;
+  data.map_button_state = map_button_state;
 
   var page = $('#table-wrapper').attr('data-page');
-  var totalpages = $('#table-wrapper').attr('data-totalpages');
+  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   data.page = page;f
-  data.totalpages = totalpages;
+  data.number_of_pages = number_of_pages;
   data.direction = null;
 
   var georequest = JSON.stringify(data);
@@ -546,11 +545,11 @@ function geoSearch(data) {
         window.history.pushState(null,'hi',query_string);
       }
       document.getElementById('page').innerHTML = info.page;
-      document.getElementById('totalpages').innerHTML = info.totalpages;
+      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
       $('#table-wrapper').data('page', info.page);
-      $('#table-wrapper').data('totalpages', info.totalpages);
-      $('#table-wrapper').data('pagelength', info.pagelength);
+      $('#table-wrapper').data('number_of_pages', info.number_of_pages);
+      $('#table-wrapper').data('page_length', info.page_length);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");

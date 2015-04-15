@@ -9,3 +9,4 @@ function doSearch(category) {
 }
 
 document.getElementById('asterisk-note').style.display = 'none';
+document.getElementById('cross-note').style.display = 'none';

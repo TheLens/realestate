@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
+from landrecords import db
 from landrecords.lib import stat_analysis
 from landrecords.lib.log import Log
 from landrecords.lib.utils import Utils
+
+log = Log('initialize').logger
 
 
 class EmailTemplate(object):
 
     def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('email_template').logger
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -27,9 +29,8 @@ class EmailTemplate(object):
 
     def generate_body(self):
         stat = stat_analysis.StatAnalysis(
-            'cleaned', self.initial_date, self.until_date)
+            db.Cleaned(), self.initial_date, self.until_date)
 
-        # todo: handle if either or both dates not specified?
         email_string = (
             '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={1}' +
             '</p>' +
@@ -66,8 +67,8 @@ class EmailTemplate(object):
             Utils().ymd_to_full_date(self.until_date),
             format(stat.detail_not_published(), ','),
             format(stat.location_not_published(), ','),
-            format(stat.highest_amount(), ','),
-            format(stat.lowest_amount(), ',')
+            stat.highest_amount(),
+            stat.lowest_amount()
         )
 
         rows = stat.all_records()

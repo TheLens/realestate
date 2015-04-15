@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+# from __future__ import absolute_import
 
 import urllib
 # from flask.ext.cache import Cache
@@ -12,20 +12,20 @@ from flask import (
 )
 from functools import wraps
 
-from landrecords import config
+from landrecords.config import Config
 from landrecords.lib.log import Log
 from landrecords.models import Models
 from landrecords.views import Views
 
 app = Flask(__name__)
 
-# cache = Cache(app, config={'CACHE_TYPE': 'simple'})
+# cache = Cache(app, Config().={'CACHE_TYPE': 'simple'})
 
 log = Log('app').logger
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/" % (config.APP_ROUTING), methods=['GET'])
+@app.route("%s/" % (Config().APP_ROUTING), methods=['GET'])
 def home():
     log.debug('home')
 
@@ -37,7 +37,7 @@ def home():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/input" % (config.APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/input" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 def searchbar_input():
     term = request.args.get('q')
 
@@ -47,8 +47,8 @@ def searchbar_input():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/search/" % (config.APP_ROUTING), methods=['GET', 'POST'])
-@app.route("%s/search" % (config.APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/search/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/search" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 def search():
     if request.method == 'GET':
         log.debug('search GET')
@@ -70,7 +70,7 @@ def search():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/sale/<instrument_no>" % (config.APP_ROUTING), methods=['GET'])
+@app.route("%s/sale/<instrument_no>" % (Config().APP_ROUTING), methods=['GET'])
 def sale(instrument_no=None):
     log.debug('sale')
 
@@ -84,17 +84,14 @@ def sale(instrument_no=None):
         return Views().get_sale(data, jsdata, newrows)
 
 
-'''
-Dashboard
-'''
-
-
 def check_auth(username, password):
-    return (username == config.DASHBOARD_USERNAME and
-            password == config.DASHBOARD_PASSWORD)
+    '''Checks if given username and password match correct credentials'''
+    return (username == Config().DASHBOARD_USERNAME and
+            password == Config().DASHBOARD_PASSWORD)
 
 
 def authenticate():
+    '''Return error message'''
     return Response(
         'Could not verify your access level for that URL.\n'
         'You have to login with proper credentials',
@@ -104,6 +101,8 @@ def authenticate():
 
 
 def requires_auth(f):
+    '''Authorization process'''
+
     @wraps(f)
     def decorated(*args, **kwargs):
         auth = request.authorization
@@ -117,29 +116,26 @@ def requires_auth(f):
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/dashboard/" % (config.APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/dashboard/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
+    '''Dashboard'''
     if request.method == 'GET':
-        log.debug('dashboard GET')
+        log.debug('GET dashboard')
 
         return Views().get_dashboard()
 
     if request.method == 'POST':
-        log.debug('dashboard POST')
+        log.debug('POST dashboard')
 
         data = request.get_json()
 
         return Views().post_dashboard(data)
 
 
-'''
-Misc.
-'''
-
-
-@app.route("%s/webhook" % (config.APP_ROUTING), methods=['POST'])
+@app.route("%s/webhook" % (Config().APP_ROUTING), methods=['POST'])
 def webhook():
+    '''Run Webhook class to keep server and S3 in sync'''
     log.debug('webhook')
 
     data = request.get_json()
@@ -149,18 +145,19 @@ def webhook():
 
 # @cache.memoize(timeout=5000)
 @app.errorhandler(404)
-def page_not_found():
-    log.debug('404 error')
+def page_not_found(error):
+    '''Return error page'''
+    log.debug(error)
 
     return render_template('404.html',
-                           css=config.CSS,
-                           js=config.JS,
-                           indexjs=config.INDEX_JS), 404
+                           css=Config().CSS,
+                           js=Config().JS,
+                           indexjs=Config().INDEX_JS), 404
 
 
 if __name__ == '__main__':
     app.run(
         # host = "0.0.0.0",
-        use_reloader=config.RELOADER,
-        debug=config.DEBUG
+        use_reloader=Config().RELOADER,
+        debug=Config().DEBUG
     )

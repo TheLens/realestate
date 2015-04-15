@@ -5,11 +5,12 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords import config, db
+from landrecords.config import Config
+from landrecords import db
 from landrecords.lib.log import Log
 
 
-class PublishChecker(object):
+class Publish(object):
 
     def __init__(self, initial_date=None, until_date=None):
         self.log = Log('publish').logger
@@ -18,13 +19,15 @@ class PublishChecker(object):
         self.until_date = until_date
 
         base = declarative_base()
-        engine = create_engine(config.SERVER_ENGINE)
+        engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(engine)
         sn = sessionmaker(bind=engine)
 
         self.session = sn()
 
     def check_geocoder_good_rating(self):
+        '''Check if PostGIS Geocoder rating scored 3 or lower: good'''
+
         self.session.query(
             db.Location.rating,
             db.Location.location_publish
@@ -35,6 +38,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_geocoder_bad_rating(self):
+        '''Check if PostGIS Geocoder rating scored higher than 3: bad'''
+
         self.session.query(
             db.Location.rating,
             db.Location.location_publish
@@ -44,6 +49,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_west_of_new_orleans(self):
+        '''Check if geocoded lat/long found is west of New Orleans'''
+
         # Long less than -90.140388 is west of New Orleans:
         self.session.query(
             db.Location.longitude,
@@ -57,6 +64,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_east_of_new_orleans(self):
+        '''Check if geocoded lat/long found is east of New Orleans'''
+
         # Long greater than -89 is east of New Orleans:
         self.session.query(
             db.Location.longitude,
@@ -70,6 +79,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_south_of_new_orleans(self):
+        '''Check if geocoded lat/long found is south of New Orleans'''
+
         # Lat less than 29.864543 is south of New Orleans:
         self.session.query(
             db.Location.latitude,
@@ -83,6 +94,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_north_of_new_orleans(self):
+        '''Check if geocoded lat/long found is north of New Orleans'''
+
         # Lat less than 29.864543 is north of New Orleans:
         self.session.query(
             db.Location.latitude,
@@ -96,6 +109,9 @@ class PublishChecker(object):
         self.session.flush()
 
     def make_all_details_publishable(self):
+        '''Assume all sales are publishable. Set detail_publishable = 1.'''
+        '''Then set to 0 if something questionable is found.'''
+
         # Assume publishable, then check for reasons not to publish.
         self.session.query(
             db.Detail.detail_publish
@@ -106,6 +122,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_if_no_date(self):
+        '''Check if sale has a date'''
+
         self.session.query(
             db.Detail.document_date,
             db.Detail.document_recorded,
@@ -169,6 +187,8 @@ class PublishChecker(object):
             current_date = current_date + timedelta(days=1)
 
     def check_low_amount(self):
+        '''Check if sale amount is unreasonably low (<= $0)'''
+
         # Not sure about these, so check them all for now to be safe
         self.session.query(
             db.Detail.amount,
@@ -182,6 +202,8 @@ class PublishChecker(object):
         self.session.flush()
 
     def check_high_amount(self):
+        '''Check if sale amount is unreasonably high (>= $20,000,000)'''
+
         # Anything over $20,000,000 wouldn't be impossible, but is rare
         self.session.query(
             db.Detail.amount,
@@ -196,7 +218,8 @@ class PublishChecker(object):
         self.session.commit()
 
     def check_them_all(self):
-        print 'Publishing...'
+        self.log.debug('Publish')
+
         self.check_geocoder_good_rating()
         self.check_geocoder_bad_rating()
         self.check_west_of_new_orleans()

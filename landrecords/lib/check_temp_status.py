@@ -7,27 +7,30 @@ from sqlalchemy import create_engine, func
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords import config, db
+from landrecords.config import Config
+from landrecords import db
 from landrecords.lib import scrape
 from landrecords.lib.log import Log
+
+log = Log('initialize').logger
 
 
 class CheckTemp(object):
 
     def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('check_temp').logger
-
         self.initial_date = initial_date
         self.until_date = until_date
 
         base = declarative_base()
-        self.engine = create_engine(config.SERVER_ENGINE)
+        self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
         sn = sessionmaker(bind=self.engine)
 
         self.session = sn()
 
     def earliest_date_no_flag(self):
+        '''Returns the earliest date_recorded without permanent_flag set'''
+
         q = self.session.query(
             func.min(db.Detail.document_recorded).label('early_date')
         ).filter(
@@ -58,13 +61,13 @@ class CheckTemp(object):
         return latest_none_datetime
 
     def find_early_perm_date_when_scraped(self, current_iteration_date):
-        pattern = r'%s/raw/' % config.DATA_DIR + \
+        pattern = r'%s/raw/' % Config().DATA_DIR + \
                   r'%s/' % current_iteration_date + \
                   r'permanent-date-range-when-scraped_(\d+)-(\d+).html'
 
         file_path = glob.glob(
             '%s/raw/%s/permanent-date-range-when-scraped_*.html' % (
-                config.DATA_DIR, current_iteration_date))[0]
+                Config().DATA_DIR, current_iteration_date))[0]
 
         early_permanent_date = re.match(pattern, file_path).group(1)
 
@@ -75,13 +78,13 @@ class CheckTemp(object):
         return early_permanent_datetime
 
     def find_late_perm_date_when_scraped(self, current_iteration_date):
-        pattern = r'%s/raw/' % config.DATA_DIR + \
+        pattern = r'%s/raw/' % Config().DATA_DIR + \
                   r'%s/' % current_iteration_date + \
                   r'permanent-date-range-when-scraped_(\d+)-(\d+).html'
 
         file_path = glob.glob(
             '%s/raw/%s/permanent-date-range-when-scraped_*.html' % (
-                config.DATA_DIR, current_iteration_date))[0]
+                Config().DATA_DIR, current_iteration_date))[0]
 
         late_permanent_date = re.match(pattern, file_path).group(2)
 
@@ -128,6 +131,8 @@ class CheckTemp(object):
     def check_permanent_status_of_new_sales(self):
         'Examine first-time sales and assign'
         'True or False for permanent_flag.'
+
+        log.debug('Check permanent status of new sales')
 
         # todo: Is this function called for sales that have already been given
         # a False flag? Need to change that if so, because this only looks
@@ -176,19 +181,19 @@ class CheckTemp(object):
             earliest_temp_datetime = datetime.combine(
                 earliest_temp_date, datetime.min.time())
 
-            self.log.debug(earliest_temp_datetime)
+            log.debug(earliest_temp_datetime)
 
             return earliest_temp_datetime
         else:
             return None
 
     def latest_permanent_datetime(self):
-        pattern = r'%s/' % (config.DATA_DIR) + \
+        pattern = r'%s/' % (Config().DATA_DIR) + \
                   r'most-recent-permanent-date-range/(\d+)-(\d+).html'
 
         file_path = glob.glob(
             '%s/most-recent-permanent-date-range/*.html' % (
-                config.DATA_DIR))[0]
+                Config().DATA_DIR))[0]
 
         global_permanent_range_last_date = re.match(
             pattern, file_path).group(2)
@@ -226,6 +231,8 @@ class CheckTemp(object):
         now fall within the permanent range, re-scrape and re-initialize.
         '''
 
+        log.debug('Check permanent status of temporary sales')
+
         # Don't need to know temporary end date or permanent start date.
         # Only need to know temporary start date and permanent end date
         # to determine the dates that were temporary but are now permanent.
@@ -247,18 +254,18 @@ class CheckTemp(object):
 
     def scrape_days(self, early_date, late_date):
         early_datetime = datetime.strptime(early_date, '%Y-%m-%d')
-        self.log.debug(early_datetime)
+        log.debug(early_datetime)
         late_datetime = datetime.strptime(late_date, '%Y-%m-%d')
-        self.log.debug(early_datetime)
+        log.debug(early_datetime)
 
         # Scrape those days over again
-        self.log.info('scrape')
+        log.info('scrape')
         try:
             scrape.Scraper().main(
                 from_date=early_datetime,
                 until_date=late_datetime)
         except Exception, e:
-            self.log.error(e, exc_info=True)
+            log.error(e, exc_info=True)
 
     def delete_using_sql_query(self, early_date, late_date, table):
         sql = """DELETE FROM {0} USING details
@@ -305,5 +312,5 @@ class CheckTemp(object):
         # Build those newly scraped records.
         # This will set perm_flag = True in
         # checkPermanentStatusOfNewSales().
-        self.log.info('doitall')
-        # todo: initialize.do_it_all(early_date, late_date)
+        log.info('doitall')
+        # initialize.do_it_all(early_date, late_date)  # todo: uncomment

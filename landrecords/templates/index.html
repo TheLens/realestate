@@ -4,7 +4,7 @@
         {% include 'head.html' %}
     </head>
     <body>
-       <script type="text/javascript">
+       <!-- <script type="text/javascript">
         (function() {
           var ARTICLE_URL = window.location.href;
           var CONTENT_ID = 'everything';
@@ -16,7 +16,7 @@
             '&amp;random='+(new Date).getTime()+
             '" type="text/javascript">'+'\x3C/scr'+'ipt>');
         })();
-        </script>
+        </script> -->
         {% include 'banner.html' %}
         <div class="row">
             <div class="small-12 columns">
@@ -24,9 +24,9 @@
             </div>
         </div>
         
-        {% include 'searchArea.html' %}
+        {% include 'search-area.html' %}
 
-        <div class="p402_premium">
+        <!-- <div class="p402_premium">
             <div class="row" id="search-button" style="display: block;">
                 <div class="small-4 columns">
                     &nbsp;
@@ -42,7 +42,7 @@
         </div>
         <script type="text/javascript">
             try { _402_Show(); } catch(e) {}
-        </script>
+        </script> -->
         {% include 'footer.html' %}
         <script type="text/javascript">
             if ({{ js_app_routing|tojson }} !== 'None') {
@@ -52,7 +52,7 @@
         </script>
         {% include 'js.html' %}
         <script type="text/javascript" src={{ js }}></script>
-        <script type="text/javascript" src={{ indexjs }}></script>
-        <script type="text/javascript" src={{ searchAreajs }}></script>
+        <script type="text/javascript" src={{ index_js }}></script>
+        <script type="text/javascript" src={{ search_area_js }}></script>
     </body>
 </html>

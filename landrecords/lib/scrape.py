@@ -6,27 +6,30 @@ import re
 import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from datetime import datetime, timedelta
+from datetime import timedelta  # , datetime
 
-from landrecords import config
-from landrecords.lib import mail
+from landrecords.config import Config
+from landrecords.lib.mail import Mail
 from landrecords.lib.log import Log
 
+log = Log('initialize').logger
 
-class Scraper(object):
 
+class Scrape(object):
+
+    # todo: write function with rewrite = False that ignores any
+    # sales previously scraped.
     def __init__(self,
-                 initial_date=datetime(2014, 2, 18),
-                 until_date=datetime.strptime(
-                     config.YESTERDAY_DATE, '%Y-%m-%d')):
-        self.log = Log('scrape').logger
+                 initial_date=Config().OPENING_DATETIME,
+                 until_date=Config().YESTERDAY_DATETIME,
+                 rewrite=True):
 
         self.initial_date = initial_date
         self.until_date = until_date
 
         self.driver = webdriver.PhantomJS(
-            executable_path='%s/bin/phantomjs' % config.PROJECT_DIR,
-            service_log_path='%s/ghostdriver.log' % config.LOG_DIR,
+            executable_path='%s/bin/phantomjs' % Config().PROJECT_DIR,
+            service_log_path='%s/ghostdriver.log' % Config().LOG_DIR,
             port=0)
         # self.driver = webdriver.Firefox(timeout=60)
 
@@ -35,33 +38,33 @@ class Scraper(object):
     '''
 
     def load_homepage(self):
-        self.log.info('Load homepage')
+        log.info('Load homepage')
         self.driver.get("http://onlinerecords.orleanscivilclerk.com/")
         time.sleep(2.2)
 
     def find_login_link(self):
-        self.log.info('Find login link')
+        log.info('Find login link')
         login_link_elem = self.driver.find_element_by_id("Header1_lnkLogin")
-        self.log.info('Click login link')
+        log.info('Click login link')
         login_link_elem.click()
         time.sleep(1.2)
 
     def enter_username(self):
-        self.log.info('Find username field')
+        log.info('Find username field')
         unsername_elem = self.driver.find_element_by_id("Header1_txtLogonName")
-        self.log.info('Enter username')
-        unsername_elem.send_keys(config.LRD_USERNAME)
+        log.info('Enter username')
+        unsername_elem.send_keys(Config().LRD_USERNAME)
 
     def enter_password(self):
-        self.log.info('Find password field')
+        log.info('Find password field')
         password_elem = self.driver.find_element_by_id("Header1_txtPassword")
-        self.log.info('Enter password')
-        password_elem.send_keys(config.LRD_PASSWORD)
-        self.log.info('Return')
+        log.info('Enter password')
+        password_elem.send_keys(Config().LRD_PASSWORD)
+        log.info('Return')
         password_elem.send_keys('\n')  # To trigger search function
         time.sleep(2.2)
 
-        self.log.debug(self.driver.title)
+        log.debug(self.driver.title)
 
     def login(self):
         self.load_homepage()
@@ -84,17 +87,17 @@ class Scraper(object):
             "cphNoMargin_lblSearchSummary")
 
         date_range = date_range_elem.text
-        self.log.debug(date_range)
+        log.debug(date_range)
 
         first_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
                               date_range).group(1)  # 02/18/2014
         first_date = first_date.replace('/', '')
-        self.log.debug(first_date)
+        log.debug(first_date)
 
         second_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
                                date_range).group(2)  # 02/25/2015
         second_date = second_date.replace('/', '')
-        self.log.debug(second_date)
+        log.debug(second_date)
 
         return first_date, second_date
 
@@ -104,8 +107,8 @@ class Scraper(object):
         return date_range_html
 
     def delete_permanent_date_range_when_scraped_file(self, year, month, day):
-        self.log.info('Delete old permanent-date-range-when-scraped*.html')
-        for fl in glob.glob("%s/raw/" % (config.DATA_DIR) +
+        log.info('Delete old permanent-date-range-when-scraped*.html')
+        for fl in glob.glob("%s/raw/" % (Config().DATA_DIR) +
                             "%s-%s-%s/" % (year, month, day) +
                             "permanent-date-range-when-scraped*.html"):
             os.remove(fl)
@@ -118,10 +121,10 @@ class Scraper(object):
                                                     first_date,
                                                     second_date):
         # Save permanent date range for this individual sale.
-        self.log.info('Save new permanent-date-range-when-scraped*.html file')
+        log.info('Save new permanent-date-range-when-scraped*.html file')
         individual_html_out = open(
             "%s/raw/%s-%s-%s/permanent-date-range-when-scraped_%s-%s.html" % (
-                config.DATA_DIR, year, month, day,
+                Config().DATA_DIR, year, month, day,
                 first_date, second_date
             ), "w")
         individual_html_out.write(date_range_html.encode('utf-8'))
@@ -129,18 +132,18 @@ class Scraper(object):
 
     def delete_permanent_date_range_file(self):
         # Delete old file first
-        self.log.info(
+        log.info(
             'Delete old most-recent-permanent-date-range/*.html file')
         for fl in glob.glob("%s/most-recent-permanent-date-range/*.html"
-                            % (config.DATA_DIR)):
+                            % (Config().DATA_DIR)):
                 os.remove(fl)
 
     def save_permanent_date_range_file(self,
                                        date_range_html,
                                        first_date,
                                        second_date):
-        self.log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open("%s/" % (config.DATA_DIR) +
+        log.info('Save new most-recent-permanent-date-range/*.html file')
+        overall_html_out = open("%s/" % (Config().DATA_DIR) +
                                 "most-recent-permanent-date-range/" +
                                 "%s-%s.html" % (first_date, second_date),
                                 "w")
@@ -165,13 +168,13 @@ class Scraper(object):
     '''
 
     def click_advanced_tab(self):
-        self.log.info('search_parameters')
+        log.info('search_parameters')
 
         # Advanced tab
-        self.log.info('Find advanced tab')
+        log.info('Find advanced tab')
         advanced_tab_elem = self.driver.find_element_by_id(
             "x:2130005445.2:mkr:ti1")
-        self.log.info('Click on advanced tab')
+        log.info('Click on advanced tab')
         advanced_tab_elem.click()
         time.sleep(1.2)
 
@@ -190,14 +193,14 @@ class Scraper(object):
     def select_document_type(self):
         document_type_elem = self.driver.find_element_by_id(
             "cphNoMargin_f_dclDocType_291")
-        self.log.info('Select SALE document type')
+        log.info('Select SALE document type')
         document_type_elem.click()
 
     def click_search_button(self):
-        self.log.info('Find search button')
+        log.info('Find search button')
         search_button_elem = self.driver.find_element_by_id(
             "cphNoMargin_SearchButtons2_btnSearch__2")
-        self.log.info('Click search button')
+        log.info('Click search button')
         search_button_elem.click()
         time.sleep(2.2)
 
@@ -215,95 +218,98 @@ class Scraper(object):
     def parse_results(self, year, month, day):
         # Find current page number
         try:
-            self.log.info('Find item_list_elem')  # todo: Better description
+            log.info('Find item_list_elem')
             item_list_elem = self.driver.find_element_by_id(
                 "cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
-            self.log.info('Find option')
+            log.info('Find option')
             options = item_list_elem.find_elements_by_tag_name("option")
         except Exception, e:
             # Save table page
-            self.log.error(e, exc_info=True)
-            self.log.info('No sales for this day')
+            log.error(e, exc_info=True)
+            log.info('No sales for this day')
             html_out = open("%s/raw/%s-%s-%s/page-html/page1.html"
-                            % (config.DATA_DIR, year, month, day), "w")
+                            % (Config().DATA_DIR, year, month, day), "w")
             html_out.write((self.driver.page_source).encode('utf-8'))
             html_out.close()
             return
 
-        print options  # todo: what is this? todo: log it?
-
         total_pages = int(options[-1].get_attribute('value'))
-        self.log.debug(total_pages)
+        log.debug(total_pages)
 
         for i in range(1, total_pages + 1):
-            self.log.debug(i)
+            log.debug(i)
 
-            # Save table page
-            self.log.info('Write table page HTML')
-            html_out = open("%s/raw/%s-%s-%s/page-html/page%d.html"
-                            % (config.DATA_DIR, year, month, day, i), "w")
-            html_out.write((self.driver.page_source).encode('utf-8'))
-            html_out.close()
+            self.parse_page(i, year, month, day)
 
-            self.log.info('Build BeautifulSoup')
-            soup = BeautifulSoup(open("%s/raw/%s-%s-%s/page-html/page%d.html"
-                                 % (config.DATA_DIR, year, month, day, i)))
+    def parse_page(self, i, year, month, day):
 
-            self.log.info('Find all object IDs')
-            # List of Object IDs:
-            rows = soup.find_all('td', class_="igede12b9e")
+        # Save table page
+        log.info('Write table page HTML')
+        html_out = open("%s/raw/%s-%s-%s/page-html/page%d.html"
+                        % (Config().DATA_DIR, year, month, day, i), "w")
+        html_out.write((self.driver.page_source).encode('utf-8'))
+        html_out.close()
 
-            self.log.debug(len(rows))
+        log.info('Build BeautifulSoup')
+        soup = BeautifulSoup(open("%s/raw/%s-%s-%s/page-html/page%d.html"
+                             % (Config().DATA_DIR, year, month, day, i)))
 
-            for j in range(1, len(rows)):
-                self.log.debug((i - 1) * 20 + j)
+        log.info('Find all object IDs')
 
-                document_id = rows[j].string
+        rows = soup.find_all('td', class_="igede12b9e")  # List of Object IDs
 
-                self.log.debug(document_id)
+        log.debug(len(rows))
 
-                single_sale_url = (
-                    "http://onlinerecords.orleanscivilclerk.com/" +
-                    "RealEstate/SearchResults.aspx?" +
-                    "global_id=%s" % (document_id) +
-                    "&type=dtl")
+        for j in range(1, len(rows)):
+            log.debug((i - 1) * 20 + j)
 
-                self.log.debug(single_sale_url)
+            self.parse_sale(j, rows, year, month, day)
 
-                try:
-                    self.log.info('Load %s', single_sale_url)
-                    self.driver.get(single_sale_url)
-                    time.sleep(1.2)
-                except Exception, e:
-                    self.log.error(e, exc_info=True)
+        log.info(
+            'Go to http://onlinerecords.orleanscivilclerk.com/' +
+            'RealEstate/SearchResults.aspx')
+        self.driver.get(
+            "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
+            "SearchResults.aspx")
 
-                self.log.info('Save this sale HTML')
-                html_out = open("%s/" % (config.DATA_DIR) +
-                                "raw/" +
-                                "%s-%s-%s/" % (year, month, day) +
-                                "form-html/%s.html" % (document_id),
-                                "w")
-                html_out.write((self.driver.page_source).encode('utf-8'))
-                html_out.close()
+        log.info('Find next page button')
+        next_button_elem = self.driver.find_element_by_id(
+            "OptionsBar1_imgNext")
+        log.info('Click next page button')
+        next_button_elem.click()
+        time.sleep(2.2)
 
-                time.sleep(1.2)
+    def parse_sale(self, j, rows, year, month, day):
 
-            self.log.info(
-                'Go to http://onlinerecords.orleanscivilclerk.com/' +
-                'RealEstate/SearchResults.aspx')
-            self.driver.get(
-                "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
-                "SearchResults.aspx")
+        document_id = rows[j].string
 
-            self.log.info('Find next page button')
-            next_button_elem = self.driver.find_element_by_id(
-                "OptionsBar1_imgNext")
-            self.log.info('Click next page button')
-            next_button_elem.click()
-            time.sleep(2.2)
+        log.debug(document_id)
 
-        # self.driver.get("http://onlinerecords.orleanscivilclerk.com/
-        # RealEstate/SearchResults.aspx")
+        single_sale_url = (
+            "http://onlinerecords.orleanscivilclerk.com/" +
+            "RealEstate/SearchResults.aspx?" +
+            "global_id=%s" % (document_id) +
+            "&type=dtl")
+
+        log.debug(single_sale_url)
+
+        try:
+            log.info('Load %s', single_sale_url)
+            self.driver.get(single_sale_url)
+            time.sleep(1.2)
+        except Exception, e:
+            log.error(e, exc_info=True)
+
+        log.info('Save this sale HTML')
+        html_out = open("%s/" % (Config().DATA_DIR) +
+                        "raw/" +
+                        "%s-%s-%s/" % (year, month, day) +
+                        "form-html/%s.html" % (document_id),
+                        "w")
+        html_out.write((self.driver.page_source).encode('utf-8'))
+        html_out.close()
+
+        time.sleep(1.2)
 
     '''
     Logout
@@ -311,53 +317,55 @@ class Scraper(object):
 
     def logout(self):
         # No matter which page you're on, you can go back here and logout.
-        self.log.info(
+        log.info(
             'Load http://onlinerecords.orleanscivilclerk.com/' +
             'RealEstate/SearchEntry.aspx')
         self.driver.get(
             "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
             "SearchEntry.aspx")
 
-        self.log.info('Find logout button')
+        log.info('Find logout button')
         logout_elem = self.driver.find_element_by_id("Header1_lnkLogout")
-        self.log.info('Click logout button')
+        log.info('Click logout button')
         logout_elem.click()
 
     def cycle_through_dates(self):
         current_date = self.initial_date
 
+        # Must search each date one at a time because there is a limit of
+        # 300 results per search.
         while current_date != (self.until_date + timedelta(days=1)):
             year = current_date.strftime('%Y')  # "2014"
             month = current_date.strftime('%m')  # "09"
             day = current_date.strftime('%d')  # "09"
 
-            self.log.debug(year + '-' + month + '-' + day)
+            log.debug(year + '-' + month + '-' + day)
 
             # Check if folder for this day exists. if not, then make one
             pagedir = "%s/raw/%s-%s-%s/page-html" % (
-                config.DATA_DIR, year, month, day)
-            self.log.debug(pagedir)
+                Config().DATA_DIR, year, month, day)
+            log.debug(pagedir)
 
             formdir = "%s/raw/%s-%s-%s/form-html" % (
-                config.DATA_DIR, year, month, day)
-            self.log.debug(formdir)
+                Config().DATA_DIR, year, month, day)
+            log.debug(formdir)
 
             if not os.path.exists(pagedir):
-                self.log.info('Making %s', pagedir)
+                log.info('Making %s', pagedir)
                 os.makedirs(pagedir)
             if not os.path.exists(formdir):
-                self.log.info('Making %s', formdir)
+                log.info('Making %s', formdir)
                 os.makedirs(formdir)
 
             search_date = month + day + year
 
-            # The good stuff
+            # The meat of this loop
             self.navigate_search_page(year, month, day)
             self.search_parameters(search_date)
             self.parse_results(year, month, day)
 
             current_date += timedelta(days=1)
-            self.log.debug(current_date)
+            log.debug(current_date)
 
     def main(self):
         self.login()
@@ -365,17 +373,20 @@ class Scraper(object):
         try:
             self.cycle_through_dates()
         except Exception, e:
-            self.log.error(e, exc_info=True)
-            mail(
+            log.error(e, exc_info=True)
+            Mail(
                 subject="Error running Land Record's scrape.py script",
                 body='Check scrape.log for more details.',
                 frm='tthoren@thelensnola.org',
-                to=['tthoren@thelensnola.org'])
+                to=['tthoren@thelensnola.org']).send_as_text()
         finally:
             self.logout()
             self.driver.close()
             self.driver.quit()
-            self.log.info('Done!')
+            log.info('Done!')
 
 if __name__ == '__main__':
-    Scraper().main()
+    Scrape(
+        initial_date=Config().OPENING_DATETIME,
+        until_date=Config().OPENING_DATETIME
+    ).main()

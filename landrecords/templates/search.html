@@ -1,109 +1,109 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        {% include 'head.html' %}
-    </head>
-    <body>
-        {% include 'banner.html' %}
-        {% include 'searchArea.html' %}
-        <div id="map-table-wrapper" class="row">
-            <div class="small-12 columns">
-                <div class="row">
-                    <div class="small-12 text-left columns">
-                        <div id="results_language">{{ data.results_language }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="small-12 large-8 columns map-wrapper">
-                <div class="row">
-                    <div class="small-12 columns">
-                        <div id="map" class="map"></div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="small-12 text-left columns">
-                        <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
-                    </div>
-                </div>
-            </div>
-            <div class="small-12 large-4 columns" id="table-footer-wrapper">
-                <div class="row">
-                    <div class="small-12 columns">
-                        <div class="table-wrapper" id="table-wrapper" data-page="{{ data.page }}" data-totalpages="{{ data.totalpages }}" data-pagelength="{{ data.pagelength }}">
-                            <table id="myTable" class="tablesorter">
-                                <thead>
-                                    <tr>
-                                        <th>Date</th>
-                                        <th>Amount</th>
-                                        <th>Address</th>
-                                        <th>Location Info</th>
-                                        <th>Sellers</th>
-                                        <th>Buyers</th>
-                                        <!-- <th>Instrument Number</th> -->
-                                    </tr>
-                                </thead>
-                                <tbody id="tbody">
-                                    {% for newrow in newrows %}
-                                        <tr id="{{ newrow.instrument_no }}">
-                                            <td class="document_date no-wrap">{{ newrow.document_date }}</td>
-                                            <td class="amount no-wrap">{{ newrow.amount }}</td>
-                                            <td class="address"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.address }}</a></td>
-                                            <td class="location_info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
-                                            <td class="sellers">{{ newrow.sellers }}</td>
-                                            <td class="buyers">{{ newrow.buyers }}</td>
-                                            <!-- <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td> -->
-                                        </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                            <div id="results-not-found" style="display:{{ data.results_css_display }};">No results found. Please try another search.</div>
-                        </div>
-                        <!-- <div class="table-container-fade"></div> -->
-                        <div class="row" id="footer">
-                            <div class="medium-1 visible-for-medium-only columns">
-                                &nbsp;
-                            </div>
-                            <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback" id="back_button">
-                                <i class="fa fa-arrow-left"></i> Back
-                            </div>
-                            <div class="small-4 text-center current-page columns">
-                                Page <span id="page">{{ data.page }}</span> of <span id="totalpages">{{ data.totalpages }}</span>
-                            </div>
-                            <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward" id="forward_button">
-                                Forward <i class="fa fa-arrow-right"></i>
-                            </div>
-                            <div class="medium-1 visible-for-medium-only columns">
-                                &nbsp;
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+  <head>
+    {% include 'head.html' %}
+  </head>
+  <body>
+    {% include 'banner.html' %}
+    {% include 'search-area.html' %}
+    <div id="map-table-wrapper" class="row">
+      <div class="small-12 columns">
+        <div class="row">
+          <div class="small-12 text-left columns">
+            <div id="results_language">{{ data.results_language }}</div>
+          </div>
         </div>
-        {% include 'footer.html' %}
-        <div id="tooltip"></div>
-        <script type="text/javascript">
-            if ({{ js_app_routing|tojson }} !== 'None') {
-                var js_app_routing = {{ js_app_routing|tojson }};
-                //console.log('js_app_routing:', js_app_routing);
-            }
-        </script>
-        {% include 'js.html' %}
-        <script type="text/javascript" src={{ js }}></script>
-        <script type="text/javascript" src={{ searchjs }}></script>
-        <script type="text/javascript" src={{ searchAreajs }}></script>
-        <script type="text/javascript" src={{ mapjs }}></script>
-        <script type="text/javascript">
-            if ({{ data|tojson }} !== 'None') {
-                //console.log('parameters');
-                //Populate search parameters
-                populateSearchParameters({{ data|tojson }})
-            }
-            if ({{ jsdata|tojson }} !== 'None') {
-                //console.log('jsdata');
-                //Load map, table, et al
-                initialMapFunction({{ jsdata|tojson }});
-            }
-        </script>
-    </body>
+      </div>
+      <div class="small-12 large-8 columns map-wrapper">
+        <div class="row">
+          <div class="small-12 columns">
+            <div id="map" class="map"></div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="small-12 text-left columns">
+            <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
+          </div>
+        </div>
+      </div>
+      <div class="small-12 large-4 columns" id="table-footer-wrapper">
+        <div class="row">
+          <div class="small-12 columns">
+            <div class="table-wrapper" id="table-wrapper" data-page="{{ data.page }}" data-number-of-pages="{{ data.number_of_pages }}" data-page-length="{{ data.page_length }}">
+              <table id="myTable" class="tablesorter">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Address</th>
+                    <th>Location Info</th>
+                    <th>Sellers</th>
+                    <th>Buyers</th>
+                    <!-- <th>Instrument Number</th> -->
+                  </tr>
+                </thead>
+                <tbody id="tbody">
+                  {% for newrow in newrows %}
+                    <tr id="{{ newrow.instrument_no }}">
+                      <td class="document_date no-wrap">{{ newrow.document_date }}</td>
+                      <td class="amount no-wrap">{{ newrow.amount }}</td>
+                      <td class="address"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.address }}</a></td>
+                      <td class="location_info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
+                      <td class="sellers">{{ newrow.sellers }}</td>
+                      <td class="buyers">{{ newrow.buyers }}</td>
+                      <!-- <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td> -->
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+              <div id="results-not-found" style="display:{{ data.results_css_display }};">No results found. Please try another search.</div>
+            </div>
+            <!-- <div class="table-container-fade"></div> -->
+            <div class="row" id="footer">
+              <div class="medium-1 visible-for-medium-only columns">
+                &nbsp;
+              </div>
+              <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback" id="back_button">
+                <i class="fa fa-arrow-left"></i> Back
+              </div>
+              <div class="small-4 text-center current-page columns">
+                Page <span id="page">{{ data.page }}</span> of <span id="totalpages">{{ data.number_of_pages }}</span>
+              </div>
+              <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward" id="forward_button">
+                Forward <i class="fa fa-arrow-right"></i>
+              </div>
+              <div class="medium-1 visible-for-medium-only columns">
+                &nbsp;
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% include 'footer.html' %}
+    <div id="tooltip"></div>
+    <script type="text/javascript">
+      if ({{ js_app_routing|tojson }} !== 'None') {
+        var js_app_routing = {{ js_app_routing|tojson }};
+        //console.log('js_app_routing:', js_app_routing);
+      }
+    </script>
+    {% include 'js.html' %}
+    <script type="text/javascript" src={{ js }}></script>
+    <script type="text/javascript" src={{ search_js }}></script>
+    <script type="text/javascript" src={{ search_area_js }}></script>
+    <script type="text/javascript" src={{ map_js }}></script>
+    <script type="text/javascript">
+      if ({{ data|tojson }} !== 'None') {
+        //console.log('parameters');
+        //Populate search parameters
+        populateSearchParameters({{ data|tojson }})
+      }
+      if ({{ js_data|tojson }} !== 'None') {
+        //console.log('jsdata');
+        //Load map, table, et al
+        initialMapFunction({{ js_data|tojson }});
+      }
+    </script>
+  </body>
 </html>
