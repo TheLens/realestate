@@ -16,11 +16,12 @@ from sqlalchemy.schema import (
 from landrecords.lib.log import Log
 from landrecords.config import Config
 
+log = Log('initialize').logger
+
 
 class Delete(object):
 
     def __init__(self):
-        self.log = Log('initialize').logger
 
         engine = create_engine('%s' % (Config().SERVER_ENGINE))
         self.conn = engine.connect()

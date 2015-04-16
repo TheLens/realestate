@@ -31,15 +31,10 @@ class Build(object):
     def build_all(self):
         log.debug('Build all')
 
-        self.build_details()
-        self.build_vendors()
-        self.build_vendees()
-        self.build_locations()
-
-    def build_details(self):
-        log.debug('Build details')
-
         self.dict_parse('DetailParser', 'Detail')
+        self.list_parse('VendorParser', 'Vendor')
+        self.list_parse('VendeeParser', 'Vendee')
+        self.list_parse('LocationParser', 'Location')
 
     def dict_parse(self, parser_name, table):
         session = self.sn()
@@ -50,11 +45,15 @@ class Build(object):
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')
 
+            log.debug(initial_datetime)
+            log.debug(until_datetime)
+            log.debug(current_date)
+
             for f in sorted(glob.glob('%s/' % (Config().DATA_DIR) +
                                       'raw/%s/' % (current_date) +
                                       'form-html/*.html')):
 
-                # log.debug('f: %s', f)
+                log.debug('f: %s', f)
                 dict_output = getattr(parse, parser_name)(f).form_dict()
 
                 try:
@@ -71,21 +70,6 @@ class Build(object):
 
         session.commit()
         session.close()
-
-    def build_vendors(self):
-        log.debug('Building vendors')
-
-        self.list_parse('VendorParser', 'Vendor')
-
-    def build_vendees(self):
-        log.debug('Building vendees')
-
-        self.list_parse('VendeeParser', 'Vendee')
-
-    def build_locations(self):
-        log.debug('Building locations')
-
-        self.list_parse('LocationParser', 'Location')
 
     def list_parse(self, parser_name, table):
         session = self.sn()

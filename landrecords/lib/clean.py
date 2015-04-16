@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''JOIN the four individual tables, clean and commit to cleaned'''
+
 import re
 import pprint
 
@@ -18,6 +20,8 @@ log = Log('initialize').logger
 
 
 class Join(object):
+
+    '''JOIN the four individual tables'''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
@@ -178,13 +182,17 @@ class Join(object):
         return rows
 
     def temp_hack_to_add_location_fields(self, incoming_rows):
-        '''SQLAlchemy doesn't yet support WITHIN GROUP, which is necessary'''
-        '''for using mode() aggregate function in PostgreSQL 9.4'''
-        '''(see get_locations() for normal use)'''
-        '''So instead, this hack will temporary do that job.'''
+        '''SQLAlchemy doesn't yet support WITHIN GROUP,
+           which is necessary for using mode() aggregate function
+           in PostgreSQL 9.4 (see get_locations() for normal use).
+           So instead, this hack will temporary do that job.'''
 
         sql = """SELECT
             document_id,
+            -- mode(zip_code) AS zip_code,
+            -- mode(latitude) AS latitude,
+            -- mode(longitude) AS longitude,
+            -- mode(neighborhood) AS neighborhood
             mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
             mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
             mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
@@ -223,6 +231,8 @@ class Join(object):
 
 
 class Clean(object):
+
+    '''Clean the joined tables and commit to cleaned'''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
@@ -267,14 +277,13 @@ class Clean(object):
         return rows
 
     def prep_locations_for_geocoding(self):
-        '''
-        Geocodes existing records and/or new records — any records that
-        have not yet been geocoded.
-        Geocoder takes strings: 4029 Ulloa St, New Orleans, LA 70119
-        I took a shortcut. Instead of finding a way to concatenate the address
-        pieces on the fly, I concatenated them all into a new column, then read
-        from that column. Sloppy, but it works for now.
-        '''
+        '''Geocodes existing records and/or new records — any
+           records that have not yet been geocoded. Geocoder takes
+           strings: 4029 Ulloa St, New Orleans, LA 70119
+           I took a shortcut. Instead of finding a way to
+           concatenate the address pieces on the fly, I
+           concatenated them all into a new column, then read
+           from that column. Sloppy, but it works for now.'''
 
         self.engine.execute("""UPDATE locations
             SET full_address = street_number::text || ' ' ||
@@ -474,7 +483,8 @@ class Clean(object):
         return rows
 
     def clean_punctuation(self, rows):
-        '''Fix any errant punctuation (leading or trailing spaces or commas)'''
+        '''Fix punctuation (leading/trailing spaces or commas)'''
+
         for row in rows:
             row['sellers'] = row['sellers'].strip(
                 ' ,'
@@ -617,6 +627,8 @@ class Clean(object):
         self.session.commit()
 
     def main(self):
+        '''Run Join() and Clean() scripts'''
+
         log.debug('Clean')
 
         # log.debug('rows')

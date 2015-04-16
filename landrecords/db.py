@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+'''Database table definitions using SQLAlchemy'''
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import (
@@ -92,14 +92,65 @@ class Location(Base):
         pass
 
     def __repr__(self):
-        return "<Location(id='%s', street_number='%s')>" % (
-            self.id, self.street_number)
+        representation = (
+            "<Location(" +
+            "id='{0}', " +
+            "subdivision='{1}', " +
+            "condo='{2}', " +
+            "district='{3}', " +
+            "square='{4}', " +
+            "lot='{5}', " +
+            "cancel_status='{6}', " +
+            "street_number='{7}', " +
+            "address='{8}', " +
+            "unit='{9}', " +
+            "weeks='{10}', " +
+            "cancel_stat='{11}', " +
+            "freeform_legal='{12}', " +
+            "document_id='{13}', " +
+            "full_address='{14}', " +
+            "latitude='{15}', " +
+            "longitude='{16}', " +
+            "rating='{17}', " +
+            "zip_code='{18}', " +
+            "neighborhood='{19}', " +
+            "location_publish='{20}', " +
+            ")>"
+        ).format(
+            self.id,
+            self.subdivision,
+            self.condo,
+            self.district,
+            self.square,
+            self.lot,
+            self.cancel_status,
+            self.street_number,
+            self.address,
+            self.unit,
+            self.weeks,
+            self.cancel_stat,
+            self.freeform_legal,
+            self.document_id,
+            self.full_address,
+            self.latitude,
+            self.longitude,
+            self.rating,
+            self.zip_code,
+            self.neighborhood,
+            self.location_publish
+        )
+
+        return representation
+
+    def __str__(self):
+        string = "Location table"
+
+        return string
 
 
 class Cleaned(Base):
     __tablename__ = 'cleaned'
 
-    # id = Column(Integer, primary_key=True)
     instrument_no = Column(String, primary_key=True, index=True)
     geom = Column(Geometry(geometry_type='POINT',
                            srid=4326,
@@ -139,7 +190,7 @@ class Cleaned(Base):
                  assessor_publish,
                  permanent_flag,
                  neighborhood):
-        # self.id = id,
+
         self.geom = geom,
         self.amount = amount,
         self.document_date = document_date,
@@ -162,13 +213,9 @@ class Cleaned(Base):
     def __repr__(self):
         return """
             <Cleaned(amount='%s', document_date='%s', address='%s',
-            sellers='%s', buyers='%s', instrument_no='%s')>""" % (
-            self.amount,
-            self.document_date,
-            self.address,
-            self.sellers,
-            self.buyers,
-            self.instrument_no)
+            sellers='%s', buyers='%s', instrument_no='%s')>
+            """ % (self.amount, self.document_date, self.address,
+                   self.sellers, self.buyers, self.instrument_no)
 
 
 class Dashboard(Base):
@@ -232,15 +279,15 @@ class Dashboard(Base):
         return """
             <Dashboard(id='%s', fixed='%s', amount='%s',
             document_date='%s', address='%s', sellers='%s', buyers='%s',
-            instrument_no='%s')>""" % (
-               self.id, self.fixed, self.amount, self.document_date,
-               self.address, self.sellers, self.buyers, self.instrument_no)
+            instrument_no='%s')>
+            """ % (self.id, self.fixed, self.amount,
+                   self.document_date, self.address,
+                   self.sellers, self.buyers, self.instrument_no)
 
 
 class Detail(Base):
     __tablename__ = 'details'
 
-    # id = Column(Integer, primary_key=True)
     document_id = Column(String, primary_key=True)
     document_type = Column(String)
     instrument_no = Column(String)
@@ -285,6 +332,7 @@ class Detail(Base):
                  image,
                  detail_publish,
                  permanent_flag):
+
         self.document_id = document_id,
         self.document_type = document_type,
         self.instrument_no = instrument_no,
@@ -336,6 +384,7 @@ class Vendor(Base):
                  vendor_firstname,
                  vendor_relator,
                  vendor_cancel_status):
+
         self.id = id,
         self.document_id = document_id,
         self.vendor_blank = vendor_blank,
@@ -349,8 +398,8 @@ class Vendor(Base):
     def __repr__(self):
         return """
             <Vendor(id='%s', vendor_lastname='%s',
-            vendor_firstname='%s')>""" % (
-               self.id, self.vendor_lastname, self.vendor_firstname)
+            vendor_firstname='%s')>
+            """ % (self.id, self.vendor_lastname, self.vendor_firstname)
 
 
 class Vendee(Base):
@@ -389,8 +438,8 @@ class Vendee(Base):
     def __repr__(self):
         return """
             <Vendee(id='%s', vendee_lastname='%s',
-            vendee_firstname='%s')>""" % (
-            self.id, self.vendee_lastname, self.vendee_firstname)
+            vendee_firstname='%s')>
+            """ % (self.id, self.vendee_lastname, self.vendee_firstname)
 
 
 class Neighborhood(Base):

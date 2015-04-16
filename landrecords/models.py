@@ -24,11 +24,12 @@ from landrecords.lib import check_assessor_urls
 from landrecords.lib.log import Log
 from landrecords.lib.utils import Utils
 
+log = Log('models').logger
+
 
 class Models(object):
 
     def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('models').logger
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -498,11 +499,11 @@ class Models(object):
         return data
 
     def build_features_json(self, q):
-        self.log.debug(len(q))
+        log.debug(len(q))
         features = []
         features_dict = {}
         for u in q:
-            self.log.debug(u.buyers)
+            log.debug(u.buyers)
             if u.location_publish == "0":
                 u.document_date = u.document_date + "*"
                 continue

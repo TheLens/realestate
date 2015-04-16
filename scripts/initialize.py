@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
 
+'''A recipe that calls on other classes to build, geocode, clean, and
+   publish records to the cleaned table'''
+
 from landrecords.config import Config
 from landrecords.lib.log import Log
 
@@ -15,6 +18,9 @@ log = Log('initialize').logger
 
 
 class Initialize(object):
+
+    '''A recipe that calls on other classes to build, geocode, clean,
+       and publish records to the cleaned table'''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
@@ -53,28 +59,28 @@ class Initialize(object):
             until_date=self.until_date
         ).update_cleaned_geom()
 
-        CheckTemp(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).check_permanent_status_of_new_sales()
+        # CheckTemp(
+        #     initial_date=self.initial_date,
+        #     until_date=self.until_date
+        # ).check_permanent_status_of_new_sales()
 
-        CheckTemp(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).check_permanent_status_of_temp_sales()
+        # CheckTemp(
+        #     initial_date=self.initial_date,
+        #     until_date=self.until_date
+        # ).check_permanent_status_of_temp_sales()
 
-        Mail(
-            subject=EmailTemplate(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).generate_subject(),
-            body=EmailTemplate(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).generate_body(),
-            frm='tthoren@thelensnola.org',
-            to=['tthoren@thelensnola.org']
-        ).send_as_html()
+        # Mail(
+        #     subject=EmailTemplate(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).generate_subject(),
+        #     body=EmailTemplate(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).generate_body(),
+        #     frm='tthoren@thelensnola.org',
+        #     to=['tthoren@thelensnola.org']
+        # ).send_as_html()
 
         # check_assessor_urls().check(
         #     initial_date=initial_date, until_date=until_date)

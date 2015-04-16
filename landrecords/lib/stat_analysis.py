@@ -1,17 +1,21 @@
 # -*- coding: utf-8 -*-
 
+'''Commmon statistical analysis for use in summary email'''
+
 from sqlalchemy import create_engine
 
 from landrecords.config import Config
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
+LOG = Log('initialize').logger
 
 
 class StatAnalysis(object):
 
-    def __init__(self, table, begin_date, end_date):
-        self.table = table
+    '''Commmon statistical analysis for use in summary email'''
+
+    def __init__(self, begin_date, end_date):
+        self.table = 'cleaned'
         self.begin_date = begin_date
         self.end_date = end_date
 
@@ -28,11 +32,13 @@ class StatAnalysis(object):
 
         result = self.engine.execute(sql)
 
-        for r in result:
-            count = r.count
+        for row in result:
+            count = row.count
             return count
 
     def detail_not_published(self):
+        '''Get rows that have unpublishable detail data'''
+
         sql = """
             SELECT COUNT(*)
             FROM %s
@@ -42,11 +48,13 @@ class StatAnalysis(object):
             """ % (self.table, self.begin_date, self.end_date)
 
         result = self.engine.execute(sql)
-        for r in result:
-            count = r.count
+        for row in result:
+            count = row.count
             return count
 
     def detail_published(self):
+        '''Get rows that have publishable detail data'''
+
         sql = """
             SELECT COUNT(*)
             FROM %s
@@ -56,11 +64,13 @@ class StatAnalysis(object):
             """ % (self.table, self.begin_date, self.end_date)
 
         result = self.engine.execute(sql)
-        for r in result:
-            count = r.count
+        for row in result:
+            count = row.count
             return count
 
     def location_not_published(self):
+        '''Get rows that have unpublishable location data'''
+
         sql = """
             SELECT COUNT(*)
             FROM %s
@@ -70,11 +80,13 @@ class StatAnalysis(object):
             """ % (self.table, self.begin_date, self.end_date)
 
         result = self.engine.execute(sql)
-        for r in result:
-            count = r.count
+        for row in result:
+            count = row.count
             return count
 
     def location_published(self):
+        '''Get rows that have publishable location data'''
+
         sql = """
             SELECT COUNT(*)
             FROM %s
@@ -84,11 +96,13 @@ class StatAnalysis(object):
             """ % (self.table, self.begin_date, self.end_date)
 
         result = self.engine.execute(sql)
-        for r in result:
-            count = r.count
+        for row in result:
+            count = row.count
             return count
 
     def highest_amount(self):
+        '''Find the highest sale amount for a given date range'''
+
         sql = """
             SELECT amount
             FROM %s
@@ -100,11 +114,13 @@ class StatAnalysis(object):
 
         result = self.engine.execute(sql)
 
-        for r in result:
-            high_amount = r.amount
+        for row in result:
+            high_amount = row.amount
             return high_amount
 
     def lowest_amount(self):
+        '''Find the lowest sale amount for a given date range'''
+
         sql = """
             SELECT amount
             FROM %s
@@ -116,11 +132,13 @@ class StatAnalysis(object):
 
         result = self.engine.execute(sql)
 
-        for r in result:
-            low_amount = r.amount
+        for row in result:
+            low_amount = row.amount
             return low_amount
 
     def all_records(self):
+        '''Get all rows for the given date range'''
+
         sql = """
             SELECT amount,
                    document_date,
@@ -145,15 +163,14 @@ class StatAnalysis(object):
         result = self.engine.execute(sql)
 
         rows = []
-        for r in result:
-            row = dict(r)
+        for row in result:
+            row = dict(row)
             rows.append(row)
 
         return rows
 
 if __name__ == '__main__':
     StatAnalysis(
-        'cleaned',
         '2014-02-18',
         '2014-02-18'
     ).count()

@@ -2,16 +2,120 @@ from fabric.api import local
 from landrecords.config import Config
 
 
-def configuration():
-    local('scp %s/Config().py tom@%s:%s' % (
-        Config().PROJECT_DIR,
+def config():
+    local('scp %s/config.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR,
         Config().SERVER_NAME,
-        Config().SERVER_PROJECT_PATH))
+        Config().SERVER_APP_DIR))
 
 
 def git_ignore():
-    local('scp %s/.gitignore ' % (Config().PROJECT_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/.gitignore ' % (Config().LOCAL_PROJECT_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+
+
+def init():
+    local('scp %s/initialize.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+
+
+def scrape():
+    local('scp %s/scrape.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+
+
+def build():
+    local('scp %s/build.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+
+
+def clean():
+    local('scp %s/clean.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+
+
+def data():
+    local('scp %s/assessor-error-html/error.html tom@%s:%s' % (
+        Config().LOCAL_DATA_DIR, Config().SERVER_NAME,
+        Config().SERVER_DATA_DIR))
+
+
+def repo():
+    local('scp %s/.gitignore ' % (Config().LOCAL_PROJECT_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+    local('scp %s/README.md ' % (Config().LOCAL_PROJECT_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+    local('scp %s/requirements.txt ' % (Config().LOCAL_PROJECT_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+    local('scp %s/trifecta.sh ' % (Config().LOCAL_PROJECT_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+
+
+def app():
+    local('scp %s/__init__.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+    local('scp %s/app.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+    local('scp %s/config.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+    local('scp %s/db.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+    local('scp %s/models.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+    local('scp %s/views.py tom@%s:%s' % (
+        Config().LOCAL_APP_DIR, Config().SERVER_NAME,
+        Config().SERVER_APP_DIR))
+
+
+def scripts():
+    local('scp %s/backup.sh tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/create_neighborhood_geojson.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/delete_db.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/initialize.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/make_db.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    # local('scp %s/phantomjs tom@%s:%s' % (
+    #     Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+    #     Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/scrape.sh tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/screen.js tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/screen.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+    local('scp %s/tserver.py tom@%s:%s' % (
+        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_SCRIPTS_DIR))
+
+
+def tests():
+    local('scp %s/__init__.py tom@%s:%s' % (
+        Config().LOCAL_TESTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_TESTS_DIR))
+    local('scp %s/test_pep8.py tom@%s:%s' % (
+        Config().LOCAL_TESTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_TESTS_DIR))
+    local('scp %s/test_pylint.py tom@%s:%s' % (
+        Config().LOCAL_TESTS_DIR, Config().SERVER_NAME,
+        Config().SERVER_TESTS_DIR))
 
 
 def templates():
@@ -42,7 +146,7 @@ def templates():
     local('scp %s/search.html tom@%s:%s' % (
         Config().LOCAL_TEMPLATE_DIR, Config().SERVER_NAME,
         Config().SERVER_TEMPLATE_DIR))
-    local('scp %s/searchArea.html tom@%s:%s' % (
+    local('scp %s/search-area.html tom@%s:%s' % (
         Config().LOCAL_TEMPLATE_DIR, Config().SERVER_NAME,
         Config().SERVER_TEMPLATE_DIR))
     local('scp %s/table.html tom@%s:%s' % (
@@ -51,14 +155,20 @@ def templates():
 
 
 def lib():
+    local('scp %s/__init__.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME,
+        Config().SERVER_LIB_DIR))
     local('scp %s/build.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/check_assessor_urls.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/check_temp_status.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
-    local('scp %s/clean.py tom@%s:%s' % (
-        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    # local('scp %s/clean.py tom@%s:%s' % (
+    #     Config().LOCAL_LIB_DIR,
+    #     Config().SERVER_NAME,
+    #     Config().SERVER_LIB_DIR)
+    # )
     local('scp %s/dashboard_sync.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/email_template.py tom@%s:%s' % (
@@ -71,7 +181,7 @@ def lib():
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/mail.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
-    local('scp %s/parsers.py tom@%s:%s' % (
+    local('scp %s/parse.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/publish.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
@@ -134,28 +244,13 @@ def images():
     S3
     '''
 
-    local('aws s3 cp %s/ajax-loader.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/ajax-loader.gif --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/black-asc.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/black-asc.gif --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/black-desc.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/black-desc.gif --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
-          'black-unsorted.gif ' +
-          '%s/black-unsorted.gif --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
           '%s/favicon.ico --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/first.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/first.png --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/icons-000000.png ' % (Config().LOCAL_IMAGES_DIR) +
           '%s/icons-000000.png --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'icons-000000@2x.png ' +
           '%s/icons-000000@2x.png --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/info-i.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/info-i.png --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/last.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/last.png --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'lens-logo-retina.png ' +
           '%s/lens-logo-retina.png --acl public-read' % (Config().S3_PATH))
@@ -163,10 +258,6 @@ def images():
           'lens-logo-magnifying-glass-only.png ' +
           '%s/lens-logo-magnifying-glass-only.png ' % (Config().S3_PATH) +
           '--acl public-read')
-    local('aws s3 cp %s/next.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/next.png --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/prev.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/prev.png --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'ui-bg_flat_75_ffffff_40x100.png ' +
           '%s/' % (Config().S3_PATH) +
@@ -176,34 +267,16 @@ def images():
     Server
     '''
 
-    local('scp %s/ajax-loader.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/black-asc.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/black-desc.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/black-unsorted.gif ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/first.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/icons-000000.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/icons-000000@2x.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/info-i.png ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/last.png ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/lens-logo-retina.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'lens-logo-magnifying-glass-only.png ' +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/next.png ' % (Config().LOCAL_IMAGES_DIR) +
-          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
-    local('scp %s/prev.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'ui-bg_flat_75_ffffff_40x100.png ' +
@@ -298,10 +371,8 @@ def js():
           '%s/js/sale.js --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/search.js ' % (Config().LOCAL_JS_DIR) +
           '%s/js/search.js --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/searchArea.js ' % (Config().LOCAL_JS_DIR) +
-          '%s/js/searchArea.js --acl public-read' % (Config().S3_PATH))
-    local('aws s3 cp %s/squares-topo.js ' % (Config().LOCAL_JS_DIR) +
-          '%s/js/squares-topo.js --acl public-read' % (Config().S3_PATH))
+    local('aws s3 cp %s/search-area.js ' % (Config().LOCAL_JS_DIR) +
+          '%s/js/search-area.js --acl public-read' % (Config().S3_PATH))
 
     '''
     Server
@@ -327,6 +398,8 @@ def js():
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
     local('scp %s/lens.js ' % (Config().LOCAL_JS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
+    local('scp %s/map.js ' % (Config().LOCAL_JS_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
     local('scp %s/mapbox.uncompressed.js ' % (Config().LOCAL_JS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
     local('scp %s/modernizr.js ' % (Config().LOCAL_JS_DIR) +
@@ -339,11 +412,16 @@ def js():
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
     local('scp %s/search.js ' % (Config().LOCAL_JS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
-    local('scp %s/squares-topo.js ' % (Config().LOCAL_JS_DIR) +
+    local('scp %s/search-area.js ' % (Config().LOCAL_JS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
 
 
 def doitall():
+    data()
+    repo()
+    app()
+    scripts()
+    tests()
     lib()
     templates()
     js()
@@ -351,7 +429,7 @@ def doitall():
     images()
     fonts()
     git_ignore()
-    # configuration()
+    config()
 
 
 def s3():

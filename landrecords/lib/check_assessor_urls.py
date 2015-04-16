@@ -10,22 +10,21 @@ from sqlalchemy.orm import sessionmaker
 
 from landrecords.lib.libraries import Library
 from landrecords.lib.log import Log
-from landrecords import (
-    config,
-    db
-)
+from landrecords import db
+from landrecords.config import Config
+
+log = Log('initialize').logger
 
 
 class Assessor(object):
 
     def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('assessor').logger
 
         self.initial_date = initial_date
         self.until_date = until_date
 
         base = declarative_base()
-        self.engine = create_engine(config.SERVER_ENGINE)
+        self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
         sn = sessionmaker(bind=self.engine)
 
@@ -43,7 +42,7 @@ class Assessor(object):
         ).all()
 
         error_html = open(
-            "%s/assessor-error-html/error.html" % (config.DATA_DIR), 'r')
+            "%s/assessor-error-html/error.html" % (Config().DATA_DIR), 'r')
 
         num_records = len(q)
         print '%d records to check.' % num_records
@@ -213,7 +212,8 @@ class Assessor(object):
         error_con = urllib2.urlopen(error_req)
 
         error_html = error_con.read()
-        f = open("%s/assessor-error-html/error.html" % (config.DATA_DIR), 'w')
+        f = open(
+            "%s/assessor-error-html/error.html" % (Config().DATA_DIR), 'w')
         f.write(error_html)
         f.close()
 
@@ -272,7 +272,7 @@ class Assessor(object):
         print "# of assessor URLs to check:", len(assessor_urls)
 
         error_html = open(
-            "%s/assessor-error-html/error.html" % (config.DATA_DIR), 'r')
+            "%s/assessor-error-html/error.html" % (Config().DATA_DIR), 'r')
 
         problem_urls = []
 

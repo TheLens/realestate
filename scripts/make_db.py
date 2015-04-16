@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+'''Create database and setup tables'''
+
+# from __future__ import absolute_import
 
 import psycopg2
 from sqlalchemy import create_engine
@@ -10,11 +12,10 @@ from landrecords.lib.log import Log
 from landrecords.config import Config
 from landrecords import db
 
+log = Log('initialize').logger
+
 
 class MakeDB(object):
-
-    def __init__(self):
-        self.log = Log('initialize').logger
 
     def main(self):
         self.import_neighorhoods()
@@ -22,11 +23,15 @@ class MakeDB(object):
         self.spatial_index_on_cleaned_geom()
 
     def make_db(self):
+        '''Create tables in SQLAlchemy'''
+
         engine = create_engine(Config().SERVER_ENGINE,
                                implicit_returning=True)
         db.Base.metadata.create_all(engine)
 
     def import_neighorhoods(self):
+        '''Import neighborhood shapefiles'''
+
         conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
         cur = conn.cursor()
 
@@ -56,6 +61,8 @@ class MakeDB(object):
         conn.close()
 
     def spatial_index_on_cleaned_geom(self):
+        '''Create spatial index on cleaned table'''
+
         call(['psql',
               'landrecords',
               '-c',

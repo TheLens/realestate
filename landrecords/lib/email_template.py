@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from landrecords import db
+'''Email template specific to property sales app'''
+
 from landrecords.lib import stat_analysis
 from landrecords.lib.log import Log
 from landrecords.lib.utils import Utils
 
-log = Log('initialize').logger
+LOG = Log('initialize').logger
 
 
 class EmailTemplate(object):
+    '''Email template class, including subject and body generators'''
 
     def __init__(self, initial_date=None, until_date=None):
 
@@ -16,6 +18,8 @@ class EmailTemplate(object):
         self.until_date = until_date
 
     def generate_subject(self):
+        '''Generates subject for email'''
+
         subject = "Land records summary for"
 
         if self.initial_date == self.until_date:
@@ -28,8 +32,9 @@ class EmailTemplate(object):
         return subject
 
     def generate_body(self):
-        stat = stat_analysis.StatAnalysis(
-            db.Cleaned(), self.initial_date, self.until_date)
+        '''Generates body for email, including statistics'''
+
+        stat = stat_analysis.StatAnalysis(self.initial_date, self.until_date)
 
         email_string = (
             '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={1}' +
@@ -60,8 +65,8 @@ class EmailTemplate(object):
             '\n' +
             '\n'
         ).format(
-            Utils().ymd_to_full_date(self.initial_date),
-            Utils().ymd_to_full_date(self.until_date),
+            Utils().ymd_to_full_date(self.initial_date, no_day=True),
+            Utils().ymd_to_full_date(self.until_date, no_day=True),
             format(stat.count(), ','),
             Utils().ymd_to_full_date(self.initial_date),
             Utils().ymd_to_full_date(self.until_date),

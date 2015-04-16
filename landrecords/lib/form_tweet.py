@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''Runs logic to find what to tweet and forms language for tweet'''
+
 # todo: run this separate from 3 a.m. scrape/initialize/etc cron job.
 # run this on a cron at same time we want to tweet.
 
@@ -17,6 +19,8 @@ from landrecords.lib.log import Log
 
 
 class TwitterPreparer(object):
+
+    '''Runs logic to find what to tweet and forms language for tweet'''
 
     def __init__(self):
         self.log = Log('twitter_preparer').logger

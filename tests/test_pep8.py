@@ -10,7 +10,8 @@ ignore_patterns = ('bin', 'tests', 'misc')
 
 
 def ignore(dir):
-    """Should the directory be ignored?"""
+    '''Check if this directory should be ignored'''
+
     for pattern in ignore_patterns:
         if pattern in dir:
             return True
@@ -20,7 +21,7 @@ def ignore(dir):
 class TestPep8(TestCase):
 
     def test_pep8(self):
-        "Test that all Python files conform to PEP8 standards."
+        '''Test that all Python files conform to PEP8 standards.'''
 
         pep8style = pep8.StyleGuide(quiet=False)
 
