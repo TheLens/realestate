@@ -8,8 +8,6 @@ from twython import Twython
 from landrecords.config import Config
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class Twitter(object):
 
@@ -78,3 +76,6 @@ class Twitter(object):
 
         self.twitter.update_status_with_media(status=self.status,
                                               media=attachment)
+
+if __name__ == '__main__':
+    log = Log(__name__).initialize_log()

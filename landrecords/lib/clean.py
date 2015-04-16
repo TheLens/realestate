@@ -3,7 +3,6 @@
 '''JOIN the four individual tables, clean and commit to cleaned'''
 
 import re
-import pprint
 
 from subprocess import call
 from sqlalchemy import create_engine, insert, func, cast, Text
@@ -14,9 +13,6 @@ from landrecords.config import Config
 from landrecords import db
 from landrecords.lib.libraries import Library
 from landrecords.lib.log import Log
-
-pp = pprint.PrettyPrinter()
-log = Log('initialize').logger
 
 
 class Join(object):
@@ -659,4 +655,6 @@ class Clean(object):
         self.prep_locations_for_geocoding()
 
 if __name__ == '__main__':
+    log = Log('initialize').initialize_log()
+
     Clean().main()

@@ -4,7 +4,6 @@
 
 import logging
 import logging.handlers
-# import os
 
 from landrecords.config import Config
 
@@ -15,7 +14,6 @@ class Log(object):
 
     def __init__(self, name):
         self.name = name
-        self.logger = self.initialize_log()
 
     def initialize_log(self):
         '''Set up logger'''
@@ -28,7 +26,7 @@ class Log(object):
 
         # Create file handler which logs debug messages or higher
         filehandler = logging.FileHandler(
-            '%s/%s.log' % (Config().LOG_DIR, self.name))
+            '%s/landrecords.log' % (Config().LOG_DIR))
         filehandler.setLevel(logging.DEBUG)
 
         # Create formatter and add it to the handlers

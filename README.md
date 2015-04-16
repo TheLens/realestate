@@ -98,7 +98,7 @@ Renders the data.
 
 #### `log.py`
 
-The universal logging class that can be imported into any script like so: `log = Log('name').logger`. Then it can be accessed throughout the script like so:
+The universal logging class that can be imported into any script like so: `log = Log('initialize').initialize_log()`. Then it can be accessed throughout the script like so:
 
 `log.debug('Description')`
 `log.info('Description')`

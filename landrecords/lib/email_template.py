@@ -6,8 +6,6 @@ from landrecords.lib import stat_analysis
 from landrecords.lib.log import Log
 from landrecords.lib.utils import Utils
 
-LOG = Log('initialize').logger
-
 
 class EmailTemplate(object):
     '''Email template class, including subject and body generators'''
@@ -110,3 +108,6 @@ class EmailTemplate(object):
             message = ''
 
         return email_string
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()

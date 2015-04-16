@@ -5,97 +5,118 @@
 # todo: run this separate from 3 a.m. scrape/initialize/etc cron job.
 # run this on a cron at same time we want to tweet.
 
-import random
 import sys
 
-from fabric.api import local
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-# from datetime import datetime, timedelta
+from datetime import timedelta
+from subprocess import call
 
-from landrecords import config, db
+from landrecords import db
+from landrecords.config import Config
 from landrecords.lib.log import Log
+from landrecords.lib.twitter import Twitter
 
 
-class TwitterPreparer(object):
+class AutoTweet(object):
 
     '''Runs logic to find what to tweet and forms language for tweet'''
 
     def __init__(self):
-        self.log = Log('twitter_preparer').logger
 
         base = declarative_base()
-        engine = create_engine(config.SERVER_ENGINE)
+        engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 
-    # twitter = Twython(APP_KEY, APP_SECRET, OAUTH_TOKEN, OAUTH_TOKEN_SECRET)
+        return_dict = self.figure_out_recorded_date()
 
-    def main(self):
-        document_recorded = self.figure_out_recorded_date()
-        details = self.get_highest_amount_details(document_recorded)
+        self.document_recorded_early = return_dict['document_recorded_early']
+        self.document_recorded_late = return_dict['document_recorded_late']
+        self.time_period = return_dict['time_period']
 
-        amount = details['amount']
-        instrument_no = details['instrument_no']
-        document_date = details['document_date']
+        query_dict = self.get_highest_amount_details()
 
-        image = self.get_image(instrument_no)
+        self.amount = query_dict['amount']
+        self.instrument_no = query_dict['instrument_no']
+        self.neighborhood = query_dict['neighborhood']
 
-        url = self.form_url(instrument_no)
+        self.neighborhood = self.conversational_neighborhoods()
 
-        message = self.form_message(
-            amount, url, document_recorded, document_date)
+        self.url = self.form_url()
 
-        self.send_tweet(message, image)
+        self.name = self.screenshot_name()
 
-        image.close()
+        # self.media_attachment = self.open_image()
 
-    def figure_out_recorded_date():
-        document_recorded = ''
+        self.message = self.form_message()
 
-        # Assuming we wanted to tweet a Friday sale on Sunday and
-        # Monday, which we don't.
-        '''
-        if today_date.strftime('%A') == 'Sunday':
-            document_recorded = (
-                                    today_date - timedelta(days = 2)
-                                ).strftime(
-                                    '%Y-%m-%d'
-                                )
+        # self.send_tweet(message, image)
 
-        if today_date.strftime('%A') == 'Monday':
-            document_recorded = (
-                                    today_date - timedelta(days = 3)
-                                ).strftime(
-                                    '%Y-%m-%d'
-                                )
-        '''
+    def figure_out_recorded_date(self):
+        '''Treat Tuesday-Saturday like any other day. Don\'t do anything on
+           Sundays. Mondays tweet about entire previous week.'''
 
-        # If today is Sunday or Monday, don't tweet
-        # because there is nothing new to tweet.
-        # Friday sales would have been tweeted on Saturday.
-        # Monday sales won't be recorded and ready
-        # for tweeting until Tuesday.
-        if (
-            (config.TODAY_DATETIME).strftime('%A') == 'Sunday' or
-            (config.TODAY_DATETIME).strftime('%A') == 'Monday'
-        ):
+        document_recorded_early = ''
+        document_recorded_late = ''
+        time_period = ''
+
+        if Config().TODAY_DATETIME.strftime('%A') == 'Sunday':
             sys.exit()
+            return
+        elif Config().TODAY_DATETIME.strftime('%A') == 'Monday':
+            document_recorded_early = (
+                Config().TODAY_DATETIME - timedelta(days=7)
+            ).strftime(
+                '%Y-%m-%d'
+            )
 
-        return document_recorded
+            document_recorded_late = (
+                Config().TODAY_DATETIME - timedelta(days=3)
+            ).strftime(
+                '%Y-%m-%d'
+            )
 
-    def get_highest_amount_details(self, document_recorded):
+            time_period = 'last week'
+        else:
+            document_recorded_early = (
+                Config().TODAY_DATETIME - timedelta(days=1)
+            ).strftime(
+                '%Y-%m-%d'
+            )
+
+            document_recorded_late = (
+                Config().TODAY_DATETIME - timedelta(days=1)
+            ).strftime(
+                '%Y-%m-%d'
+            )
+
+            time_period = (
+                Config().TODAY_DATETIME - timedelta(days=1)
+            ).strftime('%A')
+
+        return_dict = {}
+        return_dict['document_recorded_early'] = document_recorded_early
+        return_dict['document_recorded_late'] = document_recorded_late
+        return_dict['time_period'] = time_period
+
+        return return_dict
+
+    def get_highest_amount_details(self):
         session = self.sn()
 
-        q = session.query(
+        query = session.query(
             db.Cleaned.detail_publish,
             db.Cleaned.document_recorded,
-            db.Cleaned.amount
+            db.Cleaned.amount,
+            db.Cleaned.neighborhood
         ).filter(
             db.Cleaned.detail_publish == '1'
         ).filter(
-            db.Cleaned.document_recorded == '%s' % document_recorded
+            db.Cleaned.document_recorded >= '%s' % self.document_recorded_early
+        ).filter(
+            db.Cleaned.document_recorded <= '%s' % self.document_recorded_late
         ).order_by(
             db.Cleaned.amount.desc()
         ).limit(1).all()
@@ -105,66 +126,101 @@ class TwitterPreparer(object):
         # doesn't tweet out nonsense.
         # Could be because of federal holidays, the city didn't enter
         # records on a given day, or any number of other reasons.
-        if len(q) == 0:
+        if len(query) == 0:
             sys.exit()
 
-        amount = 0
-        instrument_no = ''
-        document_recorded = ''
-        document_date = ''
-        for u in q:
-            amount = u.amount
+        query_dict = {}
 
-            # .strftime('%A, %b. %-d, %Y')
-            document_date = u.document_date.strftime('%A')
-            instrument_no = u.instrument_no
-
-        amount = '$' + format(amount, ',')
+        for row in query:
+            query_dict['amount'] = '$' + format(row.amount, ',')
+            query_dict['instrument_no'] = row.instrument_no
+            query_dict['neighborhood'] = row.neighborhood
+            # todo: neighborhood cleaning in clean.py? "Dev" => "Development"
 
         session.close()
 
-        return {'amount': amount,
-                'instrument_no': instrument_no,
-                'document_date': document_date}
+        return query_dict
 
-    def form_url(self, instrument_no):
-        url = 'http://vault.thelensnola.org/realestate/sale/' + instrument_no
+    def conversational_neighborhoods(self):
+        nbhd_list = [
+            'BLACK PEARL'
+            'BYWATER'
+            'CENTRAL BUSINESS DISTRICT'
+            'DESIRE AREA'
+            'FAIRGROUNDS'
+            'FISCHER DEV'
+            'FLORIDA AREA'
+            'FLORIDA DEV'
+            'FRENCH QUARTER'
+            'GARDEN DISTRICT'
+            'IRISH CHANNEL'
+            'LOWER GARDEN DISTRICT'
+            'LOWER NINTH WARD'
+            'MARIGNY'
+            'SEVENTH WARD'
+            'ST. BERNARD AREA'
+            'ST. THOMAS DEV'
+            'U.S. NAVAL BASE'
+        ]
+
+        for nbhd in nbhd_list:
+            if self.neighborhood == nbhd:
+                self.neighborhood == 'the ' + self.neighborhood
+
+    def form_url(self):
+        '''Append instrument number to /realestate/sale/'''
+
+        url = 'http://vault.thelensnola.org/realestate/sale/' + \
+            + self.instrument_no
+
         return url
 
-    def form_message(self, amount, url, document_recorded, document_date):
-        options = []
+    def screenshot_name(self):
+        '''Form filename for map screenshot'''
 
-        # Normal amounts
-        options.append("The most expensive property sale reported %s was for"
-                       " %s. %s" % (document_recorded, amount, url))
-        options.append("The most expensive property sale reported %s was for"
-                       " %s. %s" % (document_recorded, amount, url))
+        name = '%s-%s-high-amount.png' % (
+            Config().TODAY_DATE, self.instrument_no)
 
-        # High amounts
-        if amount >= 1000000:
-            # options = []
-            options.append("The most expensive property sale reported %s was "
-                           "for %s. %s" % (document_recorded, amount, url))
+        return name
 
-        option = random.choice(options)
+    def get_image(self):
+        call(['%s/scripts/phantomjs' % Config().PROJECT_DIR,
+              '%s/scripts/screen.js' % Config().PROJECT_DIR,
+              self.url,
+              '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)])
 
-        return option
+    def open_image(self):
+        self.get_image()
 
-    def get_image(self, instrument_no):
-        local('%s/bin/phantomjs ' % (config.PROJECT_DIR) +
-              'screen.js ' +
-              '%s/sale/%s ' % (config.PROJECT_URL, instrument_no) +
-              '%s/%s_date_hi.png' % (config.IMAGE_DIR, instrument_no))
-        image = open(
-            's/%s_date_hi.png' % (config.IMAGE_DIR, instrument_no),
-            'rb')
-        return image
+        filename = '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)
 
-    def send_tweet(self, message, image):
-        # twitter.update_status_with_media(status = message, media = image)
-        print 'Characters left over: ', \
-            140 - len(message.split('.')[0] + '. ') - 22 - 23
-        print message
+        return filename
+
+        # with open(filename, 'rb') as image:
+        #     return image
+
+    def form_message(self):
+        '''Plug variables into mab lib sentences'''
+
+        # options = []
+
+        message = (
+            "Priciest property sale recorded %s was in %s: %s.\n%s"
+        ).format(
+            self.time_period,
+            self.neighborhood,
+            self.amount,
+            self.url
+        )
+
+        # option = random.choice(options)
+
+        return message
+
+    def main(self, message, image):
+        status = self.form_message()
+        media = self.open_image()
+        Twitter(status=status).send_with_media(media=media)
 
 if __name__ == '__main__':
-    TwitterPreparer().main(0)
+    log = Log(__name__).initialize_log()

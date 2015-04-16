@@ -12,8 +12,6 @@ from landrecords import db
 from landrecords.lib import scrape
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class CheckTemp(object):
 
@@ -314,3 +312,6 @@ class CheckTemp(object):
         # checkPermanentStatusOfNewSales().
         log.info('doitall')
         # initialize.do_it_all(early_date, late_date)  # todo: uncomment
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()

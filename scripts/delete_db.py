@@ -16,8 +16,6 @@ from sqlalchemy.schema import (
 from landrecords.lib.log import Log
 from landrecords.config import Config
 
-log = Log('initialize').logger
-
 
 class Delete(object):
 
@@ -93,4 +91,5 @@ class Delete(object):
         self.trans.commit()
 
 if __name__ == '__main__':
+    log = Log(__name__).initialize_log()
     Delete().main()

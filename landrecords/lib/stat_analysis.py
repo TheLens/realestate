@@ -7,8 +7,6 @@ from sqlalchemy import create_engine
 from landrecords.config import Config
 from landrecords.lib.log import Log
 
-LOG = Log('initialize').logger
-
 
 class StatAnalysis(object):
 
@@ -170,7 +168,4 @@ class StatAnalysis(object):
         return rows
 
 if __name__ == '__main__':
-    StatAnalysis(
-        '2014-02-18',
-        '2014-02-18'
-    ).count()
+    log = Log('initialize').initialize_log()

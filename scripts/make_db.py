@@ -12,8 +12,6 @@ from landrecords.lib.log import Log
 from landrecords.config import Config
 from landrecords import db
 
-log = Log('initialize').logger
-
 
 class MakeDB(object):
 
@@ -91,4 +89,5 @@ class MakeDB(object):
         # -o neighborhoods-topo.min.js
 
 if __name__ == '__main__':
+    log = Log(__name__).initialize_log()
     MakeDB().main()

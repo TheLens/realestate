@@ -11,8 +11,6 @@ from landrecords import db
 from landrecords.lib import parse
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class Build(object):
 
@@ -105,3 +103,6 @@ class Build(object):
 
         session.commit()
         session.close()
+
+if __name__ == '__main__':
+    log = Log(__name__).initialize_log()

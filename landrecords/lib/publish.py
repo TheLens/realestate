@@ -13,7 +13,6 @@ from landrecords.lib.log import Log
 class Publish(object):
 
     def __init__(self, initial_date=None, until_date=None):
-        self.log = Log('publish').logger
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -233,3 +232,6 @@ class Publish(object):
         self.check_high_amount()
 
         self.commit_session()
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()

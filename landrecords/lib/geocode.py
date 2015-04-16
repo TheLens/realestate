@@ -10,8 +10,6 @@ from landrecords.config import Config
 from landrecords import db
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class Geocode(object):
 
@@ -92,3 +90,6 @@ class Geocode(object):
                 ORDER BY document_id
             ) As g ON a.document_id = g.document_id
             WHERE a.document_id = locations.document_id;""")
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()

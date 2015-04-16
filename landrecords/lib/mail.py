@@ -9,8 +9,6 @@ from email.mime.text import MIMEText
 from landrecords.config import Config
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class Mail(object):
 
@@ -92,3 +90,6 @@ class Mail(object):
         msg.attach(msg_html)
 
         self.send_email(msg)
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()

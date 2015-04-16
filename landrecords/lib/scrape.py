@@ -14,8 +14,6 @@ from landrecords.config import Config
 from landrecords.lib.mail import Mail
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class Scrape(object):
 
@@ -161,8 +159,8 @@ class Scrape(object):
         log.info(
             'Delete old most-recent-permanent-date-range/*.html file')
 
-        fl_str = "%s/most-recent-permanent-date-range/" + \
-            "*.html" % (Config().DATA_DIR)
+        fl_str = "%s/most-recent-permanent-date-range/*.html" % (
+            Config().DATA_DIR)
         for fl in glob.glob(fl_str):
             os.remove(fl)
 
@@ -275,10 +273,11 @@ class Scrape(object):
             return
 
         total_pages = int(options[-1].get_attribute('value'))
-        log.debug(total_pages)
+        log.debug('%d pages to parse for %s-%s-%s' % (
+            total_pages, year, month, day))
 
         for i in range(1, total_pages + 1):
-            log.debug(i)
+            log.debug('Page: %d' % i)
 
             self.parse_page(i, year, month, day)
 
@@ -286,13 +285,12 @@ class Scrape(object):
         '''Parse results page for sale document IDs'''
 
         # Save table page
-        log.info('Write table page HTML')
+        log.info('Parse results page table HTML')
         html_out = open("%s/raw/%s-%s-%s/page-html/page%d.html"
                         % (Config().DATA_DIR, year, month, day, i), "w")
         html_out.write((self.driver.page_source).encode('utf-8'))
         html_out.close()
 
-        log.info('Build BeautifulSoup')
         bs_file = "%s/raw/%s-%s-%s/page-html/page%d.html" % (
             Config().DATA_DIR, year, month, day, i)
         soup = BeautifulSoup(open(bs_file))
@@ -301,10 +299,11 @@ class Scrape(object):
 
         rows = soup.find_all('td', class_="igede12b9e")  # List of Object IDs
 
-        log.debug(len(rows))
+        log.debug('There are %d rows for this page' % len(rows))
 
         for j in range(1, len(rows)):
-            log.debug((i - 1) * 20 + j)
+            log.debug('Analyzing overall row %d for %s-%s-%s' % (
+                (i - 1) * 20 + j, year, month, day))
 
             self.parse_sale(j, rows, year, month, day)
 
@@ -327,7 +326,8 @@ class Scrape(object):
 
         document_id = rows[j].string
 
-        log.debug(document_id)
+        log.debug('Saving HTML for %s on %s-%s-%s' % (
+            document_id, year, month, day))
 
         single_sale_url = (
             "http://onlinerecords.orleanscivilclerk.com/" +
@@ -335,25 +335,51 @@ class Scrape(object):
             "global_id=%s" % (document_id) +
             "&type=dtl")
 
-        log.debug(single_sale_url)
+        log.debug('Sale URL: %s' % single_sale_url)
 
         try:
-            log.info('Load %s', single_sale_url)
+            log.info('Loading %s' % single_sale_url)
             self.driver.get(single_sale_url)
             time.sleep(1.2)
         except Exception, e:
             log.error(e, exc_info=True)
 
+        html = self.driver.page_source
+
         log.info('Save this sale HTML')
-        html_out = open("%s/" % (Config().DATA_DIR) +
-                        "raw/" +
-                        "%s-%s-%s/" % (year, month, day) +
-                        "form-html/%s.html" % (document_id),
-                        "w")
-        html_out.write((self.driver.page_source).encode('utf-8'))
+
+        html_file = "%s/raw/" % (Config().DATA_DIR) + \
+                    "%s-%s-%s/" % (year, month, day) + \
+                    "form-html/%s.html" % (document_id)
+
+        html_out = open(html_file, "w")
+        html_out.write(html.encode('utf-8'))
         html_out.close()
 
+        try:
+            assert not self.check_if_error(html_file)
+        except Exception, e:
+            # todo: better way to track:
+            log.debug('Deleting error page: %s' % html_file)
+            os.remove(html_file)
+            log.error(e, exc_info=True)
+            return
+
         time.sleep(1.2)
+
+    @staticmethod
+    def check_if_error(html):
+        'Checks if the download single sale HTML is an error page'
+
+        soup = BeautifulSoup(open(html))
+
+        title = soup.find_all('title')[0].string
+
+        if title == 'Error':
+            log.debug('Error page was downloaded')
+            return True
+        else:
+            return False
 
     # Logout
     def logout(self):
@@ -434,7 +460,13 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
+    log = Log(__name__).initialize_log()
+
     Scrape(
-        initial_date=datetime(2014, 2, 21),
+        initial_date=datetime(2014, 6, 9),
         until_date=datetime(2015, 4, 15)
     ).main()
+    # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/
+    # land-records/repo/data/sale-error-html/error.html')
+    # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/
+    # land-records/repo/data/raw/2014-02-18/form-html/OPR288694480.html')

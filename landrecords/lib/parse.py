@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 
+'''Parse sale HTML and return as structured data'''
+
 import re
 from bs4 import BeautifulSoup
 
 from landrecords.lib.log import Log
 
-log = Log('initialize').logger
-
 
 class AllPurposeParser(object):
+
+    '''Parsing not specific to any single table'''
 
     def __init__(self, html):
 
         self.document_id = self.get_document_id(html)
 
     def get_document_id(self, html):
-        "Input: html (string) of the full path to an HTML file."
-        "Output: The file name, which is a sale's document ID"
+        '''Find a sale\'s document ID based on the file name'''
 
         doc_id = re.search(r"(\w+)\.html", html).group(1)
 
@@ -25,9 +26,9 @@ class AllPurposeParser(object):
 
 class DetailParser(object):
 
-    def __init__(self, html):
-        # log.debug('Detail parse')
+    '''Parse details HTML'''
 
+    def __init__(self, html):
         self.rows = self.get_rows(html)
 
         self.document_id = AllPurposeParser(html).document_id
@@ -52,6 +53,8 @@ class DetailParser(object):
         self.image = self.get_field(17)
 
     def get_rows(self, html):
+        '''Return rows for details table HTML'''
+
         f = open(html, 'r')
         soup = BeautifulSoup(f.read())
 
@@ -63,6 +66,8 @@ class DetailParser(object):
         return rows
 
     def parse_rows(self, soup):
+        '''Find rows in details table HTML'''
+
         rows = soup.find(
             'table',
             id="ctl00_cphNoMargin_f_oprTab_tmpl0_documentInfoList"
@@ -73,6 +78,8 @@ class DetailParser(object):
         return rows
 
     def get_field(self, row_id):
+        '''Extract values in rows'''
+
         cells = self.rows[row_id].find_all('td')
         field = str(cells[1].string)  # 0 is key, 1 is value
 
@@ -82,11 +89,15 @@ class DetailParser(object):
         return field
 
     def convert_amount(self, amount):
+        '''Convert amounts to int'''
+
         amount = re.sub(r"\$", r"", amount)
         amount = re.sub(r"\,", r"", amount)
         return int(float(amount))
 
     def form_dict(self):
+        '''Return dict of details rows'''
+
         dict_output = self.__dict__
 
         del dict_output['rows']
@@ -96,6 +107,8 @@ class DetailParser(object):
 
 class VendorParser(object):
 
+    '''Parse vendors HTML'''
+
     def __init__(self, html):
         # log.debug('Vendor parse')
 
@@ -104,6 +117,8 @@ class VendorParser(object):
         self.document_id = AllPurposeParser(html).document_id
 
     def get_rows(self, html):
+        '''Return rows for vendors'''
+
         f = open(html, 'r')
         soup = BeautifulSoup(f.read())
 
@@ -115,12 +130,16 @@ class VendorParser(object):
         return rows
 
     def parse_rows(self, soup):
+        '''Find rows for vendors HTML'''
+
         rows = soup.find('table',
                          id="ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11"
                          ).find_all('tr')
         return rows
 
     def form_list(self):
+        '''Form list of dicts for vendors HTML'''
+
         list_output = []
 
         for i, row in enumerate(self.rows):
@@ -139,6 +158,8 @@ class VendorParser(object):
         return list_output
 
     def get_field(self, row, cell_id):
+        '''Make corrections to dict values'''
+
         cells = row.find_all('span')
         cell = cells[cell_id]
 
@@ -231,9 +252,11 @@ class LocationParser(object):
         return rows
 
     def parse_rows(self, soup):
-        rows = soup.find('table',
-                         id="ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals"
-                         ).find_all('tr')
+        rows = soup.find(
+            'table',
+            id="ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals"
+        ).find_all('tr')
+
         return rows
 
     def form_list(self):
@@ -244,8 +267,6 @@ class LocationParser(object):
         # 19 rows if two, 29 if three, etc.
         # (Because of border row that only appears once multiple tables
         number_of_tables = ((len(self.rows) - 9) / 10) + 1
-
-        # print '\nnumber_of_tables:', number_of_tables
 
         for table_no in range(0, number_of_tables):
             dict_output = {
@@ -263,13 +284,7 @@ class LocationParser(object):
                 'freeform_legal': self.get_freeform_legal(table_no),
                 'document_id': self.document_id
             }
-            # print '\ndict_output:', dict_output
             list_output.append(dict_output)
-
-            # Check if new mini table:
-            # if (i - 9) % 10:  # This is the first row in a new table!
-
-        # print '\nlist_output:', list_output
 
         return list_output
 
@@ -404,3 +419,6 @@ class LocationParser(object):
                 lot = ""
 
         return lot
+
+if __name__ == '__main__':
+    log = Log(__name__).initialize_log()

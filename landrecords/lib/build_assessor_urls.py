@@ -285,6 +285,8 @@ def get_instrument_numbers():
     f.close()
 
 if __name__ == '__main__':
+    log = Log('initialize').initialize_log()
+
     get_instrument_numbers()
     # form_assessor_url("7471 Restgate Road, Unit: , Condo: , Weeks: ,
     # Subdivision: Lake Forest No 8 Warwick East, District: 3rd,

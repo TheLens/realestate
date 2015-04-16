@@ -20,6 +20,18 @@ def init():
         Config().SERVER_SCRIPTS_DIR))
 
 
+def log():
+    local('scp %s/log.py tom@%s:%s' % (Config().LOCAL_LIB_DIR,
+                                       Config().SERVER_NAME,
+                                       Config().SERVER_LIB_DIR))
+
+
+def mail():
+    local('scp %s/mail.py tom@%s:%s' % (Config().LOCAL_LIB_DIR,
+                                        Config().SERVER_NAME,
+                                        Config().SERVER_LIB_DIR))
+
+
 def scrape():
     local('scp %s/scrape.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
@@ -89,9 +101,6 @@ def scripts():
     local('scp %s/make_db.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
-    # local('scp %s/phantomjs tom@%s:%s' % (
-    #     Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
-    #     Config().SERVER_SCRIPTS_DIR))
     local('scp %s/scrape.sh tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
@@ -164,11 +173,11 @@ def lib():
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/check_temp_status.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
-    # local('scp %s/clean.py tom@%s:%s' % (
-    #     Config().LOCAL_LIB_DIR,
-    #     Config().SERVER_NAME,
-    #     Config().SERVER_LIB_DIR)
-    # )
+    local('scp %s/clean.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR,
+        Config().SERVER_NAME,
+        Config().SERVER_LIB_DIR)
+    )
     local('scp %s/dashboard_sync.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/email_template.py tom@%s:%s' % (

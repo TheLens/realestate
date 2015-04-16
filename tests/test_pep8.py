@@ -6,7 +6,7 @@ import os
 import fnmatch
 
 # ignore stuff in virtualenvs or version control directories
-ignore_patterns = ('bin', 'tests', 'misc')
+ignore_patterns = ('backup', 'data', 'logs', 'misc')
 
 
 def ignore(dir):

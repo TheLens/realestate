@@ -13,8 +13,6 @@ from landrecords.lib.log import Log
 from landrecords import db
 from landrecords.config import Config
 
-log = Log('initialize').logger
-
 
 class Assessor(object):
 
@@ -293,6 +291,8 @@ class Assessor(object):
 
 if __name__ == '__main__':
     '''Check that assessor URLS form correctly'''
+    log = Log('initialize').initialize_log()
+
     # Assessor().get_error_page_html()
     # formAssessorURL("7471 Restgate Road, Unit: , Condo: , Weeks: ,
     # Subdivision: Lake Forest No 8 Warwick East, District: 3rd, Square: 7,

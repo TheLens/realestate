@@ -14,8 +14,6 @@ from landrecords.lib.publish import Publish
 from landrecords.lib.check_temp_status import CheckTemp
 from landrecords.lib.email_template import EmailTemplate
 
-log = Log('initialize').logger
-
 
 class Initialize(object):
 
@@ -87,6 +85,8 @@ class Initialize(object):
 
 
 if __name__ == '__main__':
+    log = Log(__name__).initialize_log()
+
     try:
         # Default is to build entire archive since 2014/02/18
         Initialize(

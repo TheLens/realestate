@@ -1,18 +1,14 @@
 # -*- coding: utf-8 -*-
 
 import re
-import pprint
 from datetime import datetime
 
 from landrecords.lib.log import Log
-
-pp = pprint.PrettyPrinter()
 
 
 class Utils(object):
 
     def __init__(self):
-        self.log = Log('utils').logger
         self.zip_codes = [70112, 70113, 70114, 70115, 70116, 70117, 70118,
                           70119, 70121, 70122, 70123, 70124, 70125, 70126,
                           70127, 70128, 70129, 70130, 70131, 70139, 70140,
@@ -124,3 +120,6 @@ class Utils(object):
         }
         bit = conversion_dict[english]
         return bit
+
+if __name__ == '__main__':
+    log = Log('initialize').initialize_log()
