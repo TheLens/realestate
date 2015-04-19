@@ -1,37 +1,43 @@
 # -*- coding: utf-8 -*-
 
-'''Parse sale HTML and return as structured data'''
+'''Parse sale HTML and return as structured data.'''
 
 import re
 from bs4 import BeautifulSoup
 
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class AllPurposeParser(object):
 
-    '''Parsing not specific to any single table'''
+    '''Parsing that is not specific to any table.'''
 
-    def __init__(self, html):
+    def __init__(self, html_path):
+        '''Receives path to HTML file.'''
 
-        self.document_id = self.get_document_id(html)
+        self.document_id = self.get_document_id(html_path)
 
-    def get_document_id(self, html):
-        '''Find a sale\'s document ID based on the file name'''
+    @staticmethod
+    def get_document_id(html_path):
+        '''Find a sale\'s document ID based on the file name.'''
 
-        doc_id = re.search(r"(\w+)\.html", html).group(1)
+        doc_id = re.search(r"(\w+)\.html", html_path).group(1)
+
+        log.debug('Document ID: %s', doc_id)
 
         return doc_id
 
 
 class DetailParser(object):
 
-    '''Parse details HTML'''
+    '''Parse details HTML.'''
 
-    def __init__(self, html):
-        self.rows = self.get_rows(html)
+    def __init__(self, html_path):
+        '''Create self variables for each detail field.'''
 
-        self.document_id = AllPurposeParser(html).document_id
+        self.rows = self.get_rows(html_path)
+
+        self.document_id = AllPurposeParser(html_path).document_id
 
         self.document_type = self.get_field(0)
         self.instrument_no = self.get_field(1)
@@ -52,21 +58,22 @@ class DetailParser(object):
         self.no_pages_in_image = self.get_field(16)
         self.image = self.get_field(17)
 
-    def get_rows(self, html):
-        '''Return rows for details table HTML'''
+    def get_rows(self, html_path):
+        '''Return rows for details table HTML.'''
 
-        f = open(html, 'r')
-        soup = BeautifulSoup(f.read())
+        html_file = open(html_path, 'r')
+        soup = BeautifulSoup(html_file.read())
 
         rows = self.parse_rows(soup)
 
         soup.decompose()
-        f.close()
+        html_file.close()
 
         return rows
 
-    def parse_rows(self, soup):
-        '''Find rows in details table HTML'''
+    @staticmethod
+    def parse_rows(soup):
+        '''Find rows in details table HTML.'''
 
         rows = soup.find(
             'table',
@@ -78,25 +85,42 @@ class DetailParser(object):
         return rows
 
     def get_field(self, row_id):
-        '''Extract values in rows'''
+        '''Extract values in rows.'''
 
         cells = self.rows[row_id].find_all('td')
         field = str(cells[1].string)  # 0 is key, 1 is value
 
+        # prekey = cells[0]
+        # log.debug(prekey)
+
+        key = str(cells[0].string)
+
+        # log.debug('key: %s', key)
+
+        cond = (key.strip() == 'Document Date:' or
+                key.strip() == 'Date Recorded:')
+
         if field == "None" or field == '' or field == "NONE":
+            # log.debug('LOOK')
+            # log.debug('Key: %s', key)
             field = ""
+            if cond:
+                # log.debug('LOOK 2.0!')  # todo: remove
+                # log.debug('Key 2.0: %s', key)
+                field = None
 
         return field
 
-    def convert_amount(self, amount):
-        '''Convert amounts to int'''
+    @staticmethod
+    def convert_amount(amount):
+        '''Convert amounts to int type.'''
 
         amount = re.sub(r"\$", r"", amount)
         amount = re.sub(r"\,", r"", amount)
         return int(float(amount))
 
     def form_dict(self):
-        '''Return dict of details rows'''
+        '''Return dict of details rows.'''
 
         dict_output = self.__dict__
 
@@ -107,38 +131,41 @@ class DetailParser(object):
 
 class VendorParser(object):
 
-    '''Parse vendors HTML'''
+    '''Parse vendors HTML.'''
 
-    def __init__(self, html):
-        # log.debug('Vendor parse')
+    def __init__(self, html_path):
+        '''Establish self variables.'''
 
-        self.rows = self.get_rows(html)
+        self.rows = self.get_rows(html_path)
 
-        self.document_id = AllPurposeParser(html).document_id
+        self.document_id = AllPurposeParser(html_path).document_id
 
-    def get_rows(self, html):
-        '''Return rows for vendors'''
+    def get_rows(self, html_path):
+        '''Return rows for vendors.'''
 
-        f = open(html, 'r')
-        soup = BeautifulSoup(f.read())
+        html_file = open(html_path, 'r')
+        soup = BeautifulSoup(html_file.read())
 
         rows = self.parse_rows(soup)
 
         soup.decompose()
-        f.close()
+        html_file.close()
 
         return rows
 
-    def parse_rows(self, soup):
-        '''Find rows for vendors HTML'''
+    @staticmethod
+    def parse_rows(soup):
+        '''Find rows for vendors HTML.'''
 
-        rows = soup.find('table',
-                         id="ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11"
-                         ).find_all('tr')
+        rows = soup.find(
+            'table',
+            id="ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11"
+        ).find_all('tr')
+
         return rows
 
     def form_list(self):
-        '''Form list of dicts for vendors HTML'''
+        '''Form list of dicts for vendors HTML.'''
 
         list_output = []
 
@@ -157,8 +184,9 @@ class VendorParser(object):
 
         return list_output
 
-    def get_field(self, row, cell_id):
-        '''Make corrections to dict values'''
+    @staticmethod
+    def get_field(row, cell_id):
+        '''Make corrections to dict values.'''
 
         cells = row.find_all('span')
         cell = cells[cell_id]
@@ -172,31 +200,41 @@ class VendorParser(object):
 
 class VendeeParser(object):
 
-    def __init__(self, html):
-        # log.debug('Vendee parse')
+    '''Parse vendees HTML.'''
 
-        self.rows = self.get_rows(html)
+    def __init__(self, html_path):
+        '''Establish self variables.'''
 
-        self.document_id = AllPurposeParser(html).document_id
+        self.rows = self.get_rows(html_path)
 
-    def get_rows(self, html):
-        f = open(html, 'r')
-        soup = BeautifulSoup(f.read())
+        self.document_id = AllPurposeParser(html_path).document_id
+
+    def get_rows(self, html_path):
+        '''Return rows for vendees.'''
+
+        html_file = open(html_path, 'r')
+        soup = BeautifulSoup(html_file.read())
 
         rows = self.parse_rows(soup)
 
         soup.decompose()
-        f.close()
+        html_file.close()
 
         return rows
 
-    def parse_rows(self, soup):
-        rows = soup.find('table',
-                         id="ctl00_cphNoMargin_f_oprTab_tmpl0_Datalist1"
-                         ).find_all('tr')
+    @staticmethod
+    def parse_rows(soup):
+        '''Find rows for vendees.'''
+
+        rows = soup.find(
+            'table',
+            id="ctl00_cphNoMargin_f_oprTab_tmpl0_Datalist1"
+        ).find_all('tr')
         return rows
 
     def form_list(self):
+        '''Form list of dicts for vendees HTML.'''
+
         list_output = []
 
         for i, row in enumerate(self.rows):
@@ -214,7 +252,10 @@ class VendeeParser(object):
 
         return list_output
 
-    def get_field(self, row, cell_id):
+    @staticmethod
+    def get_field(row, cell_id):
+        '''Make corrections to dict values.'''
+
         cells = row.find_all('span')
         cell = cells[cell_id]
 
@@ -227,12 +268,14 @@ class VendeeParser(object):
 
 class LocationParser(object):
 
-    def __init__(self, html):
-        # log.debug('Location parse')
+    '''Parse locations HTML.'''
 
-        self.rows = self.get_rows(html)
+    def __init__(self, html_path):
+        '''Establish self variables.'''
 
-        self.document_id = AllPurposeParser(html).document_id
+        self.rows = self.get_rows(html_path)
+
+        self.document_id = AllPurposeParser(html_path).document_id
 
     # def log_open(self, f):
     #     log.debug('Opening a file...')
@@ -240,18 +283,23 @@ class LocationParser(object):
 
     #     return open(f, 'r')
 
-    def get_rows(self, html):
-        f = open(html, 'r')
-        soup = BeautifulSoup(f.read())
+    def get_rows(self, html_path):
+        '''Return rows for locations.'''
+
+        html_file = open(html_path, 'r')
+        soup = BeautifulSoup(html_file.read())
 
         rows = self.parse_rows(soup)
 
         soup.decompose()
-        f.close()
+        html_file.close()
 
         return rows
 
-    def parse_rows(self, soup):
+    @staticmethod
+    def parse_rows(soup):
+        '''Find rows for locations.'''
+
         rows = soup.find(
             'table',
             id="ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals"
@@ -260,6 +308,8 @@ class LocationParser(object):
         return rows
 
     def form_list(self):
+        '''Form list of dicts for locations HTML.'''
+
         list_output = []
 
         # Find number of mini tables:
@@ -288,7 +338,10 @@ class LocationParser(object):
 
         return list_output
 
-    def convert_to_string(self, lot):
+    @staticmethod
+    def convert_to_string(lot):
+        '''Make corrections to dict values.'''
+
         if isinstance(lot, str) == 0:
             lot = str(lot.string)
         if lot == "None" or lot == '' or lot == "NONE":
@@ -296,6 +349,8 @@ class LocationParser(object):
         return lot
 
     def get_field(self, row_index, cell_index, table_no):
+        '''Get the field value for a given table's row and cell indeces.'''
+
         overall_index = table_no * 10 + row_index
 
         field = self.rows[overall_index].find_all('span')[cell_index]
@@ -303,6 +358,8 @@ class LocationParser(object):
         return self.convert_to_string(field)
 
     def get_subdivision(self, table_no):
+        '''Returns the subdivision field value.'''
+
         row_index = 0
         cell_index = 1
 
@@ -311,6 +368,8 @@ class LocationParser(object):
         return subdivision
 
     def get_condo(self, table_no):
+        '''Returns the condo field value.'''
+
         row_index = 1
         cell_index = 1
 
@@ -319,6 +378,8 @@ class LocationParser(object):
         return condo
 
     def get_district(self, table_no):
+        '''Returns the district field value.'''
+
         row_index = 3
         cell_index = 1
 
@@ -327,6 +388,8 @@ class LocationParser(object):
         return district
 
     def get_square(self, table_no):
+        '''Returns the square field value.'''
+
         row_index = 3
         cell_index = 3
 
@@ -335,6 +398,8 @@ class LocationParser(object):
         return square
 
     def get_street_number(self, table_no):
+        '''Returns the street number field value.'''
+
         row_index = 5
         cell_index = 1
 
@@ -343,6 +408,8 @@ class LocationParser(object):
         return street_number
 
     def get_address(self, table_no):
+        '''Returns the address field value.'''
+
         row_index = 5
         cell_index = 3
 
@@ -351,6 +418,8 @@ class LocationParser(object):
         return weeks
 
     def get_unit(self, table_no):
+        '''Returns the unit field value.'''
+
         row_index = 6
         cell_index = 1
 
@@ -359,6 +428,8 @@ class LocationParser(object):
         return unit
 
     def get_weeks(self, table_no):
+        '''Returns the weeks field value.'''
+
         row_index = 6
         cell_index = 3
 
@@ -367,6 +438,8 @@ class LocationParser(object):
         return weeks
 
     def get_cancel_stat(self, table_no):
+        '''Returns the cancel stat field value.'''
+
         row_index = 6
         cell_index = 5
 
@@ -375,6 +448,8 @@ class LocationParser(object):
         return cancel_stat
 
     def get_freeform_legal(self, table_no):
+        '''Returns the freeform legal field value.'''
+
         row_index = 8
         cell_index = 1
 
@@ -383,6 +458,8 @@ class LocationParser(object):
         return freeform_legal
 
     def get_cancel_status(self, table_no):
+        '''Returns the cancel status field value.'''
+
         row_index = 3
         overall_index = table_no * 10 + row_index
 
@@ -398,6 +475,8 @@ class LocationParser(object):
         return field
 
     def get_lot(self, table_no):
+        '''Returns the lot field value.'''
+
         row_index = 3
         overall_index = table_no * 10 + row_index
 
@@ -421,4 +500,4 @@ class LocationParser(object):
         return lot
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
+    pass

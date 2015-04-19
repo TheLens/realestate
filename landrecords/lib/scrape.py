@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''Navigate and scrape the Land Records Division'''
+'''
+Scrape the Land Records Division. Give it the date range you want and it will
+download the HTML in /data/raw.
+'''
 
 import time
 import os
@@ -8,16 +11,18 @@ import re
 import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from datetime import timedelta, datetime
-
+from datetime import (
+    # datetime,
+    timedelta
+)
 from landrecords.config import Config
 from landrecords.lib.mail import Mail
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class Scrape(object):
 
-    '''Navigate and scrape the Land Records Division'''
+    '''Navigate and scrape the Land Records Division.'''
 
     # todo: write function with rewrite = False that ignores any
     # sales previously scraped.
@@ -25,6 +30,7 @@ class Scrape(object):
                  initial_date=Config().OPENING_DATETIME,
                  until_date=Config().YESTERDAY_DATETIME,
                  rewrite=True):
+        '''Initialize self variables and PhantomJS browser.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -37,23 +43,23 @@ class Scrape(object):
 
     # Login page
     def load_homepage(self):
-        '''Load homepage'''
+        '''Load homepage.'''
 
         log.info('Load homepage')
         self.driver.get("http://onlinerecords.orleanscivilclerk.com/")
-        time.sleep(2.2)
+        time.sleep(0.2)
 
     def find_login_link(self):
-        '''Find and click on login link'''
+        '''Find and click on login link.'''
 
         log.info('Find login link')
         login_link_elem = self.driver.find_element_by_id("Header1_lnkLogin")
         log.info('Click login link')
         login_link_elem.click()
-        time.sleep(1.2)
+        time.sleep(0.2)
 
     def enter_username(self):
-        '''Type in username'''
+        '''Type in username.'''
 
         log.info('Find username field')
         unsername_elem = self.driver.find_element_by_id("Header1_txtLogonName")
@@ -61,7 +67,7 @@ class Scrape(object):
         unsername_elem.send_keys(Config().LRD_USERNAME)
 
     def enter_password(self):
-        '''Type in password'''
+        '''Type in password.'''
 
         log.info('Find password field')
         password_elem = self.driver.find_element_by_id("Header1_txtPassword")
@@ -69,33 +75,32 @@ class Scrape(object):
         password_elem.send_keys(Config().LRD_PASSWORD)
         log.info('Return')
         password_elem.send_keys('\n')  # To trigger search function
-        time.sleep(2.2)
+        time.sleep(0.2)
 
         log.debug(self.driver.title)
 
     def login(self):
-        '''Load homepage, find login, enter credentials'''
+        '''Load homepage, find login, enter credentials.'''
 
         self.load_homepage()
         self.find_login_link()
         self.enter_username()
         self.enter_password()
 
-    '''
-    Navigate search page
-    '''
-
+    # Navigate search page
     def load_search_page(self):
-        '''Load search page'''
+        '''Load search page.'''
 
+        # might not have loaded for server scrape:
         self.driver.get(
             "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
             "SearchEntry.aspx")
-        time.sleep(2.2)
+        time.sleep(0.2)
 
     def find_permanent_date_range(self):
-        '''Parse search page for permanent date range'''
+        '''Parse search page for permanent date range.'''
 
+        # wasn't found in server scraper error:
         date_range_elem = self.driver.find_element_by_id(
             "cphNoMargin_lblSearchSummary")
 
@@ -115,32 +120,28 @@ class Scrape(object):
         return first_date, second_date
 
     def get_date_range_html(self):
-        '''Get search page HTML'''
+        '''Get search page HTML.'''
 
         date_range_html = self.driver.page_source
 
         return date_range_html
 
-    def delete_permanent_date_range_when_scraped_file(self,
-                                                      year,
-                                                      month,
-                                                      day):
-        '''Delete old permanent-date-range-when-scraped*.html'''
+    @staticmethod
+    def delete_permanent_date_range_when_scraped_file(year, month, day):
+        '''Delete old permanent-date-range-when-scraped*.html.'''
 
         log.info('Delete old permanent-date-range-when-scraped*.html')
-        for fl in glob.glob("%s/raw/" % (Config().DATA_DIR) +
-                            "%s-%s-%s/" % (year, month, day) +
-                            "permanent-date-range-when-scraped*.html"):
-            os.remove(fl)
 
-    def save_permanent_date_range_when_scraped_file(self,
-                                                    year,
-                                                    month,
-                                                    day,
+        for file_path in glob.glob("%s/raw/" % (Config().DATA_DIR) +
+                                   "%s-%s-%s/" % (year, month, day) +
+                                   "permanent-date-range-when-scraped*.html"):
+            os.remove(file_path)
+
+    @staticmethod
+    def save_permanent_date_range_when_scraped_file(year, month, day,
                                                     date_range_html,
-                                                    first_date,
-                                                    second_date):
-        '''Save new permanent-date-range-when-scraped*.html'''
+                                                    first_date, second_date):
+        '''Save new permanent-date-range-when-scraped*.html.'''
 
         # Save permanent date range for this individual sale.
         log.info('Save new permanent-date-range-when-scraped*.html file')
@@ -152,23 +153,24 @@ class Scrape(object):
         individual_html_out.write(date_range_html.encode('utf-8'))
         individual_html_out.close()
 
-    def delete_permanent_date_range_file(self):
-        '''Delete old most-recent-permanent-date-range/*.html'''
+    @staticmethod
+    def delete_permanent_date_range_file():
+        '''Delete old most-recent-permanent-date-range/*.html.'''
 
         # Delete old file first
         log.info(
             'Delete old most-recent-permanent-date-range/*.html file')
 
-        fl_str = "%s/most-recent-permanent-date-range/*.html" % (
+        file_string = "%s/most-recent-permanent-date-range/*.html" % (
             Config().DATA_DIR)
-        for fl in glob.glob(fl_str):
-            os.remove(fl)
+        for file_path in glob.glob(file_string):
+            os.remove(file_path)
 
-    def save_permanent_date_range_file(self,
-                                       date_range_html,
+    @staticmethod
+    def save_permanent_date_range_file(date_range_html,
                                        first_date,
                                        second_date):
-        '''Save new most-recent-permanent-date-range/*.html'''
+        '''Save new most-recent-permanent-date-range/*.html.'''
 
         log.info('Save new most-recent-permanent-date-range/*.html file')
         overall_html_out = open("%s/" % (Config().DATA_DIR) +
@@ -178,11 +180,11 @@ class Scrape(object):
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
-        time.sleep(2.2)
+        time.sleep(0.2)
 
     def navigate_search_page(self, year, month, day):
         '''Navigate search page to find permanent date range
-           and update local date range files.'''
+           and update local date range files..'''
 
         self.load_search_page()
         first_date, second_date = self.find_permanent_date_range()
@@ -196,7 +198,7 @@ class Scrape(object):
 
     # Search parameters
     def click_advanced_tab(self):
-        '''Click on the advanced tab'''
+        '''Click on the advanced tab.'''
 
         log.info('search_parameters')
 
@@ -206,10 +208,10 @@ class Scrape(object):
             "x:2130005445.2:mkr:ti1")
         log.info('Click on advanced tab')
         advanced_tab_elem.click()
-        time.sleep(1.2)
+        time.sleep(0.2)
 
     def enter_date_filed_from(self, search_date):
-        '''Enter "date from"'''
+        '''Enter "date from".'''
 
         date_file_from_elem = self.driver.find_element_by_id(
             "x:2002578730.0:mkr:3")
@@ -217,7 +219,7 @@ class Scrape(object):
         date_file_from_elem.send_keys(search_date)
 
     def enter_date_filed_to(self, search_date):
-        '''Enter "date to"'''
+        '''Enter "date to".'''
 
         date_file_to_elem = self.driver.find_element_by_id(
             "x:625521537.0:mkr:3")
@@ -225,7 +227,7 @@ class Scrape(object):
         date_file_to_elem.send_keys(search_date)
 
     def select_document_type(self):
-        '''Select SALE document type in dropdown'''
+        '''Select SALE document type in dropdown.'''
 
         document_type_elem = self.driver.find_element_by_id(
             "cphNoMargin_f_dclDocType_291")
@@ -233,17 +235,17 @@ class Scrape(object):
         document_type_elem.click()
 
     def click_search_button(self):
-        '''Click on the search button'''
+        '''Click on the search button.'''
 
         log.info('Find search button')
         search_button_elem = self.driver.find_element_by_id(
             "cphNoMargin_SearchButtons2_btnSearch__2")
         log.info('Click search button')
         search_button_elem.click()
-        time.sleep(2.2)
+        time.sleep(0.2)
 
     def search_parameters(self, search_date):
-        '''Enter search parameters'''
+        '''Enter search parameters.'''
 
         self.click_advanced_tab()
         self.enter_date_filed_from(search_date)
@@ -253,7 +255,7 @@ class Scrape(object):
 
     # Parse results
     def parse_results(self, year, month, day):
-        '''Parse initial result page for total number of sales'''
+        '''Parse initial result page for total number of sales.'''
 
         # Find current page number
         try:
@@ -262,9 +264,9 @@ class Scrape(object):
                 "cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
             log.info('Find option')
             options = item_list_elem.find_elements_by_tag_name("option")
-        except Exception, e:
+        except Exception, error:
             # Save table page
-            log.error(e, exc_info=True)
+            log.error(error, exc_info=True)
             log.info('No sales for this day')
             html_out = open("%s/raw/%s-%s-%s/page-html/page1.html"
                             % (Config().DATA_DIR, year, month, day), "w")
@@ -273,16 +275,16 @@ class Scrape(object):
             return
 
         total_pages = int(options[-1].get_attribute('value'))
-        log.debug('%d pages to parse for %s-%s-%s' % (
-            total_pages, year, month, day))
+        log.debug('%d pages to parse for %s-%s-%s',
+                  total_pages, year, month, day)
 
         for i in range(1, total_pages + 1):
-            log.debug('Page: %d' % i)
+            log.debug('Page: %d', i)
 
             self.parse_page(i, year, month, day)
 
     def parse_page(self, i, year, month, day):
-        '''Parse results page for sale document IDs'''
+        '''Parse results page for sale document IDs.'''
 
         # Save table page
         log.info('Parse results page table HTML')
@@ -299,11 +301,12 @@ class Scrape(object):
 
         rows = soup.find_all('td', class_="igede12b9e")  # List of Object IDs
 
-        log.debug('There are %d rows for this page' % len(rows))
+        log.debug('There are %d rows for this page', len(rows))
 
         for j in range(1, len(rows)):
-            log.debug('Analyzing overall row %d for %s-%s-%s' % (
-                (i - 1) * 20 + j, year, month, day))
+            log.debug(
+                'Analyzing overall row %d for %s-%s-%s',
+                (i - 1) * 20 + j, year, month, day)
 
             self.parse_sale(j, rows, year, month, day)
 
@@ -319,15 +322,15 @@ class Scrape(object):
             "OptionsBar1_imgNext")
         log.info('Click next page button')
         next_button_elem.click()
-        time.sleep(2.2)
+        time.sleep(0.2)
 
     def parse_sale(self, j, rows, year, month, day):
-        '''Parse single sale page and save HTML'''
+        '''Parse single sale page and save HTML.'''
 
         document_id = rows[j].string
 
-        log.debug('Saving HTML for %s on %s-%s-%s' % (
-            document_id, year, month, day))
+        log.debug(
+            'Saving HTML for %s on %s-%s-%s', document_id, year, month, day)
 
         single_sale_url = (
             "http://onlinerecords.orleanscivilclerk.com/" +
@@ -335,14 +338,14 @@ class Scrape(object):
             "global_id=%s" % (document_id) +
             "&type=dtl")
 
-        log.debug('Sale URL: %s' % single_sale_url)
+        log.debug('Sale URL: %s', single_sale_url)
 
         try:
-            log.info('Loading %s' % single_sale_url)
+            log.info('Loading %s', single_sale_url)
             self.driver.get(single_sale_url)
-            time.sleep(1.2)
-        except Exception, e:
-            log.error(e, exc_info=True)
+            time.sleep(0.2)
+        except Exception, error:
+            log.error(error, exc_info=True)
 
         html = self.driver.page_source
 
@@ -358,14 +361,14 @@ class Scrape(object):
 
         try:
             assert not self.check_if_error(html_file)
-        except Exception, e:
+        except Exception, error:
             # todo: better way to track:
-            log.debug('Deleting error page: %s' % html_file)
+            log.debug('Deleting error page: %s', html_file)
             os.remove(html_file)
-            log.error(e, exc_info=True)
+            log.error(error, exc_info=True)
             return
 
-        time.sleep(1.2)
+        time.sleep(0.2)
 
     @staticmethod
     def check_if_error(html):
@@ -383,7 +386,7 @@ class Scrape(object):
 
     # Logout
     def logout(self):
-        '''Logout of site'''
+        '''Logout of site.'''
 
         # No matter which page you're on, you can go back here and logout.
         log.info(
@@ -400,7 +403,7 @@ class Scrape(object):
 
     def cycle_through_dates(self):
         '''For each date in range specified, fill out search,
-           parse results and save the HTML'''
+           parse results and save the HTML.'''
 
         current_date = self.initial_date
 
@@ -440,14 +443,14 @@ class Scrape(object):
             log.debug(current_date)
 
     def main(self):
-        '''The main scrape method'''
+        '''The main scrape method.'''
 
         self.login()
 
         try:
             self.cycle_through_dates()
-        except Exception, e:
-            log.error(e, exc_info=True)
+        except Exception, error:
+            log.error(error, exc_info=True)
             Mail(
                 subject="Error running Land Record's scrape.py script",
                 body='Check scrape.log for more details.',
@@ -460,12 +463,7 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
-
-    Scrape(
-        initial_date=datetime(2014, 6, 9),
-        until_date=datetime(2015, 4, 15)
-    ).main()
+    Scrape().main()
     # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/
     # land-records/repo/data/sale-error-html/error.html')
     # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/

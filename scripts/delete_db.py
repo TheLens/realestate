@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
+'''Deletes the database.'''
+
+# from __future__ import absolute_import
 
 from subprocess import call
 from sqlalchemy.engine import reflection
@@ -13,13 +15,16 @@ from sqlalchemy.schema import (
     DropConstraint
 )
 
-from landrecords.lib.log import Log
+from landrecords import log
 from landrecords.config import Config
 
 
 class Delete(object):
 
+    '''Prepares for deletion and DROPs all tables.'''
+
     def __init__(self):
+        '''Establish connection to the database.'''
 
         engine = create_engine('%s' % (Config().SERVER_ENGINE))
         self.conn = engine.connect()
@@ -30,59 +35,82 @@ class Delete(object):
         # wiki/UsageRecipes/DropEverything
 
     def main(self):
-        self.dump_dashboard_table()
+        '''Runs through each method.'''
+
+        # self.dump_dashboard_table()
         self.vacuum_database()
         self.drop_tables()
 
-    def dump_dashboard_table(self):
+    @staticmethod
+    def dump_dashboard_table():
+        '''
+        Make a backup of the dashboard table so that any changes
+        made in the past will be carried over to the future.
+        '''
+
+        log.debug('dump_dashboard_table')
+
         # Backup dashboard table, if it exists
         try:
-            call(['pg_dump',
-                  '-Fc',
-                  'landrecords',
-                  '-t',
-                  'dashboard',
-                  '-f',
-                  '{0}'.format(Config().BACKUP_DIR) +
-                  '/dashboard_table_{0}.sql'.format(Config().TODAY_DATE)])
-        except Exception, e:
-            print e
+            call([
+                'pg_dump',
+                '-Fc',
+                '%s' % Config().DATABASE_NAME,
+                '-t',
+                'dashboard',
+                '-f',
+                '{0}'.format(Config().BACKUP_DIR) +
+                '/dashboard_table_{0}.sql'.format(Config().TODAY_DATE)
+            ])
+        except Exception, error:
+            log.debug(error, exc_info=True)
 
-    def vacuum_database(self):
+    @staticmethod
+    def vacuum_database():
+        '''VACUUM the database.'''
+
+        log.debug('vacuum_database')
+
         # Make sure to get rid of deleted rows
         try:
-            call(['psql',
-                  'landrecords',
-                  '-c',
-                  'VACUUM;'])
-        except Exception, e:
-            print e
+            call([
+                'psql',
+                '%s' % Config().DATABASE_NAME,
+                '-c',
+                'VACUUM;'
+            ])
+        except Exception, error:
+            log.debug(error, exc_info=True)
 
     def drop_tables(self):
+        '''DROP all tables except those for PostGIS.'''
+
         # gather all data first before dropping anything.
         # some DBs lock after things have been dropped in
         # a transaction.
 
+        log.debug('drop_tables')
+
         metadata = MetaData()
-        tbs = []
-        all_fks = []
+        tables = []
+        all_foreign_keys = []
 
         for table_name in self.inspector.get_table_names():
-            fks = []
-            for fk in self.inspector.get_foreign_keys(table_name):
-                if not fk['name']:
+            foreign_keys = []
+            for foreign_key in self.inspector.get_foreign_keys(table_name):
+                if not foreign_key['name']:
                     continue
-                fks.append(
-                    ForeignKeyConstraint((), (), name=fk['name'])
+                foreign_keys.append(
+                    ForeignKeyConstraint((), (), name=foreign_key['name'])
                 )
-            t = Table(table_name, metadata, *fks)
-            tbs.append(t)
-            all_fks.extend(fks)
+            table = Table(table_name, metadata, *foreign_keys)
+            tables.append(table)
+            all_foreign_keys.extend(foreign_keys)
 
-        for fkc in all_fks:
-            self.conn.execute(DropConstraint(fkc))
+        for foreign_key in all_foreign_keys:
+            self.conn.execute(DropConstraint(foreign_key))
 
-        for table in tbs:
+        for table in tables:
             # This table is part of PostGIS extension.
             if table.name == 'spatial_ref_sys':
                 continue
@@ -91,5 +119,4 @@ class Delete(object):
         self.trans.commit()
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
     Delete().main()

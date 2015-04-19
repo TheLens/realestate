@@ -20,6 +20,9 @@ Base = declarative_base()
 
 
 class Location(Base):
+
+    '''docstring'''
+
     __tablename__ = 'locations'
 
     id = Column(Integer, primary_key=True)
@@ -35,9 +38,11 @@ class Location(Base):
     weeks = Column(String)
     cancel_stat = Column(String)
     freeform_legal = Column(String)
-    document_id = Column(String,
-                         ForeignKey("details.document_id"),
-                         nullable=False)
+    document_id = Column(
+        String,
+        ForeignKey("details.document_id"),
+        nullable=False
+    )
     full_address = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
@@ -152,14 +157,18 @@ class Cleaned(Base):
     __tablename__ = 'cleaned'
 
     instrument_no = Column(String, primary_key=True, index=True)
-    geom = Column(Geometry(geometry_type='POINT',
-                           srid=4326,
-                           spatial_index=True))
+    geom = Column(Geometry(
+        geometry_type='POINT',
+        srid=4326,
+        spatial_index=True
+    ))
     amount = Column(BigInteger)
     document_date = Column(Date, nullable=True)
     document_recorded = Column(Date, nullable=True)
-    address = Column(String,
-                     index=True)
+    address = Column(
+        String,
+        index=True
+    )
     location_info = Column(String, index=True)
     sellers = Column(String, index=True)
     buyers = Column(String, index=True)
@@ -190,7 +199,6 @@ class Cleaned(Base):
                  assessor_publish,
                  permanent_flag,
                  neighborhood):
-
         self.geom = geom,
         self.amount = amount,
         self.document_date = document_date,
@@ -229,9 +237,11 @@ class Dashboard(Base):
     location_info = Column(String)
     sellers = Column(String)
     buyers = Column(String)
-    instrument_no = Column(String,
-                           ForeignKey("cleaned.instrument_no"),
-                           nullable=False)
+    instrument_no = Column(
+        String,
+        ForeignKey("cleaned.instrument_no"),
+        nullable=False
+    )
     latitude = Column(Float)
     longitude = Column(Float)
     zip_code = Column(String)
@@ -301,7 +311,7 @@ class Detail(Base):
     document_recorded = Column(Date, nullable=True)
     amount = Column(BigInteger)
     status = Column(String, nullable=True)
-    prior_mortgage_doc_type = Column(String, nullable=True)
+    prior_mortgage_doc_type = Column(String, nullable=True)  # todo: fix sp
     prior_conveyance_doc_type = Column(String, nullable=True)
     cancel_status = Column(String, nullable=True)
     remarks = Column(String, nullable=True)
@@ -332,7 +342,6 @@ class Detail(Base):
                  image,
                  detail_publish,
                  permanent_flag):
-
         self.document_id = document_id,
         self.document_type = document_type,
         self.instrument_no = instrument_no,
@@ -371,9 +380,11 @@ class Vendor(Base):
     vendor_firstname = Column(String)
     vendor_relator = Column(String)
     vendor_cancel_status = Column(String)
-    document_id = Column(String,
-                         ForeignKey("details.document_id"),
-                         nullable=False)
+    document_id = Column(
+        String,
+        ForeignKey("details.document_id"),
+        nullable=False
+    )
 
     def __init__(self,
                  id,
@@ -384,7 +395,6 @@ class Vendor(Base):
                  vendor_firstname,
                  vendor_relator,
                  vendor_cancel_status):
-
         self.id = id,
         self.document_id = document_id,
         self.vendor_blank = vendor_blank,
@@ -412,9 +422,11 @@ class Vendee(Base):
     vendee_firstname = Column(String)
     vendee_relator = Column(String)
     vendee_cancel_status = Column(String)
-    document_id = Column(String,
-                         ForeignKey("details.document_id"),
-                         nullable=False)
+    document_id = Column(
+        String,
+        ForeignKey("details.document_id"),
+        nullable=False
+    )
 
     def __init__(self,
                  id,

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''docstring'''
+
 # from __future__ import absolute_import
 
 import urllib
@@ -13,7 +15,7 @@ from flask import (
 from functools import wraps
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+from landrecords import log
 from landrecords.models import Models
 from landrecords.views import Views
 
@@ -21,12 +23,12 @@ app = Flask(__name__)
 
 # cache = Cache(app, Config().={'CACHE_TYPE': 'simple'})
 
-log = Log('app').logger
-
 
 # @cache.memoize(timeout=5000)
 @app.route("%s/" % (Config().APP_ROUTING), methods=['GET'])
 def home():
+    '''docstring'''
+
     log.debug('home')
 
     data = Models().get_home()
@@ -39,6 +41,8 @@ def home():
 # @cache.memoize(timeout=5000)
 @app.route("%s/input" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 def searchbar_input():
+    '''docstring'''
+
     term = request.args.get('q')
 
     data = Models().searchbar_input(term)
@@ -50,6 +54,8 @@ def searchbar_input():
 @app.route("%s/search/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 @app.route("%s/search" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 def search():
+    '''docstring'''
+
     if request.method == 'GET':
         log.debug('search GET')
 
@@ -72,6 +78,8 @@ def search():
 # @cache.memoize(timeout=5000)
 @app.route("%s/sale/<instrument_no>" % (Config().APP_ROUTING), methods=['GET'])
 def sale(instrument_no=None):
+    '''docstring'''
+
     log.debug('sale')
 
     instrument_no = urllib.unquote(instrument_no).decode('utf8')
@@ -86,12 +94,14 @@ def sale(instrument_no=None):
 
 def check_auth(username, password):
     '''Checks if given username and password match correct credentials'''
+
     return (username == Config().DASHBOARD_USERNAME and
             password == Config().DASHBOARD_PASSWORD)
 
 
 def authenticate():
     '''Return error message'''
+
     return Response(
         'Could not verify your access level for that URL.\n'
         'You have to login with proper credentials',
@@ -105,6 +115,8 @@ def requires_auth(f):
 
     @wraps(f)
     def decorated(*args, **kwargs):
+        '''docstring'''
+
         auth = request.authorization
 
         if not auth or not check_auth(auth.username, auth.password):
@@ -120,6 +132,7 @@ def requires_auth(f):
 @requires_auth
 def dashboard():
     '''Dashboard'''
+
     if request.method == 'GET':
         log.debug('GET dashboard')
 
@@ -136,6 +149,7 @@ def dashboard():
 @app.route("%s/webhook" % (Config().APP_ROUTING), methods=['POST'])
 def webhook():
     '''Run Webhook class to keep server and S3 in sync'''
+
     log.debug('webhook')
 
     data = request.get_json()
@@ -147,6 +161,7 @@ def webhook():
 @app.errorhandler(404)
 def page_not_found(error):
     '''Return error page'''
+
     log.debug(error)
 
     return render_template('404.html',

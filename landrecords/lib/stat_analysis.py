@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
-'''Commmon statistical analysis for use in summary email'''
+'''Commmon statistical analyses, like high amounts, sales per day, etc.'''
 
 from sqlalchemy import create_engine
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+# from landrecords import log
 
 
 class StatAnalysis(object):
 
-    '''Commmon statistical analysis for use in summary email'''
+    '''Commmon statistical analyses.'''
 
     def __init__(self, begin_date, end_date):
+        '''Initialize self variables and establish connection to database.'''
+
         self.table = 'cleaned'
         self.begin_date = begin_date
         self.end_date = end_date
@@ -20,7 +22,7 @@ class StatAnalysis(object):
         self.engine = create_engine(Config().SERVER_ENGINE)
 
     def count(self):
-        '''Get number of records'''
+        '''Get number of records.'''
 
         sql = """
             SELECT COUNT(*)
@@ -35,7 +37,7 @@ class StatAnalysis(object):
             return count
 
     def detail_not_published(self):
-        '''Get rows that have unpublishable detail data'''
+        '''Get rows that have unpublishable detail data.'''
 
         sql = """
             SELECT COUNT(*)
@@ -51,7 +53,7 @@ class StatAnalysis(object):
             return count
 
     def detail_published(self):
-        '''Get rows that have publishable detail data'''
+        '''Get rows that have publishable detail data.'''
 
         sql = """
             SELECT COUNT(*)
@@ -67,7 +69,7 @@ class StatAnalysis(object):
             return count
 
     def location_not_published(self):
-        '''Get rows that have unpublishable location data'''
+        '''Get rows that have unpublishable location data.'''
 
         sql = """
             SELECT COUNT(*)
@@ -83,7 +85,7 @@ class StatAnalysis(object):
             return count
 
     def location_published(self):
-        '''Get rows that have publishable location data'''
+        '''Get rows that have publishable location data.'''
 
         sql = """
             SELECT COUNT(*)
@@ -99,7 +101,7 @@ class StatAnalysis(object):
             return count
 
     def highest_amount(self):
-        '''Find the highest sale amount for a given date range'''
+        '''Find the highest sale amount for a given date range.'''
 
         sql = """
             SELECT amount
@@ -117,7 +119,7 @@ class StatAnalysis(object):
             return high_amount
 
     def lowest_amount(self):
-        '''Find the lowest sale amount for a given date range'''
+        '''Find the lowest sale amount for a given date range.'''
 
         sql = """
             SELECT amount
@@ -135,7 +137,7 @@ class StatAnalysis(object):
             return low_amount
 
     def all_records(self):
-        '''Get all rows for the given date range'''
+        '''Get all rows for the given date range.'''
 
         sql = """
             SELECT amount,
@@ -168,4 +170,4 @@ class StatAnalysis(object):
         return rows
 
 if __name__ == '__main__':
-    log = Log('initialize').initialize_log()
+    pass

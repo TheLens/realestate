@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''Renders the views.'''
+
 from __future__ import absolute_import
 
 # from flask.ext.cache import Cache
@@ -10,15 +12,17 @@ from flask import (
 )
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+# from landrecords import log
 from landrecords.lib.utils import Utils
-
-log = Log('views').logger
 
 
 class Views(object):
 
+    '''Methods for each page in the app.'''
+
     def __init__(self):
+        '''Commonly accessed static files.'''
+
         self.js = Config().JS
         self.index_js = Config().INDEX_JS
         self.search_js = Config().SEARCH_JS
@@ -93,7 +97,10 @@ class Views(object):
 
         return response
 
-    def post_search(self, data, newrows, js_data):
+    @staticmethod
+    def post_search(data, newrows, js_data):
+        '''Return updated views for /realestate/search'''
+
         table_template = render_template(
             'table.html',
             newrows=newrows
@@ -166,3 +173,6 @@ class Views(object):
     #     )
 
     #     return response
+
+if __name__ == '__main__':
+    pass

@@ -1,8 +1,16 @@
+# -*- coding: utf-8 -*-
+
+'''Methods for deploying app to server.'''
+
 from fabric.api import local
 from landrecords.config import Config
 
+# from landrecords import log
+
 
 def config():
+    '''config.py'''
+
     local('scp %s/config.py tom@%s:%s' % (
         Config().LOCAL_APP_DIR,
         Config().SERVER_NAME,
@@ -10,50 +18,63 @@ def config():
 
 
 def git_ignore():
+    '''.gitignore'''
+
     local('scp %s/.gitignore ' % (Config().LOCAL_PROJECT_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
 
 
 def init():
+    '''initialize.py'''
+
     local('scp %s/initialize.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
 
 
-def log():
-    local('scp %s/log.py tom@%s:%s' % (Config().LOCAL_LIB_DIR,
-                                       Config().SERVER_NAME,
-                                       Config().SERVER_LIB_DIR))
-
-
 def mail():
+    '''mail.py'''
+
     local('scp %s/mail.py tom@%s:%s' % (Config().LOCAL_LIB_DIR,
                                         Config().SERVER_NAME,
                                         Config().SERVER_LIB_DIR))
 
 
 def scrape():
+    '''scrape.py'''
+
     local('scp %s/scrape.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
 
 
 def build():
+    '''build.py'''
+
     local('scp %s/build.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
 
 
 def clean():
+    '''clean.py'''
+
     local('scp %s/clean.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
 
 
 def data():
-    local('scp %s/assessor-error-html/error.html tom@%s:%s' % (
+    '''Data files'''
+
+    local('scp %s/assessor-error-html/assessor_error.html tom@%s:%s' % (
+        Config().LOCAL_DATA_DIR, Config().SERVER_NAME,
+        Config().SERVER_DATA_DIR))
+    local('scp %s/sale-error-html/sale_error.html tom@%s:%s' % (
         Config().LOCAL_DATA_DIR, Config().SERVER_NAME,
         Config().SERVER_DATA_DIR))
 
 
 def repo():
+    '''/'''
+
     local('scp %s/.gitignore ' % (Config().LOCAL_PROJECT_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
     local('scp %s/README.md ' % (Config().LOCAL_PROJECT_DIR) +
@@ -65,6 +86,8 @@ def repo():
 
 
 def app():
+    '''/landrecords/'''
+
     local('scp %s/__init__.py tom@%s:%s' % (
         Config().LOCAL_APP_DIR, Config().SERVER_NAME,
         Config().SERVER_APP_DIR))
@@ -86,6 +109,8 @@ def app():
 
 
 def scripts():
+    '''/scripts/'''
+
     local('scp %s/backup.sh tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
@@ -107,15 +132,14 @@ def scripts():
     local('scp %s/screen.js tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
-    local('scp %s/screen.py tom@%s:%s' % (
-        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
-        Config().SERVER_SCRIPTS_DIR))
     local('scp %s/tserver.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
 
 
 def tests():
+    '''/tests/'''
+
     local('scp %s/__init__.py tom@%s:%s' % (
         Config().LOCAL_TESTS_DIR, Config().SERVER_NAME,
         Config().SERVER_TESTS_DIR))
@@ -128,6 +152,8 @@ def tests():
 
 
 def templates():
+    '''/landrecords/templates'''
+
     local('scp %s/404.html tom@%s:%s' % (
         Config().LOCAL_TEMPLATE_DIR, Config().SERVER_NAME,
         Config().SERVER_TEMPLATE_DIR))
@@ -164,6 +190,8 @@ def templates():
 
 
 def lib():
+    '''/landrecords/lib'''
+
     local('scp %s/__init__.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME,
         Config().SERVER_LIB_DIR))
@@ -176,8 +204,7 @@ def lib():
     local('scp %s/clean.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR,
         Config().SERVER_NAME,
-        Config().SERVER_LIB_DIR)
-    )
+        Config().SERVER_LIB_DIR))
     local('scp %s/dashboard_sync.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/email_template.py tom@%s:%s' % (
@@ -185,8 +212,6 @@ def lib():
     local('scp %s/geocode.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/libraries.py tom@%s:%s' % (
-        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
-    local('scp %s/log.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/mail.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
@@ -205,10 +230,9 @@ def lib():
 
 
 def css():
-    '''
-    S3
-    '''
+    '''/landrecords/static/css'''
 
+    # S3
     local('aws s3 cp %s/font-awesome.css ' % (Config().LOCAL_CSS_DIR) +
           '%s/css/font-awesome.css --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/foundation.min.css ' % (Config().LOCAL_CSS_DIR) +
@@ -228,10 +252,7 @@ def css():
     local('aws s3 cp %s/mapbox.css ' % (Config().LOCAL_CSS_DIR) +
           '%s/css/mapbox.css --acl public-read' % (Config().S3_PATH))
 
-    '''
-    Server
-    '''
-
+    # Server
     local('scp %s/font-awesome.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/foundation.min.css tom@%s:%s' % (
@@ -249,33 +270,37 @@ def css():
 
 
 def images():
-    '''
-    S3
-    '''
+    '''/landrecords/static/css/images'''
 
+    # S3
+    local('aws s3 cp %s/corporate-realty.jpg ' % (Config().LOCAL_IMAGES_DIR) +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'corporate-realty.jpg --acl public-read')
     local('aws s3 cp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/favicon.ico --acl public-read' % (Config().S3_PATH))
+          '%s/css/images/favicon.ico --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/icons-000000.png ' % (Config().LOCAL_IMAGES_DIR) +
-          '%s/icons-000000.png --acl public-read' % (Config().S3_PATH))
+          '%s/css/images/' % (Config().S3_PATH) +
+          'icons-000000.png --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'icons-000000@2x.png ' +
-          '%s/icons-000000@2x.png --acl public-read' % (Config().S3_PATH))
+          '%s/css/images/' % (Config().S3_PATH) +
+          'icons-000000@2x.png --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'lens-logo-retina.png ' +
-          '%s/lens-logo-retina.png --acl public-read' % (Config().S3_PATH))
+          '%s/css/images/' % (Config().S3_PATH) +
+          'lens-logo-retina.png --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'lens-logo-magnifying-glass-only.png ' +
-          '%s/lens-logo-magnifying-glass-only.png ' % (Config().S3_PATH) +
-          '--acl public-read')
+          '%s/css/images/' % (Config().S3_PATH) +
+          'lens-logo-magnifying-glass-only.png --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'ui-bg_flat_75_ffffff_40x100.png ' +
-          '%s/' % (Config().S3_PATH) +
+          '%s/css/images/' % (Config().S3_PATH) +
           'ui-bg_flat_75_ffffff_40x100.png --acl public-read')
 
-    '''
-    Server
-    '''
-
+    # Server
+    local('scp %s/corporate-realty.jpg ' % (Config().LOCAL_IMAGES_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/icons-000000.png ' % (Config().LOCAL_IMAGES_DIR) +
@@ -293,9 +318,9 @@ def images():
 
 
 def fonts():
-    '''
-    S3
-    '''
+    '''/landrecords/static/fonts'''
+
+    # S3
     local('aws s3 cp %s/' % (Config().LOCAL_FONTS_DIR) +
           'fontawesome-webfont.eot ' +
           '%s/' % (Config().S3_PATH) +
@@ -315,9 +340,7 @@ def fonts():
     local('aws s3 cp %s/FontAwesome.otf ' % (Config().LOCAL_FONTS_DIR) +
           '%s/FontAwesome.otf --acl public-read' % (Config().S3_PATH))
 
-    '''
-    Server
-    '''
+    # Server
     local('scp %s/fontawesome-webfont.eot ' % (Config().LOCAL_FONTS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_FONTS_DIR))
     local('scp %s/fontawesome-webfont.svg ' % (Config().LOCAL_FONTS_DIR) +
@@ -331,10 +354,9 @@ def fonts():
 
 
 def js():
-    '''
-    S3
-    '''
+    '''/landrecords/static/js'''
 
+    # S3
     local('aws s3 cp %s/dashboard.js ' % (Config().LOCAL_JS_DIR) +
           '%s/js/dashboard.js --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/foundation.min.js ' % (Config().LOCAL_JS_DIR) +
@@ -383,10 +405,7 @@ def js():
     local('aws s3 cp %s/search-area.js ' % (Config().LOCAL_JS_DIR) +
           '%s/js/search-area.js --acl public-read' % (Config().S3_PATH))
 
-    '''
-    Server
-    '''
-
+    # Server
     local('scp %s/dashboard.js ' % (Config().LOCAL_JS_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_JS_DIR))
     local('scp %s/foundation.min.js ' % (Config().LOCAL_JS_DIR) +
@@ -426,6 +445,8 @@ def js():
 
 
 def doitall():
+    '''Run through entire deployment.'''
+
     data()
     repo()
     app()
@@ -442,4 +463,8 @@ def doitall():
 
 
 def s3():
-    '''Copy static assets to S3'''
+    '''Copy static assets to S3.'''
+    pass
+
+if __name__ == '__main__':
+    pass

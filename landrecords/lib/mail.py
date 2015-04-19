@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''Send emails using Gmail.'''
+
 import smtplib
 import mimetypes
 from os.path import basename
@@ -7,10 +9,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class Mail(object):
+
+    '''Mail methods include test, HTML and add attachments.'''
 
     def __init__(self,
                  subject="Land records summary",
@@ -18,14 +22,16 @@ class Mail(object):
                  frm='tthoren@thelensnola.org',
                  to=['tthoren@thelensnola.org']):
 
-        log.debug('Mail')
-
         self.subject = subject
         self.body = body
         self.frm = frm
         self.to = to
 
     def send_email(self, msg):
+        '''Initializes and sends the email.'''
+
+        log.debug('Mail')
+
         s = smtplib.SMTP('smtp.gmail.com', 587)
         s.ehlo()
         s.starttls()
@@ -36,6 +42,8 @@ class Mail(object):
         s.quit()
 
     def add_headers(self, msg):
+        '''Add email headers subject, from and to onto the message.'''
+
         msg['Subject'] = self.subject
         msg['From'] = self.frm
         msg['To'] = ','.join(self.to)
@@ -43,6 +51,8 @@ class Mail(object):
         return msg
 
     def send_as_text(self):
+        '''Form plain text message.'''
+
         msg = MIMEText(self.body)
 
         msg = self.add_headers(msg)
@@ -50,6 +60,8 @@ class Mail(object):
         self.send_email(msg)
 
     def send_with_attachment(self, files=None):
+        '''Attach file to message.'''
+
         msg = MIMEMultipart(self.body)
 
         msg = self.add_headers(msg)
@@ -73,12 +85,15 @@ class Mail(object):
         self.send_email(msg)
 
     def send_as_html(self):
+        '''Form HTML message.'''
+
         msg = MIMEMultipart('alternative')
 
         msg = self.add_headers(msg)
 
         html = (
-            '<!DOCTYPE html><html><head><meta charset="utf-8"></head>' +
+            '<!DOCTYPE html><html>' +
+            '<head><meta charset="utf-8"></head>' +
             '<body>' +
             self.body +
             '</body></html>')
@@ -92,4 +107,4 @@ class Mail(object):
         self.send_email(msg)
 
 if __name__ == '__main__':
-    log = Log('initialize').initialize_log()
+    pass

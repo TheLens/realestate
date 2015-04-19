@@ -1,28 +1,34 @@
 # -*- coding: utf-8 -*-
 
-'''A recipe that calls on other classes to build, geocode, clean, and
-   publish records to the cleaned table'''
+'''
+Calls on other classes to build, geocode, clean and
+publish records to the cleaned table.
+'''
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+# from landrecords.lib.log import Log
 
 from landrecords.lib.build import Build
 from landrecords.lib.clean import Clean
 from landrecords.lib.geocode import Geocode
 from landrecords.lib.mail import Mail
 from landrecords.lib.publish import Publish
-from landrecords.lib.check_temp_status import CheckTemp
+# from landrecords.lib.check_temp_status import CheckTemp
 from landrecords.lib.email_template import EmailTemplate
+from landrecords import log
 
 
 class Initialize(object):
 
-    '''A recipe that calls on other classes to build, geocode, clean,
-       and publish records to the cleaned table'''
+    '''
+    Calls on other classes to build, geocode, clean and publish
+    records to the cleaned table.
+    '''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
                  until_date=Config().YESTERDAY_DATE):
+        '''Runs through all classes.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -49,8 +55,7 @@ class Initialize(object):
             until_date=self.until_date
         ).check_them_all()
 
-        # todo:
-        # dashboard_sync.DashboardSync()
+        # dashboard_sync.DashboardSync()  # todo
 
         Clean(
             initial_date=self.initial_date,
@@ -67,35 +72,33 @@ class Initialize(object):
         #     until_date=self.until_date
         # ).check_permanent_status_of_temp_sales()
 
-        # Mail(
-        #     subject=EmailTemplate(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).generate_subject(),
-        #     body=EmailTemplate(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).generate_body(),
-        #     frm='tthoren@thelensnola.org',
-        #     to=['tthoren@thelensnola.org']
-        # ).send_as_html()
+        Mail(
+            subject=EmailTemplate(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).generate_subject(),
+            body=EmailTemplate(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).generate_body(),
+            frm='tthoren@thelensnola.org',
+            to=['tthoren@thelensnola.org']
+        ).send_as_html()
 
         # check_assessor_urls().check(
         #     initial_date=initial_date, until_date=until_date)
 
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
-
     try:
         # Default is to build entire archive since 2014/02/18
         Initialize(
-            initial_date=Config().OPENING_DAY,
-            until_date=Config().OPENING_DAY
+            # initial_date='2014-02-18',
+            # until_date='2014-02-20'
         )
         # Initialize()
-    except Exception, e:
-        log.exception(e, exc_info=True)
+    except Exception, error:
+        log.exception(error, exc_info=True)
         Mail(
             subject="Error running Land Record's initialize.py script",
             body='Check log for more details.',

@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
+'''A collection of items.'''
+
 
 class Library(object):
 
+    '''The items.'''
+
     def __init__(self):
-        # Taken from:
-        # http://en.wikipedia.
-        # org/wiki/Street_or_road_name#Street_type_designations
+        # http://en.wikipedia.org/wiki/Street_or_road_name
+        # #Street_type_designations
         self.assessor_abbreviations = [
             # Major roads
             ['HIGHWAY', 'HW'],
@@ -261,4 +264,4 @@ class Library(object):
         ]
 
 if __name__ == '__main__':
-    print Library().acronyms
+    pass

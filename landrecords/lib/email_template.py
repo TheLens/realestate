@@ -1,22 +1,23 @@
 # -*- coding: utf-8 -*-
 
-'''Email template specific to property sales app'''
+'''Forms the daily email summary.'''
 
-from landrecords.lib import stat_analysis
-from landrecords.lib.log import Log
+from landrecords.lib.stat_analysis import StatAnalysis
+# from landrecords import log
 from landrecords.lib.utils import Utils
 
 
 class EmailTemplate(object):
-    '''Email template class, including subject and body generators'''
+    '''Email template class, including subject and body generators.'''
 
     def __init__(self, initial_date=None, until_date=None):
+        '''Initialize self variables with date range.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
 
     def generate_subject(self):
-        '''Generates subject for email'''
+        '''Generates subject for email.'''
 
         subject = "Land records summary for"
 
@@ -30,11 +31,21 @@ class EmailTemplate(object):
         return subject
 
     def generate_body(self):
-        '''Generates body for email, including statistics'''
+        '''Combine the email body parts.'''
 
-        stat = stat_analysis.StatAnalysis(self.initial_date, self.until_date)
+        email_summary = self.generate_body_summary()
+        email_list = self.generate_body_list()
 
-        email_string = (
+        email_string = email_summary + email_list
+
+        return email_string
+
+    def generate_body_summary(self):
+        '''Generates body for email, including statistics.'''
+
+        stat = StatAnalysis(self.initial_date, self.until_date)
+
+        email_summary = (
             '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={1}' +
             '</p>' +
             '\n' +
@@ -74,9 +85,18 @@ class EmailTemplate(object):
             stat.lowest_amount()
         )
 
+        return email_summary
+
+    def generate_body_list(self):
+        '''Generate list of all sales in given date range.'''
+
+        stat = StatAnalysis(self.initial_date, self.until_date)
+
         rows = stat.all_records()
 
+        email_list = ''
         message = ''
+
         for row in rows:
             if row['document_date'] is None:
                 message += '<p><strong>Sale date</strong><br>None<br>\n'
@@ -103,11 +123,11 @@ class EmailTemplate(object):
                 row['neighborhood']
             )
 
-            email_string += message.encode('utf8')
-            email_string += '\n'
+            email_list += message.encode('utf8')
+            email_list += '\n'
             message = ''
 
-        return email_string
+        return email_list
 
 if __name__ == '__main__':
-    log = Log('initialize').initialize_log()
+    pass

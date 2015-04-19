@@ -96,9 +96,9 @@ Renders the data.
 
 ### Misc.
 
-#### `log.py`
+#### Logging
 
-The universal logging class that can be imported into any script like so: `log = Log('initialize').initialize_log()`. Then it can be accessed throughout the script like so:
+The universal logger is defined in `__init__.py` in the root of the `landrecords` module. Then it can be accessed by any module like so:
 
 `log.debug('Description')`
 `log.info('Description')`

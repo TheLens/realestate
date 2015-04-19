@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''JOIN the four individual tables, clean and commit to cleaned'''
+'''JOIN the four individual tables, clean and commit to cleaned.'''
 
 import re
 
-from subprocess import call
 from sqlalchemy import create_engine, insert, func, cast, Text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -12,16 +11,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from landrecords.config import Config
 from landrecords import db
 from landrecords.lib.libraries import Library
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class Join(object):
 
-    '''JOIN the four individual tables'''
+    '''JOIN the four individual tables.'''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
                  until_date=Config().YESTERDAY_DATE):
+        '''Initialize self variables and establish connection to database.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -29,14 +29,14 @@ class Join(object):
         base = declarative_base()
         self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
-        sn = sessionmaker(bind=self.engine)
-
-        self.session = sn()
+        self.sn = sessionmaker(bind=self.engine)
 
     def get_details(self):
-        '''Gathers relevant Detail fields for Cleaned'''
+        '''Gathers relevant details fields for cleaned.'''
 
-        subq = self.session.query(
+        session = self.sn()
+
+        subquery = session.query(
             db.Detail
         ).filter(
             db.Detail.document_recorded >= '%s' % self.initial_date
@@ -44,14 +44,18 @@ class Join(object):
             db.Detail.document_recorded <= '%s' % self.until_date
         ).subquery()
 
-        log.debug(subq)
+        log.debug(subquery)
 
-        return subq
+        session.close()
+
+        return subquery
 
     def get_vendees(self):
-        '''Gathers relevant Vendee fields for Cleaned'''
+        '''Gathers relevant vendees fields for cleaned.'''
 
-        subq = self.session.query(
+        session = self.sn()
+
+        subquery = session.query(
             db.Vendee.document_id,
             func.string_agg(
                 cast(db.Vendee.vendee_firstname, Text) + ' ' +
@@ -62,14 +66,18 @@ class Join(object):
             db.Vendee.document_id
         ).subquery()
 
-        # log.debug(subq)
+        # log.debug(subquery)
 
-        return subq
+        session.close()
+
+        return subquery
 
     def get_vendors(self):
-        '''Gathers relevant Vendor fields for Cleaned'''
+        '''Gathers relevant vendors fields for cleaned.'''
 
-        subq = self.session.query(
+        session = self.sn()
+
+        subquery = session.query(
             db.Vendor.document_id,
             func.string_agg(
                 cast(db.Vendor.vendor_firstname, Text) + ' ' +
@@ -80,14 +88,18 @@ class Join(object):
             db.Vendor.document_id
         ).subquery()
 
-        # log.debug(subq)
+        # log.debug(subquery)
 
-        return subq
+        session.close()
+
+        return subquery
 
     def get_locations(self):
-        '''Gathers relevant Location fields for Cleaned'''
+        '''Gathers relevant locations fields for cleaned.'''
 
-        subq = self.session.query(
+        session = self.sn()
+
+        subquery = session.query(
             db.Location.document_id,
             func.min(db.Location.location_publish).label('location_publish'),
             func.string_agg(
@@ -116,19 +128,22 @@ class Join(object):
             db.Location.document_id
         ).subquery()
 
-        # log.debug(subq)
+        # log.debug(subquery)
 
-        return subq
+        session.close()
+
+        return subquery
 
     def join_subqueries(self):
-        '''Runs a JOIN on subqueries'''
+        '''Runs a JOIN on subqueries.'''
 
-        # subq_details = self.get_details()
         subq_vendees = self.get_vendees()
         subq_vendors = self.get_vendors()
         subq_location = self.get_locations()
 
-        q = self.session.query(
+        session = self.sn()
+
+        query = session.query(
             db.Detail.document_id,
             db.Detail.amount,
             db.Detail.document_date,
@@ -158,43 +173,60 @@ class Join(object):
             db.Detail.document_recorded <= '%s' % self.until_date
         ).all()
 
-        log.debug('len(q): %d' % len(q))
+        log.debug('len(query): %d', len(query))
 
-        return q
+        session.close()
+
+        return query
 
     def get_rows_from_query(self):
-        '''Convert query result to row of dicts'''
+        '''Convert query result to row of dicts.'''
 
-        q = self.join_subqueries()
+        query = self.join_subqueries()
 
         rows = []
-        for row in q:
-            d = row.__dict__
-            del d['_labels']  # todo: necessary?
-            rows.append(d)
+        for row in query:
+            dict_val = row.__dict__
+            del dict_val['_labels']  # todo: necessary?
+            rows.append(dict_val)
 
-        log.debug('len(rows): %d' % len(rows))
+        log.debug('len(rows): %d', len(rows))
 
         return rows
 
-    def temp_hack_to_add_location_fields(self, incoming_rows):
-        '''SQLAlchemy doesn't yet support WITHIN GROUP,
-           which is necessary for using mode() aggregate function
-           in PostgreSQL 9.4 (see get_locations() for normal use).
-           So instead, this hack will temporary do that job.'''
+    def add_location_fields_temp_hack(self, incoming_rows):
+        '''
+        SQLAlchemy doesn't yet support WITHIN GROUP, which is necessary for
+        using mode() aggregate function in PostgreSQL 9.4 (see get_locations()
+        for normal use). So instead, this hack will temporary do that job.
+        '''
 
-        sql = """SELECT
-            document_id,
-            -- mode(zip_code) AS zip_code,
-            -- mode(latitude) AS latitude,
-            -- mode(longitude) AS longitude,
-            -- mode(neighborhood) AS neighborhood
-            mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
-            mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
-            mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
-            mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood
-        FROM locations
-        GROUP BY document_id"""
+        if Config().USER == 'thomasthoren':
+            sql = """SELECT
+                document_id,
+                -- mode(zip_code) AS zip_code,
+                -- mode(latitude) AS latitude,
+                -- mode(longitude) AS longitude,
+                -- mode(neighborhood) AS neighborhood
+                mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
+                mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
+                mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
+                mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood
+            FROM locations
+            GROUP BY document_id"""
+        else:
+            sql = """SELECT
+                document_id,
+                mode(zip_code) AS zip_code,
+                mode(latitude) AS latitude,
+                mode(longitude) AS longitude,
+                mode(neighborhood) AS neighborhood
+                -- mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
+                -- mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
+                -- mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
+                -- mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood
+            FROM locations
+            GROUP BY document_id"""
 
         result = self.engine.execute(sql)
 
@@ -202,23 +234,23 @@ class Join(object):
 
         # Form dict
         for row in result:
-            d = {
+            location_dict = {
                 'document_id': row[0],
                 'zip_code': row[1],
                 'latitude': row[2],
                 'longitude': row[3],
                 'neighborhood': row[4],
             }
-            rows.append(d)
+            rows.append(location_dict)
 
         # Merge fields
-        for a in incoming_rows:
-            for b in rows:
-                if a['document_id'] == b['document_id']:
-                    a['zip_code'] = b['zip_code']
-                    a['latitude'] = b['latitude']
-                    a['longitude'] = b['longitude']
-                    a['neighborhood'] = b['neighborhood']
+        for incoming_row in incoming_rows:
+            for row in rows:
+                if incoming_row['document_id'] == row['document_id']:
+                    incoming_row['zip_code'] = row['zip_code']
+                    incoming_row['latitude'] = row['latitude']
+                    incoming_row['longitude'] = row['longitude']
+                    incoming_row['neighborhood'] = row['neighborhood']
 
         for row in incoming_rows:
             del row['document_id']  # Not part of Cleaned
@@ -228,11 +260,12 @@ class Join(object):
 
 class Clean(object):
 
-    '''Clean the joined tables and commit to cleaned'''
+    '''Clean the joined tables and commit to cleaned.'''
 
     def __init__(self,
                  initial_date=Config().OPENING_DAY,
                  until_date=Config().YESTERDAY_DATE):
+        '''Initialize self variables and establish connection to database.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -240,23 +273,21 @@ class Clean(object):
         base = declarative_base()
         self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
-        sn = sessionmaker(bind=self.engine)
-
-        self.session = sn()
+        self.sn = sessionmaker(bind=self.engine)
 
     def update_cleaned_geom(self):
-        '''Update the PostGIS geom field in the cleaned table'''
+        '''Update the PostGIS geom field in the cleaned table.'''
 
         log.debug('Update Cleaned geometry')
 
-        call(['psql',
-              'landrecords',
-              '-c',
-              'UPDATE cleaned SET geom = ST_SetSRID(' +
-              'ST_MakePoint(longitude, latitude), 4326);'])
+        sql = """UPDATE cleaned
+            SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);"""
 
-    def prep_rows(self, rows):
-        '''Returns all rows in Titlecase'''
+        self.engine.execute(sql)
+
+    @staticmethod
+    def prep_rows(rows):
+        '''Returns all rows in Titlecase.'''
 
         # This loop returns text that is not all-caps, but is still flawed:
         # to standardize upper and lowercases
@@ -273,13 +304,17 @@ class Clean(object):
         return rows
 
     def prep_locations_for_geocoding(self):
-        '''Geocodes existing records and/or new records — any
-           records that have not yet been geocoded. Geocoder takes
-           strings: 4029 Ulloa St, New Orleans, LA 70119
-           I took a shortcut. Instead of finding a way to
-           concatenate the address pieces on the fly, I
-           concatenated them all into a new column, then read
-           from that column. Sloppy, but it works for now.'''
+        '''
+        Geocodes existing records and/or new records — any records that have
+        not yet been geocoded. Geocoder takes strings:
+        123 Main St, New Orleans, LA 70119
+        I took a shortcut. Instead of finding a way to concatenate the address
+        pieces on the fly, I concatenated them all into a new column, then read
+        from that column. Sloppy, but it works for now.
+        '''
+
+        log.debug('Prep locations for geocoding')
+        print 'Prepping locations for geocoding...'
 
         self.engine.execute("""UPDATE locations
             SET full_address = street_number::text || ' ' ||
@@ -305,13 +340,13 @@ class Clean(object):
         self.engine.execute("""UPDATE locations
             SET full_address = replace(full_address, ' NINTH ', ' 9TH ');""")
 
-    def check_for_acronyms(self, rows):
-        '''Correct acronyms'''
+    @staticmethod
+    def check_for_acronyms(rows):
+        '''Corrects acronyms.'''
 
         # This loop scans for the above problem words and replaces them with
         # their substitutes:
         for row in rows:
-
             # Check for occurences of problematic acronyms
             for acronym in Library().acronyms:
                 acronym0 = acronym[0]  # Problem acronym
@@ -334,8 +369,9 @@ class Clean(object):
 
         return rows
 
-    def check_for_mcnames(self, rows):
-        '''Correct Mc___ names'''
+    @staticmethod
+    def check_for_mcnames(rows):
+        '''Corrects Mc___ names.'''
 
         for row in rows:
             # Check for occurences of problematic "Mc" names. Corrections
@@ -351,8 +387,9 @@ class Clean(object):
 
         return rows
 
-    def check_for_abbreviations(self, rows):
-        '''Correct abbreviations'''
+    @staticmethod
+    def check_for_abbreviations(rows):
+        '''Corrects abbreviations.'''
 
         for row in rows:
             # Check for problematic abbreviations:
@@ -370,8 +407,9 @@ class Clean(object):
 
         return rows
 
-    def check_for_adress_abbreviations(self, rows):
-        '''Correct address abbreviations'''
+    @staticmethod
+    def check_for_adress_abbreviations(rows):
+        '''Corrects address abbreviations.'''
 
         for row in rows:
             # Fix address abbreviations (for AP style purposes)
@@ -388,8 +426,9 @@ class Clean(object):
 
         return rows
 
-    def check_for_middle_initials(self, rows):
-        '''Correct middle initials'''
+    @staticmethod
+    def check_for_middle_initials(rows):
+        '''Corrects middle initials.'''
 
         for row in rows:
             for middle_initial in Library().middle_initials:
@@ -410,8 +449,9 @@ class Clean(object):
 
         return rows
 
-    def check_for_neighborhood_names(self, rows):
-        '''Correct neighborhood names'''
+    @staticmethod
+    def check_for_neighborhood_names(rows):
+        '''Corrects neighborhood names.'''
 
         for row in rows:
             for neighborhood_name in Library().neighborhood_names:
@@ -422,8 +462,9 @@ class Clean(object):
 
         return rows
 
-    def regex_subs(self, rows):
-        '''More than simple find-and-replace tasks'''
+    @staticmethod
+    def regex_subs(rows):
+        '''More than simple find-and-replace tasks.'''
 
         for row in rows:
             # Must do regex for "St" and others. Imagine "123 Star St".
@@ -438,8 +479,9 @@ class Clean(object):
 
         return rows
 
-    def convert_amounts(self, rows):
-        '''Convert string, with or without $ and commas, to rounded int'''
+    @staticmethod
+    def convert_amounts(rows):
+        '''Convert string, with or without $ and commas, to rounded int.'''
 
         for row in rows:
             row['amount'] = str(row['amount'])
@@ -452,7 +494,7 @@ class Clean(object):
         return rows
 
     def clean_rows(self, rows):
-        '''Run rows through all cleaning methods'''
+        '''Run rows through all cleaning methods.'''
 
         rows = self.check_for_acronyms(rows)
         rows = self.check_for_mcnames(rows)
@@ -478,8 +520,9 @@ class Clean(object):
 
         return rows
 
-    def clean_punctuation(self, rows):
-        '''Fix punctuation (leading/trailing spaces or commas)'''
+    @staticmethod
+    def clean_punctuation(rows):
+        '''Fix punctuation (leading/trailing spaces or commas).'''
 
         for row in rows:
             row['sellers'] = row['sellers'].strip(
@@ -504,11 +547,9 @@ class Clean(object):
 
         return rows
 
-    def other_stuff_addresses(self, rows):
-        '''Run checks for addresses'''
-
-        # This loop scans for the above problem words and replaces them with
-        # their substitutes:
+    @staticmethod
+    def other_stuff_addresses(rows):
+        '''Runs checks for addresses.'''
 
         # log.debug(rows)
 
@@ -522,27 +563,27 @@ class Clean(object):
 
                 individual_address_text = ''
 
-                for l in address_list2:
+                for j in address_list2:
                     try:
                         # If first addition:
                         if individual_address_text == '':
-                            individual_address_text = l.strip()
+                            individual_address_text = j.strip()
                         else:  # If second addition or later
                             individual_address_text = (
                                 individual_address_text +
                                 ', ' +
-                                l.strip())
-                    except Exception, e:
-                        log.exception(e, exc_info=True)
+                                j.strip())
+                    except Exception, error:
+                        log.exception(error, exc_info=True)
                         continue
 
                 if all_addresses_text == '' and individual_address_text != '':
-                        all_addresses_text = individual_address_text.strip()
+                    all_addresses_text = individual_address_text.strip()
                 elif individual_address_text != '':
-                        all_addresses_text = (
-                            all_addresses_text +
-                            '; ' +
-                            individual_address_text.strip())
+                    all_addresses_text = (
+                        all_addresses_text +
+                        '; ' +
+                        individual_address_text.strip())
 
             # location_info = location_info.replace(';', ',')
             # So can split on commas for both semi-colons and commas
@@ -551,11 +592,10 @@ class Clean(object):
 
         return rows
 
-    def other_stuff_location_info(self, rows):
-        '''Run checks for location_info'''
+    @staticmethod
+    def other_stuff_location_info(rows):
+        '''Runs checks for location_info.'''
 
-        # This loop scans for the above problem words and replaces them with
-        # their substitutes:
         for row in rows:
             # To remove district ordinal
             row['location_info'] = row['location_info'].replace('1st', '1')
@@ -575,19 +615,19 @@ class Clean(object):
 
                 individiual_location_text = ''
 
-                for l in list2:
+                for j in list2:
                     try:
-                        if l.strip()[-1] != ':':
+                        if j.strip()[-1] != ':':
                             # If first addition:
                             if individiual_location_text == '':
-                                individiual_location_text = l.strip()
+                                individiual_location_text = j.strip()
                             else:  # If second addition or later
                                 individiual_location_text = (
                                     individiual_location_text +
                                     ', ' +
-                                    l.strip())
-                    except Exception, e:
-                        log.exception(e, exc_info=True)
+                                    j.strip())
+                    except Exception, error:
+                        log.exception(error, exc_info=True)
                         continue
 
                 if all_locations_text == '':
@@ -605,29 +645,33 @@ class Clean(object):
         return rows
 
     def commit_rows(self, rows):
-        '''Commits JOIN-ed rows to the Cleaned table'''
+        '''Commits JOIN-ed rows to the cleaned table.'''
 
-        log.debug('%d rows committed' % len(rows))
+        log.debug('%d rows committed', len(rows))
+
+        session = self.sn()
 
         for row in rows:
             try:
-                with self.session.begin_nested():
+                with session.begin_nested():
                     i = insert(db.Cleaned)
                     i = i.values(row)
-                    self.session.execute(i)
-                    self.session.flush()
-            except Exception, e:
-                log.exception(e, exc_info=True)
-                self.session.rollback()
+                    session.execute(i)
+                    session.flush()
+            except Exception, error:
+                log.exception(error, exc_info=True)
+                session.rollback()
 
-        self.session.commit()
+        session.commit()
+
+        session.close()
 
     def main(self):
-        '''Run Join() and Clean() scripts'''
+        '''Run Join() and Clean() scripts.'''
 
-        log.debug('Clean')
+        log.info('Clean')
+        print 'Cleaning...'
 
-        # log.debug('rows')
         rows = Join(
             initial_date=self.initial_date,
             until_date=self.until_date
@@ -636,25 +680,19 @@ class Clean(object):
         rows = Join(
             initial_date=self.initial_date,
             until_date=self.until_date
-        ).temp_hack_to_add_location_fields(rows)
+        ).add_location_fields_temp_hack(rows)
 
         log.debug('len(rows): %d', len(rows))
 
-        # log.debug('prepped rows')
         prepped_rows = self.prep_rows(rows)
         # log.debug(len(prepped_rows))
 
-        # log.debug('clean rows')
         clean_rows = self.clean_rows(prepped_rows)
         # log.debug(len(clean_rows))
 
-        # log.debug('commit rows')
         self.commit_rows(clean_rows)
 
-        # log.debug('prep_locations_for_geocoding')
         self.prep_locations_for_geocoding()
 
 if __name__ == '__main__':
-    log = Log('initialize').initialize_log()
-
     Clean().main()

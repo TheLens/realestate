@@ -1,37 +1,42 @@
 # -*- coding: utf-8 -*-
 
-'''Form tweet and send'''
+'''Methods for working with Twitter.'''
 
 import re
 from twython import Twython
 
 from landrecords.config import Config
-from landrecords.lib.log import Log
+# from landrecords import log
 
 
 class Twitter(object):
 
-    '''Twitter class to format tweet and send'''
+    '''Methods for working with the Twitter API.'''
 
     def __init__(self, status=None):
+        '''Make connection to Twitter API.'''
+
         self.status = status
         self.twitter = Twython(Config().APP_KEY,
                                Config().APP_SECRET,
                                Config().OAUTH_TOKEN,
                                Config().OAUTH_TOKEN_SECRET)
 
-    def get_attachment(self, media):
+    @staticmethod
+    def get_attachment(media):
+        '''Opens a file.'''
+
         attachment = open(media, 'rb')
 
         return attachment
 
     def check_for_urls(self):
-        '''Scan for URLs. Replace URL length if any found'''
+        '''Scan for URLs. Replace URL length if any found.'''
 
         url_length = 0
 
         # URL is either followed by a whitespace or at the end of the line
-        urls = re.findall('(http[^\s|$]+)', self.status)
+        urls = re.findall(r'(http[^\s|$]+)', self.status)
 
         for url in urls:
             # Subtract length of URL text and replace with length of
@@ -41,7 +46,7 @@ class Twitter(object):
         return url_length
 
     def check_length(self, media=False):
-        '''Confirm that the status + attachments is <= 140 chars'''
+        '''Confirm that the status + attachments is <= 140 chars.'''
 
         length = 140 - len(self.status)
 
@@ -61,21 +66,23 @@ class Twitter(object):
             return True
 
     def send_as_text(self):
-        '''Send plain text tweet'''
+        '''Send plain text tweet.'''
 
         assert self.check_length()
 
         self.twitter.update_status(status=self.status)
 
     def send_with_media(self, media=None):
-        '''Send tweet with media attachment'''
+        '''Send tweet with media attachment.'''
 
         assert self.check_length(media=True)
 
         attachment = self.get_attachment(media)
 
-        self.twitter.update_status_with_media(status=self.status,
-                                              media=attachment)
+        self.twitter.update_status_with_media(
+            status=self.status, media=attachment)
+
+        attachment.close()
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
+    pass

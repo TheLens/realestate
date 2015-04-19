@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''Runs logic to find what to tweet and forms language for tweet'''
+'''Runs logic to find what to tweet and forms language for tweet.'''
 
 # todo: run this separate from 3 a.m. scrape/initialize/etc cron job.
 # run this on a cron at same time we want to tweet.
@@ -15,15 +15,16 @@ from subprocess import call
 
 from landrecords import db
 from landrecords.config import Config
-from landrecords.lib.log import Log
+# from landrecords import log
 from landrecords.lib.twitter import Twitter
 
 
 class AutoTweet(object):
 
-    '''Runs logic to find what to tweet and forms language for tweet'''
+    '''Runs logic to find what to tweet and forms language for tweet.'''
 
     def __init__(self):
+        '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
         engine = create_engine(Config().SERVER_ENGINE)
@@ -55,8 +56,10 @@ class AutoTweet(object):
         # self.send_tweet(message, image)
 
     def figure_out_recorded_date(self):
-        '''Treat Tuesday-Saturday like any other day. Don\'t do anything on
-           Sundays. Mondays tweet about entire previous week.'''
+        '''
+        Treat Tuesday-Saturday like any other day. Don\'t do anything on
+        Sundays. Mondays tweet about entire previous week.
+        '''
 
         document_recorded_early = ''
         document_recorded_late = ''
@@ -104,6 +107,8 @@ class AutoTweet(object):
         return return_dict
 
     def get_highest_amount_details(self):
+        '''Get the relevant fields about the sale with the highest amount.'''
+
         session = self.sn()
 
         query = session.query(
@@ -142,6 +147,11 @@ class AutoTweet(object):
         return query_dict
 
     def conversational_neighborhoods(self):
+        '''
+        Converts neighborhoods to the way you would refer to them in
+        conversation. Ex. "French Quarter" => "the French Quarter."
+        '''
+
         nbhd_list = [
             'BLACK PEARL'
             'BYWATER'
@@ -176,7 +186,7 @@ class AutoTweet(object):
         return url
 
     def screenshot_name(self):
-        '''Form filename for map screenshot'''
+        '''Form filename for map screenshot.'''
 
         name = '%s-%s-high-amount.png' % (
             Config().TODAY_DATE, self.instrument_no)
@@ -184,12 +194,16 @@ class AutoTweet(object):
         return name
 
     def get_image(self):
+        '''Take screenshot of map with PhantomJS.'''
+
         call(['%s/scripts/phantomjs' % Config().PROJECT_DIR,
               '%s/scripts/screen.js' % Config().PROJECT_DIR,
               self.url,
               '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)])
 
     def open_image(self):
+        '''Get file path to screenshot.'''
+
         self.get_image()
 
         filename = '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)
@@ -200,7 +214,7 @@ class AutoTweet(object):
         #     return image
 
     def form_message(self):
-        '''Plug variables into mab lib sentences'''
+        '''Plug variables into mab lib sentences.'''
 
         # options = []
 
@@ -218,9 +232,11 @@ class AutoTweet(object):
         return message
 
     def main(self, message, image):
+        '''Runs through all methods.'''
+
         status = self.form_message()
         media = self.open_image()
         Twitter(status=status).send_with_media(media=media)
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
+    pass

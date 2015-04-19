@@ -1,48 +1,60 @@
 # -*- coding: utf-8 -*-
 
-'''Create database and setup tables'''
-
-# from __future__ import absolute_import
+'''Create database and make tables.'''
 
 import psycopg2
 from sqlalchemy import create_engine
 from subprocess import call, Popen, PIPE
 
-from landrecords.lib.log import Log
+# from landrecords import log
 from landrecords.config import Config
 from landrecords import db
 
 
 class MakeDB(object):
 
+    '''Create database and make tables.'''
+
     def main(self):
+        '''Run all methods.'''
+
         self.import_neighorhoods()
         self.make_db()
         self.spatial_index_on_cleaned_geom()
 
-    def make_db(self):
-        '''Create tables in SQLAlchemy'''
+    @staticmethod
+    def make_db():
+        '''Create tables in SQLAlchemy.'''
 
         engine = create_engine(Config().SERVER_ENGINE,
                                implicit_returning=True)
         db.Base.metadata.create_all(engine)
 
-    def import_neighorhoods(self):
-        '''Import neighborhood shapefiles'''
+    @staticmethod
+    def import_neighorhoods():
+        '''Import neighborhood shapefiles.'''
 
         conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
         cur = conn.cursor()
 
-        p1 = Popen(['shp2pgsql',
-                    '-I',
-                    '{0}/neighborhoods/shapefile'.format(Config().GEO_DIR) +
-                    '/Neighborhood_Statistical_Areas', 'neighborhoods'],
-                   stdout=PIPE)
-        p2 = Popen(['psql',
-                    '-d',
-                    'landrecords'],
-                   stdin=p1.stdout,
-                   stdout=PIPE)
+        p1 = Popen(
+            [
+                'shp2pgsql',
+                '-I',
+                '{0}/neighborhoods/shapefile'.format(Config().GEO_DIR) +
+                '/Neighborhood_Statistical_Areas', 'neighborhoods'
+            ],
+            stdout=PIPE
+        )
+        p2 = Popen(
+            [
+                'psql',
+                '-d',
+                '%s' % Config().DATABASE_NAME
+            ],
+            stdin=p1.stdout,
+            stdout=PIPE
+        )
         p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
         p2.communicate()[0]
 
@@ -58,13 +70,16 @@ class MakeDB(object):
         cur.close()
         conn.close()
 
-    def spatial_index_on_cleaned_geom(self):
-        '''Create spatial index on cleaned table'''
+    @staticmethod
+    def spatial_index_on_cleaned_geom():
+        '''Create spatial index on cleaned table.'''
 
-        call(['psql',
-              'landrecords',
-              '-c',
-              'CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);'])
+        call([
+            'psql',
+            '%s' % Config().DATABASE_NAME,
+            '-c',
+            'CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);'
+        ])
 
     # def delete_duplicate_neighborhoods():
         # cur.execute("DELETE FROM neighborhoods USING neighborhoods n2 WHERE
@@ -89,5 +104,4 @@ class MakeDB(object):
         # -o neighborhoods-topo.min.js
 
 if __name__ == '__main__':
-    log = Log(__name__).initialize_log()
     MakeDB().main()
