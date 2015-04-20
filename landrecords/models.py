@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''docstring'''
-
-# from __future__ import absolute_import
+'''The models.'''
 
 import math
 import urllib
@@ -21,18 +19,22 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords.config import Config
-from landrecords import db
+from landrecords.db import (
+    Cleaned,
+    Neighborhood
+)
 from landrecords.lib.check_assessor_urls import Assessor
 from landrecords import log
+from landrecords.lib.results_language import ResultsLanguage
 from landrecords.lib.utils import Utils
 
 
 class Models(object):
 
-    '''docstring'''
+    '''Gathers data from particular requests.'''
 
     def __init__(self, initial_date=None, until_date=None):
-        '''docstring'''
+        '''Initialize self variables and establish connection to database.'''
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -43,7 +45,7 @@ class Models(object):
         self.sn = sessionmaker(bind=engine)
 
     def get_home(self):
-        '''docstring'''
+        '''Gets data for the homepage (/).'''
 
         session = self.sn()
 
@@ -57,14 +59,14 @@ class Models(object):
         return data
 
     def query_search_term_limit_3(self, table, term):
-        '''docstring'''
+        '''Gets the top three results for autocomplete dropdown.'''
 
         session = self.sn()
 
         query = session.query(
-            getattr(db.Cleaned, table)
+            getattr(Cleaned, table)
         ).filter(
-            getattr(db.Cleaned, table).ilike('%%%s%%' % term)
+            getattr(Cleaned, table).ilike('%%%s%%' % term)
         ).distinct().limit(3).all()
 
         session.close()
@@ -107,7 +109,7 @@ class Models(object):
 
     @staticmethod
     def parse_query_string(request):
-        '''docstring'''
+        '''Parses URL query string parameters.'''
 
         data = {}
         data['name_address'] = request.args.get('q')
@@ -140,7 +142,7 @@ class Models(object):
         return data
 
     def get_search(self, request):
-        '''docstring'''
+        '''GET call to /realestate/search.'''
 
         data = self.parse_query_string(request)
         data = self.decode_data(data)
@@ -177,12 +179,18 @@ class Models(object):
 
         data['map_button_state'] = False
 
-        data['results_language'] = self.construct_results_language(data)
+        data['results_language'] = ResultsLanguage(data).main()
+
+        log.debug('data')
+        log.debug(data)
 
         return data, query, jsdata
 
     def post_search(self, data):
-        '''docstring'''
+        '''Process incoming POST data.'''
+
+        log.debug('post_search')
+        log.debug(data)
 
         data = self.decode_data(data)
         data = self.convert_entries_to_db_friendly(data)
@@ -293,7 +301,7 @@ class Models(object):
 
         data = self.revert_entries(data)
 
-        data['results_language'] = self.construct_results_language(data)
+        data['results_language'] = ResultsLanguage(data).main()
 
         # newrows = q
         # todo: remove?
@@ -310,11 +318,11 @@ class Models(object):
         data['update_date'] = self.get_last_updated_date()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.instrument_no == '%s' % (instrument_no)
+            Cleaned.instrument_no == '%s' % (instrument_no)
         ).filter(
-            db.Cleaned.detail_publish == '1'  # Only publish trusted data
+            Cleaned.detail_publish == '1'  # Only publish trusted data
         ).all()
 
         for row in query:
@@ -367,31 +375,31 @@ class Models(object):
         session = self.sn()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).filter(
-            (db.Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
+            (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
         ).filter(
-            db.Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
+            Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
         ).filter(
-            db.Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
+            Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            db.Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begindate']
         ).filter(
-            db.Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['enddate']
         ).filter(
-            db.Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amountlow']
         ).filter(
-            db.Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amounthigh']
         ).filter(
-            (db.Cleaned.latitude <= data['bounds'][0]) &
-            (db.Cleaned.latitude >= data['bounds'][2]) &
-            (db.Cleaned.longitude <= data['bounds'][1]) &
-            (db.Cleaned.longitude >= data['bounds'][3])
+            (Cleaned.latitude <= data['bounds'][0]) &
+            (Cleaned.latitude >= data['bounds'][2]) &
+            (Cleaned.longitude <= data['bounds'][1]) &
+            (Cleaned.longitude >= data['bounds'][3])
         ).all()
 
         session.close()
@@ -405,33 +413,33 @@ class Models(object):
         session = self.sn()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).filter(
-            (db.Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
+            (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
         ).filter(
-            db.Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
+            Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
         ).filter(
-            db.Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
+            Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            db.Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begindate']
         ).filter(
-            db.Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['enddate']
         ).filter(
-            db.Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amountlow']
         ).filter(
-            db.Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amounthigh']
         ).filter(
-            (db.Cleaned.latitude <= data['bounds'][0]) &
-            (db.Cleaned.latitude >= data['bounds'][2]) &
-            (db.Cleaned.longitude <= data['bounds'][1]) &
-            (db.Cleaned.longitude >= data['bounds'][3])
+            (Cleaned.latitude <= data['bounds'][0]) &
+            (Cleaned.latitude >= data['bounds'][2]) &
+            (Cleaned.longitude <= data['bounds'][1]) &
+            (Cleaned.longitude >= data['bounds'][3])
         ).order_by(
-            desc(db.Cleaned.document_date)
+            desc(Cleaned.document_date)
         ).offset(
             '%d' % data['page_offset']
         ).limit(
@@ -448,26 +456,26 @@ class Models(object):
         session = self.sn()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).filter(
-            (db.Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
+            (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
         ).filter(
-            db.Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
+            Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
         ).filter(
-            db.Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
+            Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            db.Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begindate']
         ).filter(
-            db.Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['enddate']
         ).filter(
-            db.Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amountlow']
         ).filter(
-            db.Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amounthigh']
         ).all()
 
         session.close()
@@ -480,32 +488,32 @@ class Models(object):
         session = self.sn()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).filter(
-            (db.Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
-            (db.Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
+            (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.address.ilike('%%%s%%' % data['name_address'])) |
+            (Cleaned.instrument_no.ilike('%%%s%%' % data['name_address']))
         ).filter(
-            db.Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
+            Cleaned.neighborhood.ilike('%%%s%%' % data['neighborhood'])
         ).filter(
-            db.Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
+            Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            db.Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begindate']
         ).filter(
-            db.Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['enddate']
         ).filter(
-            db.Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amountlow']
         ).filter(
-            db.Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amounthigh']
         ).order_by(
-            desc(db.Cleaned.document_date)
+            desc(Cleaned.document_date)
         ).offset(
-            '%d' % data['page_offset']
+            '%d' % int(data['page_offset'])  # convert unicode to int
         ).limit(
-            '%d' % data['page_length']
+            '%d' % int(data['page_length'])
         ).all()
 
         session.close()
@@ -595,11 +603,11 @@ class Models(object):
         session = self.sn()
 
         query = session.query(
-            db.Cleaned
+            Cleaned
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).order_by(
-            desc(db.Cleaned.document_recorded)
+            desc(Cleaned.document_recorded)
         ).limit(1).all()
 
         updated_date = ''
@@ -617,7 +625,7 @@ class Models(object):
 
         session = self.sn()
 
-        query = session.query(db.Neighborhood.gnocdc_lab).all()
+        query = session.query(Neighborhood.gnocdc_lab).all()
 
         neighborhoods = []
 
@@ -631,159 +639,6 @@ class Models(object):
 
         return neighborhoods
 
-    @staticmethod
-    def plural_or_not(data):
-        '''docstring'''
-
-        if data['number_of_records'] == 1:
-            plural_or_not = "sale"
-        else:
-            plural_or_not = "sales"
-
-        return plural_or_not
-
-    @staticmethod
-    def add_keyword_language(final_sentence, data):
-        '''docstring'''
-
-        if data['name_address'] != '':
-            if len(data['name_address'].split()) > 1:
-                final_sentence += ' for key phrase "' + \
-                    data['name_address'] + '"'
-                # for 'keyword'
-            else:
-                final_sentence += ' for keyword "' + \
-                    data['name_address'] + '"'
-                # for 'keyword'
-
-        return final_sentence
-
-    @staticmethod
-    def add_nbhd_zip_language(final_sentence, data):
-        '''docstring'''
-
-        if data['neighborhood'] != '':
-            if data['zip_code'] != '':
-                final_sentence += " in the " + data['neighborhood'] + \
-                    " neighborhood and " + data['zip_code']
-                # in the Mid-City neighborhood and 70119
-            else:
-                final_sentence += " in the " + data['neighborhood'] + \
-                    " neighborhood"
-                # in the Mid-City neighborhood
-        elif data['zip_code'] != '':
-            final_sentence += " in ZIP code " + data['zip_code']
-            # in ZIP code 70119
-
-        return final_sentence
-
-    @staticmethod
-    def add_amount_language(final_sentence, data):
-        '''docstring'''
-
-        if data['amountlow'] != '':
-            if data['amounthigh'] != '':
-                final_sentence += " where the price was between " + \
-                    Utils().get_num_with_curr_sign(data['amountlow']) + \
-                    + " and " + \
-                    Utils().get_num_with_curr_sign(data['amounthigh'])
-                # where the amount is between $10 and $20
-            else:
-                final_sentence += " where the price was greater than " + \
-                    Utils().get_num_with_curr_sign(data['amountlow'])
-                # where the amount is greater than $10
-        elif data['amounthigh'] != '':
-            final_sentence += " where the price was less than " + \
-                Utils().get_num_with_curr_sign(data['amounthigh'])
-            # where the amount is less than $20
-
-        return final_sentence
-
-    @staticmethod
-    def add_date_language(final_sentence, data):
-        '''docstring'''
-
-        if data['begindate'] != '':
-            if data['enddate'] != '':
-                final_sentence += " between " + \
-                    Utils().ymd_to_full_date(
-                        data['begindate'],
-                        no_day=True) + \
-                    ", and " + \
-                    Utils().ymd_to_full_date(
-                        data['enddate'],
-                        no_day=True)
-                # between Feb. 10, 2014, and Feb. 12, 2014
-            else:
-                final_sentence += " after " + \
-                    Utils().ymd_to_full_date(
-                        data['begindate'],
-                        no_day=True)
-                # after Feb. 10, 2014.
-        elif data['enddate'] != '':
-            final_sentence += " before " + \
-                Utils().ymd_to_full_date(
-                    data['enddate'],
-                    no_day=True)
-            # before Feb. 20, 2014.
-
-        return final_sentence
-
-    @staticmethod
-    def add_map_filtering_language(final_sentence, data):
-        '''docstring'''
-
-        if data['map_button_state'] is True:
-            final_sentence += ' in the current map view'
-
-        return final_sentence
-
-    @staticmethod
-    def add_final_sentence_language(final_sentence):
-        '''docstring'''
-
-        # Punctuation comes before quotation marks
-
-        if final_sentence[-1] == "'" or final_sentence[-1] == '"':
-            last_character = final_sentence[-1]
-            final_sentence_list = list(final_sentence)
-            final_sentence_list[-1] = '.'
-            final_sentence_list.append(last_character)
-            final_sentence = ''.join(final_sentence_list)
-        else:
-            final_sentence += '.'
-
-        return final_sentence
-
-    @staticmethod
-    def add_initial_language(plural_or_not, data):
-        '''docstring'''
-
-        final_sentence = str(Utils().get_number_with_commas(
-            data['number_of_records'])) + ' ' + plural_or_not + ' found'
-
-        return final_sentence
-
-    def construct_results_language(self, data):
-        '''docstring'''
-
-        plural_or_not = self.plural_or_not(data)
-
-        final_sentence = self.add_initial_language(plural_or_not, data)
-
-        final_sentence = self.add_keyword_language(final_sentence, data)
-
-        final_sentence = self.add_nbhd_zip_language(final_sentence, data)
-
-        final_sentence = self.add_amount_language(final_sentence, data)
-
-        final_sentence = self.add_date_language(final_sentence, data)
-
-        final_sentence = self.add_map_filtering_language(final_sentence, data)
-
-        final_sentence = self.add_final_sentence_language(final_sentence)
-
-        return final_sentence
 
 if __name__ == '__main__':
     pass

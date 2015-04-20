@@ -4,12 +4,18 @@
 
 import re
 
-from sqlalchemy import create_engine, insert, func, cast, Text
+from sqlalchemy import create_engine, insert, func, cast, Text, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords.config import Config
-from landrecords import db
+from landrecords.db import (
+    Cleaned,
+    Detail,
+    Location,
+    Vendee,
+    Vendor
+)
 from landrecords.lib.libraries import Library
 from landrecords import log
 
@@ -37,11 +43,11 @@ class Join(object):
         session = self.sn()
 
         subquery = session.query(
-            db.Detail
+            Detail
         ).filter(
-            db.Detail.document_recorded >= '%s' % self.initial_date
+            Detail.document_recorded >= '%s' % self.initial_date
         ).filter(
-            db.Detail.document_recorded <= '%s' % self.until_date
+            Detail.document_recorded <= '%s' % self.until_date
         ).subquery()
 
         log.debug(subquery)
@@ -53,17 +59,19 @@ class Join(object):
     def get_vendees(self):
         '''Gathers relevant vendees fields for cleaned.'''
 
+        log.debug('get_vendees')
+
         session = self.sn()
 
         subquery = session.query(
-            db.Vendee.document_id,
+            Vendee.document_id,
             func.string_agg(
-                cast(db.Vendee.vendee_firstname, Text) + ' ' +
-                cast(db.Vendee.vendee_lastname, Text),
+                cast(Vendee.vendee_firstname, Text) + ' ' +
+                cast(Vendee.vendee_lastname, Text),
                 ', '
             ).label('buyers')
         ).group_by(
-            db.Vendee.document_id
+            Vendee.document_id
         ).subquery()
 
         # log.debug(subquery)
@@ -75,17 +83,19 @@ class Join(object):
     def get_vendors(self):
         '''Gathers relevant vendors fields for cleaned.'''
 
+        log.debug('get_vendors')
+
         session = self.sn()
 
         subquery = session.query(
-            db.Vendor.document_id,
+            Vendor.document_id,
             func.string_agg(
-                cast(db.Vendor.vendor_firstname, Text) + ' ' +
-                cast(db.Vendor.vendor_lastname, Text),
+                cast(Vendor.vendor_firstname, Text) + ' ' +
+                cast(Vendor.vendor_lastname, Text),
                 ', '
             ).label('sellers')
         ).group_by(
-            db.Vendor.document_id
+            Vendor.document_id
         ).subquery()
 
         # log.debug(subquery)
@@ -97,24 +107,26 @@ class Join(object):
     def get_locations(self):
         '''Gathers relevant locations fields for cleaned.'''
 
+        log.debug('get_locations')
+
         session = self.sn()
 
         subquery = session.query(
-            db.Location.document_id,
-            func.min(db.Location.location_publish).label('location_publish'),
+            Location.document_id,
+            func.min(Location.location_publish).label('location_publish'),
             func.string_agg(
-                cast(db.Location.street_number, Text) + ' ' +
-                cast(db.Location.address, Text),
+                cast(Location.street_number, Text) + ' ' +
+                cast(Location.address, Text),
                 '; '
             ).label('address'),
             func.string_agg(
-                'Unit: ' + cast(db.Location.unit, Text) + ' ' +
-                'Condo: ' + cast(db.Location.condo, Text) + ' ' +
-                'Weeks: ' + cast(db.Location.weeks, Text) + ' ' +
-                'Subdivision: ' + cast(db.Location.subdivision, Text) + ' ' +
-                'District: ' + cast(db.Location.district, Text) + ' ' +
-                'Square: ' + cast(db.Location.square, Text) + ' ' +
-                'Lot: ' + cast(db.Location.lot, Text),
+                'Unit: ' + cast(Location.unit, Text) + ' ' +
+                'Condo: ' + cast(Location.condo, Text) + ' ' +
+                'Weeks: ' + cast(Location.weeks, Text) + ' ' +
+                'Subdivision: ' + cast(Location.subdivision, Text) + ' ' +
+                'District: ' + cast(Location.district, Text) + ' ' +
+                'Square: ' + cast(Location.square, Text) + ' ' +
+                'Lot: ' + cast(Location.lot, Text),
                 '; '
             ).label('location_info')
             # todo: Once SQLAlchemy supports this, add these fields this way.
@@ -125,7 +137,7 @@ class Join(object):
             # 'mode() WITHIN GROUP (ORDER BY locations.neighborhood) ' +
             # 'AS neighborhood'
         ).group_by(
-            db.Location.document_id
+            Location.document_id
         ).subquery()
 
         # log.debug(subquery)
@@ -137,20 +149,23 @@ class Join(object):
     def join_subqueries(self):
         '''Runs a JOIN on subqueries.'''
 
+        log.debug('join_subqueries')
+
         subq_vendees = self.get_vendees()
         subq_vendors = self.get_vendors()
         subq_location = self.get_locations()
 
         session = self.sn()
 
+        log.debug('query...')
         query = session.query(
-            db.Detail.document_id,
-            db.Detail.amount,
-            db.Detail.document_date,
-            db.Detail.document_recorded,
-            db.Detail.instrument_no,
-            db.Detail.detail_publish,
-            db.Detail.permanent_flag,
+            Detail.document_id,
+            Detail.amount,
+            Detail.document_date,
+            Detail.document_recorded,
+            Detail.instrument_no,
+            Detail.detail_publish,
+            Detail.permanent_flag,
             subq_vendees.c.buyers,
             subq_vendors.c.sellers,
             subq_location.c.location_publish,
@@ -168,9 +183,9 @@ class Join(object):
         ).join(
             subq_location
         ).filter(
-            db.Detail.document_recorded >= '%s' % self.initial_date
+            Detail.document_recorded >= '%s' % self.initial_date
         ).filter(
-            db.Detail.document_recorded <= '%s' % self.until_date
+            Detail.document_recorded <= '%s' % self.until_date
         ).all()
 
         log.debug('len(query): %d', len(query))
@@ -182,12 +197,15 @@ class Join(object):
     def get_rows_from_query(self):
         '''Convert query result to row of dicts.'''
 
+        log.debug('get_rows_from_query')
+
         query = self.join_subqueries()
 
         rows = []
         for row in query:
             dict_val = row.__dict__
             del dict_val['_labels']  # todo: necessary?
+            # del dict_val['document_id']  # leave for now bc of ___ todo
             rows.append(dict_val)
 
         log.debug('len(rows): %d', len(rows))
@@ -647,22 +665,29 @@ class Clean(object):
     def commit_rows(self, rows):
         '''Commits JOIN-ed rows to the cleaned table.'''
 
-        log.debug('%d rows committed', len(rows))
+        log.debug('Committing %d rows', len(rows))
 
         session = self.sn()
 
-        for row in rows:
+        for count, row in enumerate(rows):
             try:
                 with session.begin_nested():
-                    i = insert(db.Cleaned)
+                    i = insert(Cleaned)
                     i = i.values(row)
                     session.execute(i)
                     session.flush()
+            except exc.IntegrityError, error:
+                log.debug('count: %s', count)
+                log.exception(error, exc_info=True)
+                session.rollback()
             except Exception, error:
+                log.debug('count: %s', count)
                 log.exception(error, exc_info=True)
                 session.rollback()
 
-        session.commit()
+            session.commit()
+
+        log.debug('%d rows committed', len(rows))
 
         session.close()
 
@@ -672,11 +697,13 @@ class Clean(object):
         log.info('Clean')
         print 'Cleaning...'
 
+        log.debug('get_rows_from_query')
         rows = Join(
             initial_date=self.initial_date,
             until_date=self.until_date
         ).get_rows_from_query()
 
+        log.debug('add_location_fields_temp_hack')
         rows = Join(
             initial_date=self.initial_date,
             until_date=self.until_date

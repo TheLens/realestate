@@ -219,6 +219,8 @@ def lib():
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/publish.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/results_language.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/scrape.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/stat_analysis.py tom@%s:%s' % (

@@ -43,6 +43,8 @@ class Geocode(object):
     def neighborhood_found(self):
         '''Use PostGIS to find which neighborhood a long/lat pair is in.'''
 
+        log.debug('neighborhood_found')
+
         session = self.sn()
 
         session.query(
@@ -69,6 +71,8 @@ class Geocode(object):
 
     def no_neighborhood_found(self):
         '''If no neighborhood is found, update with "None" in nbhd field.'''
+
+        log.debug('no_neighborhood_found')
 
         session = self.sn()
 

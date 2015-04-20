@@ -12,7 +12,7 @@ from flask import (
 )
 
 from landrecords.config import Config
-# from landrecords import log
+from landrecords import log
 from landrecords.lib.utils import Utils
 
 
@@ -33,31 +33,33 @@ class Views(object):
         self.js_app_routing = Config().JS_APP_ROUTING
         self.zip_codes = Utils().zip_codes
 
-        self.home_assets = {
-            'js': self.js,
-            'css': self.css,
-            'index_js': self.index_js,
-            'search_area_js': self.search_area_js,
-            'js_app_routing': self.js_app_routing,
-            'zip_codes': self.zip_codes
-        }
-        self.search_assets = {
-            'js': self.js,
-            'search_js': self.search_js,
-            'search_area_js': self.search_area_js,
-            'map_js': self.map_js,
-            'css': self.css,
-            'js_app_routing': self.js_app_routing,
-            'zip_codes': self.zip_codes
-        }
-        self.sale_assets = {
-            'js': self.js,
-            'css': self.css,
-            'salejs': self.sale_js
-        }
+        # self.home_assets = {
+        #     'js': self.js,
+        #     'css': self.css,
+        #     'index_js': self.index_js,
+        #     'search_area_js': self.search_area_js,
+        #     'js_app_routing': self.js_app_routing,
+        #     'zip_codes': self.zip_codes
+        # }
+        # self.search_assets = {
+        #     'js': self.js,
+        #     'search_js': self.search_js,
+        #     'search_area_js': self.search_area_js,
+        #     'map_js': self.map_js,
+        #     'css': self.css,
+        #     'js_app_routing': self.js_app_routing,
+        #     'zip_codes': self.zip_codes
+        # }
+        # self.sale_assets = {
+        #     'js': self.js,
+        #     'css': self.css,
+        #     'salejs': self.sale_js
+        # }
 
     def get_home(self, data):
         '''Return view for /realestate/'''
+
+        log.debug('get_home')
 
         response = make_response(
             render_template(
@@ -77,6 +79,8 @@ class Views(object):
 
     def get_search(self, data, newrows, js_data):
         '''Return GET view for /realestate/search'''
+
+        log.debug('get_search')
 
         response = make_response(
             render_template(
@@ -101,6 +105,8 @@ class Views(object):
     def post_search(data, newrows, js_data):
         '''Return updated views for /realestate/search'''
 
+        log.debug('post_search')
+
         table_template = render_template(
             'table.html',
             newrows=newrows
@@ -114,6 +120,8 @@ class Views(object):
 
     def get_sale(self, data, js_data, newrows):
         '''Return GET view for /realestate/sale'''
+
+        log.debug('get_sale')
 
         response = make_response(
             render_template(

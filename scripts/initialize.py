@@ -36,14 +36,14 @@ class Initialize(object):
         log.debug(self.initial_date)
         log.debug(self.until_date)
 
-        Build(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).build_all()
+        # Build(  # todo: should first check if data is already in DB.
+        #     initial_date=self.initial_date,
+        #     until_date=self.until_date
+        # ).build_all()
 
-        Clean().prep_locations_for_geocoding()
-        Geocode().geocode()  # Geocoding entire archive can take over an hour
-        Geocode().update_locations_with_neighborhoods()
+        # Clean().prep_locations_for_geocoding()
+        # Geocode().geocode()  # Geocoding entire archive can take over an hour
+        # Geocode().update_locations_with_neighborhoods()
 
         Clean(
             initial_date=self.initial_date,

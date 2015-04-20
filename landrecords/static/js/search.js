@@ -29,23 +29,23 @@ function mapSearching() {
   }
 
   // If search input bar unchanged (nbhd in URL matches search input text), delete.
-  if (document.getElementById('name_address_box').value.trim() === nbhd_text || document.getElementById('name_address_box').value.trim() === zip_text) {
-    document.getElementById('name_address_box').value = '';
+  if (document.getElementById('name-address-box').value.trim() === nbhd_text || document.getElementById('name-address-box').value.trim() === zip_text) {
+    document.getElementById('name-address-box').value = '';
   }
 
   if (document.getElementById('neighborhood').value !== '') {
     document.getElementById('neighborhood').value = '';
   }
 
-  if (document.getElementById('zip_code').value !== '') {
-    document.getElementById('zip_code').value = '';
+  if (document.getElementById('zip-code').value !== '') {
+    document.getElementById('zip-code').value = '';
   }
 
   var data = prepareData();
 
-  var page = $('#table-wrapper').attr('data-page');
+  var current_page = $('#table-wrapper').attr('data-current-page');
   var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
-  data.page = page;
+  data.current_page = current_page;
   data.number_of_pages = number_of_pages;
   data.direction = null;
 
@@ -68,21 +68,19 @@ function mapSearching() {
         window.history.pushState(null,'hi',query_string);
       }
 
-      document.getElementById('page').innerHTML = info.page;
-      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
+      document.getElementById('current-page').innerHTML = info.current_page;
+      document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
-      table_wrapper.setAttribute('data-page', info.page);
+      table_wrapper.setAttribute('data-current-page', info.current_page);
       table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
       table_wrapper.setAttribute('data-page-length', info.page_length);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
 
-      document.getElementById('results_language').innerHTML = info.results_language;
+      document.getElementById('results-language').innerHTML = info.results_language;
       document.getElementById('results-not-found').style.display = info.show_results;
-
-      //console.log('data.neighborhood:', data.neighborhood);
 
       if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
         selectedNeighborhood(data.neighborhood);
@@ -92,7 +90,7 @@ function mapSearching() {
         updateMap(info.jsdata, 1, 0, 0);
       }
 
-      checkPagerButtons(info.page, info.number_of_pages);
+      checkPagerButtons(info.current_page, info.number_of_pages);
     }
   });
 }
@@ -112,39 +110,39 @@ function doSearch(category) {
   }
 
   // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
-  if (document.getElementById('name_address_box').value.trim() === nbhd_text) {
+  if (document.getElementById('name-address-box').value.trim() === nbhd_text) {
     data.name_address = '';
     data.neighborhood = nbhd_text;
 
     // Handle if neighborhood in search bar AND is now also in neighborhood dropdown. favor dropdown
     if (document.getElementById('neighborhood').value !== '') {
-      document.getElementById('name_address_box').value = ''; // Overwriting this will affect checks below
+      document.getElementById('name-address-box').value = ''; // Overwriting this will affect checks below
       data.neighborhood = document.getElementById('neighborhood').value;
     }
   }
 
   // If search input is still equal to the zip code previously searched for, keep in search bar and continue to use as zip, not as keyword.
-  if (document.getElementById('name_address_box').value.trim() === zip_text) {
+  if (document.getElementById('name-address-box').value.trim() === zip_text) {
     data.name_address = '';
     data.zip_code = zip_text;
 
-    if (document.getElementById('zip_code').value !== '') {
-      document.getElementById('name_address_box').value = '';
-      data.zip_code = document.getElementById('zip_code').value;
+    if (document.getElementById('zip-code').value !== '') {
+      document.getElementById('name-address-box').value = '';
+      data.zip_code = document.getElementById('zip-code').value;
     }
   }
 
   // If neighborhood dropdown selection is equal to the neighborhood previously searched for (in the URL), but there is now a neighborhood in the search input, remove the neighborhood dropdown and favor the search input.
   if (document.getElementById('neighborhood').value === nbhd_text && category === 'neighborhood') {
     document.getElementById('neighborhood').value = '';
-    data.neighborhood = document.getElementById('name_address_box').value;
+    data.neighborhood = document.getElementById('name-address-box').value;
     data.name_address = '';
   }
 
   // If zip dropdown selection is equal to the zip previously searched for (in the URL), but there is now a zip in the search input, remove the zip dropdown and favor the search input.
-  if (document.getElementById('zip_code').value === zip_text && category === 'zip_code') {
-    document.getElementById('zip_code').value = '';
-    data.zip_code = document.getElementById('name_address_box').value;
+  if (document.getElementById('zip-code').value === zip_text && category === 'zip_code') {
+    document.getElementById('zip-code').value = '';
+    data.zip_code = document.getElementById('name-address-box').value;
     data.name_address = '';
   }
 
@@ -153,13 +151,13 @@ function doSearch(category) {
 
 
   // Disable map-view filtering if new searches uses geographic parameters
-  if (document.getElementById('neighborhood').value !== '' || document.getElementById('zip_code').value !== '' || typeof category !== 'undefined') {
+  if (document.getElementById('neighborhood').value !== '' || document.getElementById('zip-code').value !== '' || typeof category !== 'undefined') {
     document.getElementById("mapButton").checked = false;
   }
 
   data.bounds = map.getBounds();
   data.map_button_state = document.getElementById("mapButton").checked;
-  data.page = $('#table-wrapper').attr('data-page');
+  data.current_page = $('#table-wrapper').attr('data-current-page');
   data.number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   data.direction = null;
 
@@ -180,21 +178,19 @@ function doSearch(category) {
         window.history.pushState(null,'hi',query_string);
       }
       
-      document.getElementById('page').innerHTML = info.page;
-      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
+      document.getElementById('current-page').innerHTML = info.current_page;
+      document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
-      table_wrapper.setAttribute('data-page', info.page);
+      table_wrapper.setAttribute('data-current-page', info.current_page);
       table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
       table_wrapper.setAttribute('data-page-length', info.page_length);
 
       $("#tbody").html(info.tabletemplate);
       $("#table-footer-wrapper").trigger("updateAll");
 
-      document.getElementById('results_language').innerHTML = info.results_language;
+      document.getElementById('results-language').innerHTML = info.results_language;
       document.getElementById('results-not-found').style.display = info.show_results;
-
-      //console.log('data.neighborhood:', data.neighborhood);
 
       if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
         selectedNeighborhood(data.neighborhood);
@@ -204,19 +200,16 @@ function doSearch(category) {
         updateMap(info.jsdata, 0, 0, 0);
       }
 
-      checkPagerButtons(info.page, info.number_of_pages);
+      checkPagerButtons(info.current_page, info.number_of_pages);
     }
   });
 }
 
-$("body").on("click", ".pageforward", function () {
-  var page = $('#table-wrapper').attr('data-page');
+$("body").on("click", ".page-forward", function () {
+  var current_page = $('#table-wrapper').attr('data-current-page');
   var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
-  
-  //console.log('\npage:',  page);
-  //console.log('number_of_pages:', number_of_pages);
 
-  if (page !== number_of_pages) {
+  if (current_page !== number_of_pages) {
     var data = prepareData();
 
     var nbhd_text, zip_text;
@@ -232,39 +225,39 @@ $("body").on("click", ".pageforward", function () {
     }
 
     // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
-    if (document.getElementById('name_address_box').value.trim() === nbhd_text) {
+    if (document.getElementById('name-address-box').value.trim() === nbhd_text) {
       data.name_address = '';
       data.neighborhood = nbhd_text;
 
       // Handle if neighborhood in search bar AND is now also in neighborhood dropdown. favor dropdown
       if (document.getElementById('neighborhood').value !== '') {
-        document.getElementById('name_address_box').value = ''; // Overwriting this will affect checks below
+        document.getElementById('name-address-box').value = ''; // Overwriting this will affect checks below
         data.neighborhood = document.getElementById('neighborhood').value;
       }
     }
 
     // If search input is still equal to the zip code previously searched for, keep in search bar and continue to use as zip, not as keyword.
-    if (document.getElementById('name_address_box').value.trim() === zip_text) {
+    if (document.getElementById('name-address-box').value.trim() === zip_text) {
       data.name_address = '';
       data.zip_code = zip_text;
 
-      if (document.getElementById('zip_code').value !== '') {
-        document.getElementById('name_address_box').value = '';
-        data.zip_code = document.getElementById('zip_code').value;
+      if (document.getElementById('zip-code').value !== '') {
+        document.getElementById('name-address-box').value = '';
+        data.zip_code = document.getElementById('zip-code').value;
       }
     }
 
     // If neighborhood dropdown selection is equal to the neighborhood previously searched for (in the URL), but there is now a neighborhood in the search input, remove the neighborhood dropdown and favor the search input.
     if (document.getElementById('neighborhood').value === nbhd_text && category === 'neighborhood') {
       document.getElementById('neighborhood').value = '';
-      data.neighborhood = document.getElementById('name_address_box').value;
+      data.neighborhood = document.getElementById('name-address-box').value;
       data.name_address = '';
     }
 
     // If zip dropdown selection is equal to the zip previously searched for (in the URL), but there is now a zip in the search input, remove the zip dropdown and favor the search input.
-    if (document.getElementById('zip_code').value === zip_text && category === 'zip_code') {
-      document.getElementById('zip_code').value = '';
-      data.zip_code = document.getElementById('name_address_box').value;
+    if (document.getElementById('zip-code').value === zip_text && category === 'zip_code') {
+      document.getElementById('zip-code').value = '';
+      data.zip_code = document.getElementById('name-address-box').value;
       data.name_address = '';
     }
 
@@ -275,7 +268,7 @@ $("body").on("click", ".pageforward", function () {
 
     //Find pagination details
     var page_length = $('#table-wrapper').attr('data-page-length');
-    data.page = page;
+    data.current_page = current_page;
     data.number_of_pages = number_of_pages;
     data.page_length = page_length;
     data.direction = 'forward';
@@ -287,19 +280,17 @@ $("body").on("click", ".pageforward", function () {
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
-        document.getElementById('page').innerHTML = info.page;
-        document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
+        document.getElementById('current-page').innerHTML = info.current_page;
+        document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
-        table_wrapper.setAttribute('data-page', info.page);
+        table_wrapper.setAttribute('data-current-page', info.current_page);
         table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
         table_wrapper.setAttribute('data-page-length', info.page_length);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
-        document.getElementById('results_language').innerHTML = info.results_language;
-
-        //console.log('data.neighborhood:', data.neighborhood);
+        document.getElementById('results-language').innerHTML = info.results_language;
 
         if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
           selectedNeighborhood(data.neighborhood);
@@ -309,19 +300,16 @@ $("body").on("click", ".pageforward", function () {
           updateMap(info.jsdata, 0, 1, 0);
         }
 
-        checkPagerButtons(info.page, info.number_of_pages);
-
-        //console.log('info.page:', info.page);
-        //console.log('info.number_of_pages:', info.number_of_pages);
+        checkPagerButtons(info.current_page, info.number_of_pages);
       }
     });
   }
 });
 
-$("body").on("click", ".pageback", function () {
-  var page = $('#table-wrapper').attr('data-page');
+$("body").on("click", ".page-back", function () {
+  var current_page = $('#table-wrapper').attr('data-current-page');
   var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
-  if (page !== "1" && page !== "0") {
+  if (current_page !== "1" && current_page !== "0") {
     var data = prepareData();
 
     var nbhd_text, zip_text;
@@ -337,39 +325,39 @@ $("body").on("click", ".pageback", function () {
     }
 
     // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
-    if (document.getElementById('name_address_box').value.trim() === nbhd_text) {
+    if (document.getElementById('name-address-box').value.trim() === nbhd_text) {
       data.name_address = '';
       data.neighborhood = nbhd_text;
 
       // Handle if neighborhood in search bar AND is now also in neighborhood dropdown. favor dropdown
       if (document.getElementById('neighborhood').value !== '') {
-        document.getElementById('name_address_box').value = ''; // Overwriting this will affect checks below
+        document.getElementById('name-address-box').value = ''; // Overwriting this will affect checks below
         data.neighborhood = document.getElementById('neighborhood').value;
       }
     }
 
     // If search input is still equal to the zip code previously searched for, keep in search bar and continue to use as zip, not as keyword.
-    if (document.getElementById('name_address_box').value.trim() === zip_text) {
+    if (document.getElementById('name-address-box').value.trim() === zip_text) {
       data.name_address = '';
       data.zip_code = zip_text;
 
-      if (document.getElementById('zip_code').value !== '') {
-        document.getElementById('name_address_box').value = '';
-        data.zip_code = document.getElementById('zip_code').value;
+      if (document.getElementById('zip-code').value !== '') {
+        document.getElementById('name-address-box').value = '';
+        data.zip_code = document.getElementById('zip-code').value;
       }
     }
 
     // If neighborhood dropdown selection is equal to the neighborhood previously searched for (in the URL), but there is now a neighborhood in the search input, remove the neighborhood dropdown and favor the search input.
     if (document.getElementById('neighborhood').value === nbhd_text && category === 'neighborhood') {
       document.getElementById('neighborhood').value = '';
-      data.neighborhood = document.getElementById('name_address_box').value;
+      data.neighborhood = document.getElementById('name-address-box').value;
       data.name_address = '';
     }
 
     // If zip dropdown selection is equal to the zip previously searched for (in the URL), but there is now a zip in the search input, remove the zip dropdown and favor the search input.
-    if (document.getElementById('zip_code').value === zip_text && category === 'zip_code') {
-      document.getElementById('zip_code').value = '';
-      data.zip_code = document.getElementById('name_address_box').value;
+    if (document.getElementById('zip-code').value === zip_text && category === 'zip_code') {
+      document.getElementById('zip-code').value = '';
+      data.zip_code = document.getElementById('name-address-box').value;
       data.name_address = '';
     }
 
@@ -379,10 +367,10 @@ $("body").on("click", ".pageback", function () {
     data.map_button_state = map_button_state;
 
     //Find pagination details
-    page = $('#table-wrapper').attr('data-page');
+    current_page = $('#table-wrapper').attr('data-current-page');
     number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
     var page_length = $('#table-wrapper').attr('data-page-length');
-    data.page = page;
+    data.current_page = current_page;
     data.number_of_pages = number_of_pages;
     data.page_length = page_length;
     data.direction = 'back';
@@ -395,20 +383,18 @@ $("body").on("click", ".pageback", function () {
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
-        document.getElementById('page').innerHTML = info.page;
+        document.getElementById('current-current-page').innerHTML = info.current_page;
         document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
-        table_wrapper.setAttribute('data-page', info.page);
+        table_wrapper.setAttribute('data-current-page', info.current_page);
         table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
         table_wrapper.setAttribute('data-page-length', info.page_length);
 
         $("#tbody").html(info.tabletemplate);
         $("#table-footer-wrapper").trigger("updateAll");
 
-        document.getElementById('results_language').innerHTML = info.results_language;
-
-        ////console.log('data.neighborhood:', data.neighborhood);
+        document.getElementById('results-language').innerHTML = info.results_language;
 
         if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
           selectedNeighborhood(data.neighborhood);
@@ -418,23 +404,23 @@ $("body").on("click", ".pageback", function () {
           updateMap(info.jsdata, 0, 1, 0);
         }
 
-        checkPagerButtons(info.page, info.number_of_pages);
+        checkPagerButtons(info.current_page, info.number_of_pages);
       }
     });
   }
 });
 
 function populateSearchParameters(data) {
-  document.getElementById('name_address_box').value = data.name_address;
+  document.getElementById('name-address-box').value = data.name_address;
   document.getElementById('amount1').value = (data.amountlow !== '' ? '$' : '') + data.amountlow;
   document.getElementById('amount2').value = (data.amounthigh !== '' ? '$' : '') + data.amounthigh;
   document.getElementById('date1').value = data.begindate;
   document.getElementById('date2').value = data.enddate;
   if (data.name_address === '') {
     if (data.neighborhood !== '') {
-      document.getElementById('name_address_box').value = data.neighborhood;
+      document.getElementById('name-address-box').value = data.neighborhood;
     } else {
-      document.getElementById('name_address_box').value = data.zip_code;
+      document.getElementById('name-address-box').value = data.zip_code;
     }
   }
   if(data.amountlow !== '' || data.amounthigh !== '' || data.begindate !== '' || data.enddate !== '') {
@@ -443,37 +429,32 @@ function populateSearchParameters(data) {
   }
 }
 
-function checkPagerButtons(page, number_of_pages) {
-  //console.log('yo:');
-
-  if (typeof page === 'undefined') {
-    page = $('#table-wrapper').attr('data-page');
+function checkPagerButtons(current_page, number_of_pages) {
+  if (typeof current_page === 'undefined') {
+    current_page = $('#table-wrapper').attr('data-current-page');
   }
 
   if (typeof number_of_pages === 'undefined') {
     number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
   }
 
-  page = page.toString();
+  current_page = current_page.toString();
   number_of_pages = number_of_pages.toString();
 
-  ////console.log('page:', page);
-  ////console.log('number_of_pages:', number_of_pages);
-
-  if (page === '1' || page === '0') {
-    document.getElementById('back_button').style.color = 'gray';
-    document.getElementById('back_button').style.cursor = 'default';
+  if (current_page === '1' || current_page === '0') {
+    document.getElementById('back-button').style.color = 'gray';
+    document.getElementById('back-button').style.cursor = 'default';
   } else {
-    document.getElementById('back_button').style.color = '#222';
-    document.getElementById('back_button').style.cursor = 'pointer';
+    document.getElementById('back-button').style.color = '#222';
+    document.getElementById('back-button').style.cursor = 'pointer';
   }
 
-  if (page === number_of_pages) {
-    document.getElementById('forward_button').style.color = 'gray';
-    document.getElementById('forward_button').style.cursor = 'default';
+  if (current_page === number_of_pages) {
+    document.getElementById('forward-button').style.color = 'gray';
+    document.getElementById('forward-button').style.cursor = 'default';
   } else {
-    document.getElementById('forward_button').style.color = '#222';
-    document.getElementById('forward_button').style.cursor = 'pointer';
+    document.getElementById('forward-button').style.color = '#222';
+    document.getElementById('forward-button').style.cursor = 'pointer';
   }
 }
 
@@ -544,10 +525,10 @@ function geoSearch(data) {
         // var root_url = testarr.join('');
         window.history.pushState(null,'hi',query_string);
       }
-      document.getElementById('page').innerHTML = info.page;
+      document.getElementById('current-page').innerHTML = info.page;
       document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
 
-      $('#table-wrapper').data('page', info.page);
+      $('#table-wrapper').data('current-page', info.page);
       $('#table-wrapper').data('number_of_pages', info.number_of_pages);
       $('#table-wrapper').data('page_length', info.page_length);
 

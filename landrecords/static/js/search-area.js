@@ -107,7 +107,7 @@ function buildQueryString(data) {
 }
 
 function prepareData(category) {
-  var name_address = encodeURIComponent($('#name_address_box').val());
+  var name_address = encodeURIComponent($('#name-address-box').val());
   var amountlow1 = $('#amount1').val();
   var amounthigh1 = $('#amount2').val();
   var amountlow = amountlow1.replace(/[,$]/g, '');
@@ -115,16 +115,16 @@ function prepareData(category) {
   var begindate = $('#date1').val();
   var enddate = $('#date2').val();
   var neighborhood = encodeURIComponent($('#neighborhood').val());
-  var zip_code = $('#zip_code').val();
+  var zip_code = $('#zip-code').val();
 
   if (typeof category !== 'undefined') {
     if (category === 'neighborhood') {
-      neighborhood = encodeURIComponent($('#name_address_box').val());
+      neighborhood = encodeURIComponent($('#name-address-box').val());
       name_address = '';
     }
 
     if (category === 'zip_code') {
-      zip_code = encodeURIComponent($('#name_address_box').val());
+      zip_code = encodeURIComponent($('#name-address-box').val());
       name_address = '';
     }
   }
@@ -209,7 +209,7 @@ $( "#date1" ).datepicker({
 $( "#date2" ).datepicker();
 
 if ($(window).width() < 500) {
-  $('#name_address_box').attr('placeholder','Enter buyer, seller, address');
+  $('#name-address-box').attr('placeholder','Enter buyer, seller, address');
   $('#date1').attr('placeholder','');
   $('#date2').attr('placeholder','');
 }
@@ -300,7 +300,7 @@ $.widget( "custom.catcomplete", $.ui.autocomplete, {
 /*
  * jQuery Autocomplete
  */
-$('#name_address_box').catcomplete({//autocomplete({
+$('#name-address-box').catcomplete({//autocomplete({
   source: function (request, response) {
     $.ajax({
       url: js_app_routing + "/input" + "?q=" + request.term,
@@ -316,17 +316,17 @@ $('#name_address_box').catcomplete({//autocomplete({
     var thisValue = ui.item.value;
 
     if (thisCategory === 'Neighborhoods') {
-      document.getElementById('name_address_box').value = thisValue;
+      document.getElementById('name-address-box').value = thisValue;
       document.activeElement.blur();
       doSearch('neighborhood');
       return false;
     } else if (thisCategory === 'ZIP codes') {
-      document.getElementById('name_address_box').value = thisValue;
+      document.getElementById('name-address-box').value = thisValue;
       document.activeElement.blur();
       doSearch('zip_code');
       return false;
     } else {
-      document.getElementById('name_address_box').value = thisValue;
+      document.getElementById('name-address-box').value = thisValue;
       document.activeElement.blur();
       doSearch();
     }
@@ -334,7 +334,7 @@ $('#name_address_box').catcomplete({//autocomplete({
   minLength: 1,
   delay: 0,
   search: function() {
-    $('#name_address_box').catcomplete("close");
+    $('#name-address-box').catcomplete("close");
     //Don't try blur here. It caused problems with down arrow. leave commented
   },
   open: function(event, ui) {
@@ -343,7 +343,7 @@ $('#name_address_box').catcomplete({//autocomplete({
   }
 }).keyup(function (event) {
   if (event.which === 13) {
-    $('#name_address_box').catcomplete("close");
+    $('#name-address-box').catcomplete("close");
     document.activeElement.blur();
   }
 });
@@ -361,11 +361,11 @@ $(document).on("click", '.searchButton', function () {
 function checkForChanges() {
   var gcsTimeout;
   if ($('button.t402-elided').length) {
-    console.log('gcs not cleared');
+    // console.log('gcs not cleared');
     //console.log($('button.t402-elided'));
     gcsTimeout = setTimeout(checkForChanges, 500);
   } else {
-    console.log('gcs cleared');
+    // console.log('gcs cleared');
     clearTimeout(gcsTimeout);
     $('.p402_premium').css({'display': 'none'});
     $('button').addClass('searchButton');

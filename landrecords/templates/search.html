@@ -10,7 +10,7 @@
       <div class="small-12 columns">
         <div class="row">
           <div class="small-12 text-left columns">
-            <div id="results_language">{{ data.results_language }}</div>
+            <div id="results-language">{{ data.results_language }}</div>
           </div>
         </div>
       </div>
@@ -29,7 +29,7 @@
       <div class="small-12 large-4 columns" id="table-footer-wrapper">
         <div class="row">
           <div class="small-12 columns">
-            <div class="table-wrapper" id="table-wrapper" data-page="{{ data.page }}" data-number-of-pages="{{ data.number_of_pages }}" data-page-length="{{ data.page_length }}">
+            <div class="table-wrapper" id="table-wrapper" data-current-page="{{ data.current_page }}" data-number-of-pages="{{ data.number_of_pages }}" data-page-length="{{ data.page_length }}">
               <table id="myTable" class="tablesorter">
                 <thead>
                   <tr>
@@ -45,10 +45,10 @@
                 <tbody id="tbody">
                   {% for newrow in newrows %}
                     <tr id="{{ newrow.instrument_no }}">
-                      <td class="document_date no-wrap">{{ newrow.document_date }}</td>
+                      <td class="document-date no-wrap">{{ newrow.document_date }}</td>
                       <td class="amount no-wrap">{{ newrow.amount }}</td>
                       <td class="address"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.address }}</a></td>
-                      <td class="location_info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
+                      <td class="location-info"><a href="/realestate/sale/{{newrow.instrument_no}}">{{ newrow.location_info }}</a></td>
                       <td class="sellers">{{ newrow.sellers }}</td>
                       <td class="buyers">{{ newrow.buyers }}</td>
                       <!-- <td class="instrument_no no-wrap">{{ newrow.instrument_no }}</td> -->
@@ -63,13 +63,13 @@
               <div class="medium-1 visible-for-medium-only columns">
                 &nbsp;
               </div>
-              <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns pageback" id="back_button">
+              <div class="small-4 medium-3 large-4 small-text-left medium-text-center large-text-left columns page-back" id="back-button">
                 <i class="fa fa-arrow-left"></i> Back
               </div>
               <div class="small-4 text-center current-page columns">
-                Page <span id="page">{{ data.page }}</span> of <span id="totalpages">{{ data.number_of_pages }}</span>
+                Page <span id="current-page">{{ data.current_page }}</span> of <span id="number-of-pages">{{ data.number_of_pages }}</span>
               </div>
-              <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns pageforward" id="forward_button">
+              <div class="small-4 medium-3 large-4 small-text-right medium-text-center large-text-right columns page-forward" id="forward-button">
                 Forward <i class="fa fa-arrow-right"></i>
               </div>
               <div class="medium-1 visible-for-medium-only columns">

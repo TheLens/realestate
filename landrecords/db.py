@@ -156,6 +156,7 @@ class Location(Base):
 class Cleaned(Base):
     __tablename__ = 'cleaned'
 
+    # id = Column(Integer, primary_key=True)
     instrument_no = Column(String, primary_key=True, index=True)
     geom = Column(Geometry(
         geometry_type='POINT',
