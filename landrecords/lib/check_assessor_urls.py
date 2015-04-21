@@ -9,7 +9,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from landrecords.lib.libraries import Library
-from landrecords.lib.log import Log
+# from landrecords import log
 from landrecords import db
 from landrecords.config import Config
 
@@ -291,7 +291,7 @@ class Assessor(object):
 
 if __name__ == '__main__':
     '''Check that assessor URLS form correctly'''
-    log = Log('initialize').initialize_log()
+    pass
 
     # Assessor().get_error_page_html()
     # formAssessorURL("7471 Restgate Road, Unit: , Condo: , Weeks: ,

@@ -6,13 +6,12 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from landrecords import config, db
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class DashboardSync(object):
 
     def __init__(self):
-        self.log = Log('dashboard_sync').logger
 
         base = declarative_base()
         self.engine = create_engine(config.SERVER_ENGINE)
@@ -52,8 +51,8 @@ class DashboardSync(object):
                   "{0}".format(config.BACKUP_DIR) +
                   "/dashboard_table_$(date +%Y-%m-%d).sql"])
         except Exception, e:
-            self.log.info('Could not restore dashboard table')
-            self.log.error(e, exc_info=True)
+            log.info('Could not restore dashboard table')
+            log.error(e, exc_info=True)
 
     def correct_dashboard_table_id_field(self):
         fix_id_sql = """SELECT setval('dashboard_id_seq', MAX(id))
@@ -93,7 +92,7 @@ class DashboardSync(object):
 
     def copy_dashboard_rows_to_cleaned_table(self, rows):
         for row in rows:
-            self.log.info(row['instrument_no'])
+            log.info(row['instrument_no'])
 
             u = update(db.Cleaned)
             u = u.values(row)
@@ -104,10 +103,13 @@ class DashboardSync(object):
 
     def change_dashboard_entry_fixed_field_to_true(self, rows):
         for row in rows:
-            self.log.info(row['instrument_no'])
+            log.info(row['instrument_no'])
             u = update(db.Dashboard)
             u = u.values({"fixed": True})
             u = u.where(
                 db.Dashboard.instrument_no == '%s' % row['instrument_no'])
             self.session.execute(u)
             self.session.commit()
+
+if __name__ == '__main__':
+    pass

@@ -5,13 +5,14 @@ from __future__ import absolute_import
 from fabric.api import local
 
 from landrecords import config
-from landrecords.lib.log import Log
+from landrecords import log
 
 
 class Webhook(object):
 
     def __init__(self):
-        self.log = Log('webhooks').logger
+        pass
+        # log = Log('webhooks').logger
 
     def main(self, data):
         self.git_pull(data)
@@ -24,30 +25,30 @@ class Webhook(object):
             if aws_string is None:
                 continue
 
-            self.log.debug(aws_string)
+            log.debug(aws_string)
 
             local(aws_string)
 
-        self.log.info('Done')
+        log.info('Done')
         return "None"
 
     def git_pull(self, data):
         try:
-            self.log.info('try')
+            log.info('try')
             branch = data['ref']
-            self.log.debug(branch)
+            log.debug(branch)
             if branch != 'refs/heads/master':
-                self.log.info('Not master branch')
+                log.info('Not master branch')
                 return 'None'
         except:
-            self.log.info('except')
+            log.info('except')
             return "None"
 
         local('git pull origin master')
 
     def form_aws_string(self, f):
         # Ex. f = 'scripts/templates/search.html'
-        self.log.debug(f)
+        log.debug(f)
 
         file_path = f.split('static/')[-1]  # Ex. 'js/lens.js'
 
@@ -58,18 +59,18 @@ class Webhook(object):
 
     def gather_updated_files(self, data):
         try:
-            self.log.info('try')
+            log.info('try')
             branch = data['ref']
-            self.log.debug(branch)
+            log.debug(branch)
             if branch != 'refs/heads/master':
-                self.log.info('Not master branch')
+                log.info('Not master branch')
                 return 'None'
         except:
-            self.log.info('except')
+            log.info('except')
             return "None"
 
         github_branch = data['ref'].split('/')[-1]
-        self.log.debug(github_branch)
+        log.debug(github_branch)
 
         # Ex: ['scripts/templates/search.html']
         added_files_list = data['commits'][0]['added']
@@ -88,3 +89,6 @@ class Webhook(object):
                 del files_list[i]
 
         return files_list
+
+if __name__ == '__main__':
+    pass

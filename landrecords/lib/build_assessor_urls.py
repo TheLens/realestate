@@ -14,6 +14,10 @@ from databasemaker import Cleaned
 from sqlalchemy.orm import sessionmaker
 from app_config import server_connection, server_engine
 
+# from landrecords import log
+
+# todo: move this into class
+
 Base = declarative_base()
 
 conn = psycopg2.connect("%s" % (server_connection))
@@ -285,8 +289,6 @@ def get_instrument_numbers():
     f.close()
 
 if __name__ == '__main__':
-    log = Log('initialize').initialize_log()
-
     get_instrument_numbers()
     # form_assessor_url("7471 Restgate Road, Unit: , Condo: , Weeks: ,
     # Subdivision: Lake Forest No 8 Warwick East, District: 3rd,

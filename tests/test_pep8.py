@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+'''Tests that all Python files in project meet PEP8 style.'''
+
 from unittest import TestCase
 import pep8
 import os
@@ -9,16 +11,18 @@ import fnmatch
 ignore_patterns = ('backup', 'data', 'logs', 'misc')
 
 
-def ignore(dir):
-    '''Check if this directory should be ignored'''
+def ignore(directory):
+    '''Check if this directory should be ignored.'''
 
     for pattern in ignore_patterns:
-        if pattern in dir:
+        if pattern in directory:
             return True
     return False
 
 
 class TestPep8(TestCase):
+
+    '''Test that all Python files conform to PEP8 standards.'''
 
     def test_pep8(self):
         '''Test that all Python files conform to PEP8 standards.'''

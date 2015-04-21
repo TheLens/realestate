@@ -68,20 +68,20 @@ class ResultsLanguage(object):
     def add_amount_language(self, final_sentence):
         '''Adds amount language.'''
 
-        if self.data['amountlow'] != '':
-            if self.data['amounthigh'] != '':
+        if self.data['amount_low'] != '':
+            if self.data['amount_high'] != '':
                 final_sentence += " where the price was between " + \
-                    Utils().get_num_with_curr_sign(self.data['amountlow']) + \
+                    Utils().get_num_with_curr_sign(self.data['amount_low']) + \
                     + " and " + \
-                    Utils().get_num_with_curr_sign(self.data['amounthigh'])
+                    Utils().get_num_with_curr_sign(self.data['amount_high'])
                 # where the amount is between $10 and $20
             else:
                 final_sentence += " where the price was greater than " + \
-                    Utils().get_num_with_curr_sign(self.data['amountlow'])
+                    Utils().get_num_with_curr_sign(self.data['amount_low'])
                 # where the amount is greater than $10
-        elif self.data['amounthigh'] != '':
+        elif self.data['amount_high'] != '':
             final_sentence += " where the price was less than " + \
-                Utils().get_num_with_curr_sign(self.data['amounthigh'])
+                Utils().get_num_with_curr_sign(self.data['amount_high'])
             # where the amount is less than $20
 
         return final_sentence
@@ -89,27 +89,27 @@ class ResultsLanguage(object):
     def add_date_language(self, final_sentence):
         '''Adds date language.'''
 
-        if self.data['begindate'] != '':
-            if self.data['enddate'] != '':
+        if self.data['begin_date'] != '':
+            if self.data['end_date'] != '':
                 final_sentence += " between " + \
                     Utils().ymd_to_full_date(
-                        self.data['begindate'],
+                        self.data['begin_date'],
                         no_day=True) + \
                     ", and " + \
                     Utils().ymd_to_full_date(
-                        self.data['enddate'],
+                        self.data['end_date'],
                         no_day=True)
                 # between Feb. 10, 2014, and Feb. 12, 2014
             else:
                 final_sentence += " after " + \
                     Utils().ymd_to_full_date(
-                        self.data['begindate'],
+                        self.data['begin_date'],
                         no_day=True)
                 # after Feb. 10, 2014.
-        elif self.data['enddate'] != '':
+        elif self.data['end_date'] != '':
             final_sentence += " before " + \
                 Utils().ymd_to_full_date(
-                    self.data['enddate'],
+                    self.data['end_date'],
                     no_day=True)
             # before Feb. 20, 2014.
 

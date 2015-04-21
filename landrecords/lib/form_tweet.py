@@ -13,9 +13,9 @@ from sqlalchemy.orm import sessionmaker
 from datetime import timedelta
 from subprocess import call
 
-from landrecords import db
+from landrecords.db import Cleaned
 from landrecords.config import Config
-# from landrecords import log
+from landrecords import log
 from landrecords.lib.twitter import Twitter
 
 
@@ -31,31 +31,8 @@ class AutoTweet(object):
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 
-        return_dict = self.figure_out_recorded_date()
-
-        self.document_recorded_early = return_dict['document_recorded_early']
-        self.document_recorded_late = return_dict['document_recorded_late']
-        self.time_period = return_dict['time_period']
-
-        query_dict = self.get_highest_amount_details()
-
-        self.amount = query_dict['amount']
-        self.instrument_no = query_dict['instrument_no']
-        self.neighborhood = query_dict['neighborhood']
-
-        self.neighborhood = self.conversational_neighborhoods()
-
-        self.url = self.form_url()
-
-        self.name = self.screenshot_name()
-
-        # self.media_attachment = self.open_image()
-
-        self.message = self.form_message()
-
-        # self.send_tweet(message, image)
-
-    def figure_out_recorded_date(self):
+    @staticmethod
+    def figure_out_recorded_date():
         '''
         Treat Tuesday-Saturday like any other day. Don\'t do anything on
         Sundays. Mondays tweet about entire previous week.
@@ -106,24 +83,27 @@ class AutoTweet(object):
 
         return return_dict
 
-    def get_highest_amount_details(self):
+    def get_highest_amount_details(self,
+                                   document_recorded_early,
+                                   document_recorded_late):
         '''Get the relevant fields about the sale with the highest amount.'''
 
         session = self.sn()
 
         query = session.query(
-            db.Cleaned.detail_publish,
-            db.Cleaned.document_recorded,
-            db.Cleaned.amount,
-            db.Cleaned.neighborhood
+            Cleaned.detail_publish,
+            Cleaned.document_recorded,
+            Cleaned.amount,
+            Cleaned.neighborhood,
+            Cleaned.instrument_no
         ).filter(
-            db.Cleaned.detail_publish == '1'
+            Cleaned.detail_publish == '1'
         ).filter(
-            db.Cleaned.document_recorded >= '%s' % self.document_recorded_early
+            Cleaned.document_recorded >= '%s' % document_recorded_early
         ).filter(
-            db.Cleaned.document_recorded <= '%s' % self.document_recorded_late
+            Cleaned.document_recorded <= '%s' % document_recorded_late
         ).order_by(
-            db.Cleaned.amount.desc()
+            Cleaned.amount.desc()
         ).limit(1).all()
 
         # todo:
@@ -146,11 +126,14 @@ class AutoTweet(object):
 
         return query_dict
 
-    def conversational_neighborhoods(self):
+    @staticmethod
+    def conversational_neighborhoods(neighborhood):
         '''
         Converts neighborhoods to the way you would refer to them in
         conversation. Ex. "French Quarter" => "the French Quarter."
         '''
+
+        # todo: needs work
 
         nbhd_list = [
             'BLACK PEARL'
@@ -174,69 +157,101 @@ class AutoTweet(object):
         ]
 
         for nbhd in nbhd_list:
-            if self.neighborhood == nbhd:
-                self.neighborhood == 'the ' + self.neighborhood
+            if neighborhood == nbhd:
+                neighborhood = 'the ' + neighborhood
 
-    def form_url(self):
+    @staticmethod
+    def form_url(instrument_no):
         '''Append instrument number to /realestate/sale/'''
 
         url = 'http://vault.thelensnola.org/realestate/sale/' + \
-            + self.instrument_no
+            instrument_no
 
         return url
 
-    def screenshot_name(self):
+    @staticmethod
+    def screenshot_name(instrument_no):
         '''Form filename for map screenshot.'''
 
         name = '%s-%s-high-amount.png' % (
-            Config().TODAY_DATE, self.instrument_no)
+            Config().TODAY_DATE, instrument_no)
 
         return name
 
-    def get_image(self):
+    @staticmethod
+    def get_image(url, name):
         '''Take screenshot of map with PhantomJS.'''
 
-        call(['%s/scripts/phantomjs' % Config().PROJECT_DIR,
-              '%s/scripts/screen.js' % Config().PROJECT_DIR,
-              self.url,
-              '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)])
+        log.debug('get_image')
+        log.debug('url: %s', url)
 
-    def open_image(self):
+        call(['%s/phantomjs' % Config().SCRIPTS_DIR,
+              '%s/screen.js' % Config().SCRIPTS_DIR,
+              url,
+              '%s/tweets/%s' % (Config().PICTURES_DIR, name)])
+
+    def open_image(self, url, name):
         '''Get file path to screenshot.'''
 
-        self.get_image()
+        self.get_image(url, name)
 
-        filename = '%s/tweets/%s' % (Config().PICTURES_DIR, self.name)
+        filename = '%s/tweets/%s' % (Config().PICTURES_DIR, name)
 
         return filename
 
         # with open(filename, 'rb') as image:
         #     return image
 
-    def form_message(self):
+    @staticmethod
+    def form_message(time_period, neighborhood, amount, url):
         '''Plug variables into mab lib sentences.'''
+
+        log.debug('form_message')
 
         # options = []
 
         message = (
-            "Priciest property sale recorded %s was in %s: %s.\n%s"
+            "Priciest property sale recorded {0} was in {1}: {2}.\n{3}"
         ).format(
-            self.time_period,
-            self.neighborhood,
-            self.amount,
-            self.url
+            time_period,
+            neighborhood,
+            amount,
+            url
         )
 
         # option = random.choice(options)
 
         return message
 
-    def main(self, message, image):
+    def main(self):
         '''Runs through all methods.'''
 
-        status = self.form_message()
-        media = self.open_image()
-        Twitter(status=status).send_with_media(media=media)
+        return_dict = self.figure_out_recorded_date()
+
+        document_recorded_early = return_dict['document_recorded_early']
+        document_recorded_late = return_dict['document_recorded_late']
+        time_period = return_dict['time_period']
+
+        query_dict = self.get_highest_amount_details(
+            document_recorded_early, document_recorded_late)
+
+        amount = query_dict['amount']
+        instrument_no = query_dict['instrument_no']
+        neighborhood = query_dict['neighborhood']
+
+        # todo:
+        # neighborhood = self.conversational_neighborhoods()
+
+        url = self.form_url(instrument_no)
+
+        name = self.screenshot_name(instrument_no)
+
+        status = self.form_message(time_period, neighborhood, amount, url)
+        media = self.open_image(url, name)
+
+        print 'status:', status
+        print 'media:', media
+        # Twitter(status=status).send_with_media(media=media)
 
 if __name__ == '__main__':
-    pass
+    AutoTweet().main()
