@@ -90,16 +90,15 @@ button.button:hover {
     padding: 3px 4px 2px;
     font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
 }
-.ui-menu, .ui-menu-item {
+.ui-menu .ui-menu-item {
     font-size: 16px;
-    left: 1px;
-    line-height: 16px;
-    margin: 0 0 0 2px;
+    line-height: 18px;
+    padding: 0 0 0 10px;
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
 .ui-widget-content .ui-state-focus {
     background: #F5F5EF;
-    padding-left: 0;
+    line-height: 16px;
     border-left: 1px;
     border-right: none;
 }
