@@ -6,7 +6,7 @@
   <body>
     {% include 'banner.html' %}
     {% include 'search-area.html' %}
-    <div id="map-table-wrapper" class="row">
+    <div id="map-table-wrapper" class="map-table-wrapper row">
       <div class="small-12 columns">
         <div class="row">
           <div class="small-12 text-left columns">
@@ -22,7 +22,7 @@
         </div>
         <div class="row">
           <div class="small-12 text-left columns">
-            <input id="mapButton" type="checkbox" name="mapButton" value="False"><label for="mapButton">Search when I move the map</label>
+            <input id="map-button" class="map-button" type="checkbox" name="map-button" value="False"><label for="map-button">Search when I move the map</label>
           </div>
         </div>
       </div>
@@ -56,10 +56,10 @@
                   {% endfor %}
                 </tbody>
               </table>
-              <div id="results-not-found" style="display:{{ data.results_css_display }};">No results found. Please try another search.</div>
+              <div id="results-not-found" class="results-not-found" style="display:{{ data.results_css_display }};">No results found. Please try another search.</div>
             </div>
             <!-- <div class="table-container-fade"></div> -->
-            <div class="row" id="footer">
+            <div class="row" id="footer" class="footer">
               <div class="medium-1 visible-for-medium-only columns">
                 &nbsp;
               </div>
@@ -81,7 +81,7 @@
       </div>
     </div>
     {% include 'footer.html' %}
-    <div id="tooltip"></div>
+    <div id="tooltip" class="tooltip"></div>
     <script type="text/javascript">
       if ({{ js_app_routing|tojson }} !== 'None') {
         var js_app_routing = {{ js_app_routing|tojson }};
@@ -100,7 +100,7 @@
         populateSearchParameters({{ data|tojson }})
       }
       if ({{ js_data|tojson }} !== 'None') {
-        //console.log('jsdata');
+        //console.log('js_data');
         //Load map, table, et al
         initialMapFunction({{ js_data|tojson }});
       }

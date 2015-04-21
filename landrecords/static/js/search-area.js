@@ -1,48 +1,48 @@
 var dropdownFocus = 0;//0 for not in focus, 1 for dropdown selection in focus
 
-function resetAmounts(amountlow, amounthigh) {
-  if (amountlow === 'Please enter a valid amount range.') {
-    amountlow = '';
+function resetAmounts(amount_low, amount_high) {
+  if (amount_low === 'Please enter a valid amount range.') {
+    amount_low = '';
     document.getElementById('amount1').value = "";
   }
-  if (amounthigh === 'Please enter a valid amount range.') {
-    amounthigh = '';
+  if (amount_high === 'Please enter a valid amount range.') {
+    amount_high = '';
     document.getElementById('amount2').value = "";
   }
-  return {low: amountlow, high: amounthigh};
+  return {low: amount_low, high: amount_high};
 }
 
-function resetDates(begindate, enddate) {
-  if (begindate === 'Please enter a valid date format.' || begindate === 'Please enter a valid date range.') {
-    begindate = '';
+function resetDates(begin_date, end_date) {
+  if (begin_date === 'Please enter a valid date format.' || begin_date === 'Please enter a valid date range.') {
+    begin_date = '';
     document.getElementById('date1').value = "";
   }
-  if (enddate === 'Please enter a valid date format.' || enddate === 'Please enter a valid date range.') {
-    enddate = '';
+  if (end_date === 'Please enter a valid date format.' || end_date === 'Please enter a valid date range.') {
+    end_date = '';
     document.getElementById('date2').value = "";
   }
-  return {begin: begindate, end: enddate};
+  return {begin: begin_date, end: end_date};
 }
 
-function checkAmounts(amountlow, amounthigh) {
-  if (isValidAmountRange(amountlow, amounthigh) === false) {
+function checkAmounts(amount_low, amount_high) {
+  if (isValidAmountRange(amount_low, amount_high) === false) {
     document.getElementById('amount1').value = "Please enter a valid amount range.";
     document.getElementById('amount2').value = "Please enter a valid amount range.";
     return false;
   }
 }
 
-function checkDates(begindate, enddate) {
+function checkDates(begin_date, end_date) {
   var tf;
-  if (isValidDate(begindate) === false) {
+  if (isValidDate(begin_date) === false) {
     document.getElementById('date1').value = "Please enter a valid date format.";
     tf = false;
   }
-  if (isValidDate(enddate) === false) {
+  if (isValidDate(end_date) === false) {
     document.getElementById('date2').value = "Please enter a valid date format.";
     tf = false;
   }
-  if (isValidDateRange(begindate, enddate) === false) {
+  if (isValidDateRange(begin_date, end_date) === false) {
     document.getElementById('date1').value = "Please enter a valid date range.";
     document.getElementById('date2').value = "Please enter a valid date range.";
     tf = false;
@@ -57,32 +57,32 @@ function buildQueryString(data) {
     map_query_string = map_query_string + "q=" + data.name_address;
   }
 
-  if (data.amountlow !== '') {
+  if (data.amount_low !== '') {
     if (map_query_string !== '?') {
       map_query_string = map_query_string + '&';
     }
-    map_query_string = map_query_string + "a1=" + data.amountlow;
+    map_query_string = map_query_string + "a1=" + data.amount_low;
   }
 
-  if (data.amounthigh !== '') {
+  if (data.amount_high !== '') {
     if (map_query_string !== '?') {
       map_query_string = map_query_string + '&';
     }
-    map_query_string = map_query_string + "a2=" + data.amounthigh;
+    map_query_string = map_query_string + "a2=" + data.amount_high;
   }
 
-  if (data.begindate !== '') {
+  if (data.begin_date !== '') {
     if (map_query_string !== '?') {
       map_query_string = map_query_string + '&';
     }
-    map_query_string = map_query_string + "d1=" + data.begindate;
+    map_query_string = map_query_string + "d1=" + data.begin_date;
   }
 
-  if (data.enddate !== '') {
+  if (data.end_date !== '') {
     if (map_query_string !== '?') {
       map_query_string = map_query_string + '&';
     }
-    map_query_string = map_query_string + "d2=" + data.enddate;
+    map_query_string = map_query_string + "d2=" + data.end_date;
   }
 
   if (data.neighborhood !== '') {
@@ -108,12 +108,12 @@ function buildQueryString(data) {
 
 function prepareData(category) {
   var name_address = encodeURIComponent($('#name-address-box').val());
-  var amountlow1 = $('#amount1').val();
-  var amounthigh1 = $('#amount2').val();
-  var amountlow = amountlow1.replace(/[,$]/g, '');
-  var amounthigh = amounthigh1.replace(/[,$]/g, '');
-  var begindate = $('#date1').val();
-  var enddate = $('#date2').val();
+  var amount_low1 = $('#amount1').val();
+  var amount_high1 = $('#amount2').val();
+  var amount_low = amount_low1.replace(/[,$]/g, '');
+  var amount_high = amount_high1.replace(/[,$]/g, '');
+  var begin_date = $('#date1').val();
+  var end_date = $('#date2').val();
   var neighborhood = encodeURIComponent($('#neighborhood').val());
   var zip_code = $('#zip-code').val();
 
@@ -131,29 +131,29 @@ function prepareData(category) {
 
   var data = {};
 
-  var amounts = resetAmounts(amountlow, amounthigh);
-  amountlow = amounts['low'];
-  amounthigh = amounts['high'];
+  var amounts = resetAmounts(amount_low, amount_high);
+  amount_low = amounts['low'];
+  amount_high = amounts['high'];
 
-  if (checkAmounts(amountlow, amounthigh) === false) {
+  if (checkAmounts(amount_low, amount_high) === false) {
     data = false;
     return data;
   }
 
-  var dates = resetDates(begindate, enddate);
-  begindate = dates['begin'];
-  enddate = dates['end'];
+  var dates = resetDates(begin_date, end_date);
+  begin_date = dates['begin'];
+  end_date = dates['end'];
 
-  if (checkDates(begindate, enddate) === false) {
+  if (checkDates(begin_date, end_date) === false) {
     data = false;
     return data;
   }
 
   data.name_address = name_address;
-  data.amountlow = amountlow;
-  data.amounthigh = amounthigh;
-  data.begindate = begindate;
-  data.enddate = enddate;
+  data.amount_low = amount_low;
+  data.amount_high = amount_high;
+  data.begin_date = begin_date;
+  data.end_date = end_date;
   data.neighborhood = neighborhood;
   data.zip_code = zip_code;
   data.page_length = 10;
@@ -243,13 +243,13 @@ function isValidDate(dateString) {
   return true;
 }
 
-function isValidDateRange(begindate, enddate) {
-  var parts1 = begindate.split("/");
+function isValidDateRange(begin_date, end_date) {
+  var parts1 = begin_date.split("/");
   var day1 = parseInt(parts1[1], 10);
   var month1 = parseInt(parts1[0], 10);
   var year1 = parseInt(parts1[2], 10);
 
-  var parts2 = enddate.split("/");
+  var parts2 = end_date.split("/");
   var day2 = parseInt(parts2[1], 10);
   var month2 = parseInt(parts2[0], 10);
   var year2 = parseInt(parts2[2], 10);

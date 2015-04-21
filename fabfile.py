@@ -123,10 +123,10 @@ def scripts():
     local('scp %s/initialize.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
-    local('scp %s/make_db.py tom@%s:%s' % (
+    local('scp %s/main.sh tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
-    local('scp %s/scrape.sh tom@%s:%s' % (
+    local('scp %s/make_db.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
     local('scp %s/screen.js tom@%s:%s' % (
@@ -197,6 +197,8 @@ def lib():
         Config().SERVER_LIB_DIR))
     local('scp %s/build.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/build_assessor_urls.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/check_assessor_urls.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/check_temp_status.py tom@%s:%s' % (
@@ -208,6 +210,8 @@ def lib():
     local('scp %s/dashboard_sync.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/email_template.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/form_tweet.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/geocode.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
@@ -225,6 +229,8 @@ def lib():
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/stat_analysis.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/twitter.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/utils.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/webhook.py tom@%s:%s' % (
@@ -235,6 +241,8 @@ def css():
     '''/landrecords/static/css'''
 
     # S3
+    local('aws s3 cp %s/banner.css ' % (Config().LOCAL_CSS_DIR) +
+          '%s/css/banner.css --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/font-awesome.css ' % (Config().LOCAL_CSS_DIR) +
           '%s/css/font-awesome.css --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/foundation.min.css ' % (Config().LOCAL_CSS_DIR) +
@@ -246,6 +254,8 @@ def css():
           'jquery.tablesorter.pager.css ' +
           '%s/' % (Config().S3_PATH) +
           'css/jquery.tablesorter.pager.css --acl public-read')
+    local('aws s3 cp %s/landrecords.css ' % (Config().LOCAL_CSS_DIR) +
+          '%s/css/landrecords.css --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/lens.css ' % (Config().LOCAL_CSS_DIR) +
           '%s/css/lens.css --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/lenstablesorter.css ' % (Config().LOCAL_CSS_DIR) +
@@ -253,8 +263,12 @@ def css():
           'css/lenstablesorter.css --acl public-read')
     local('aws s3 cp %s/mapbox.css ' % (Config().LOCAL_CSS_DIR) +
           '%s/css/mapbox.css --acl public-read' % (Config().S3_PATH))
+    local('aws s3 cp %s/table.css ' % (Config().LOCAL_CSS_DIR) +
+          '%s/css/table.css --acl public-read' % (Config().S3_PATH))
 
     # Server
+    local('scp %s/banner.css tom@%s:%s' % (
+        Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/font-awesome.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/foundation.min.css tom@%s:%s' % (
@@ -263,11 +277,15 @@ def css():
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/jquery.tablesorter.pager.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
+    local('scp %s/landrecords.css tom@%s:%s' % (
+        Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/lens.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/lenstablesorter.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
     local('scp %s/mapbox.css tom@%s:%s' % (
+        Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
+    local('scp %s/table.css tom@%s:%s' % (
         Config().LOCAL_CSS_DIR, Config().SERVER_NAME, Config().SERVER_CSS_DIR))
 
 
@@ -299,6 +317,30 @@ def images():
           'ui-bg_flat_75_ffffff_40x100.png ' +
           '%s/css/images/' % (Config().S3_PATH) +
           'ui-bg_flat_75_ffffff_40x100.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_55_fbf9ee_1x400.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-bg_glass_55_fbf9ee_1x400.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_75_dadada_1x400.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-bg_glass_75_dadada_1x400.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_75_e6e6e6_1x400.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-bg_glass_75_e6e6e6_1x400.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_highlight-soft_75_cccccc_1x100.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-bg_highlight-soft_75_cccccc_1x100.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_65_ffffff_1x400.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-bg_glass_65_ffffff_1x400.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-icons_454545_256x240.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'ui-icons_454545_256x240.png --acl public-read')
 
     # Server
     local('scp %s/corporate-realty.jpg ' % (Config().LOCAL_IMAGES_DIR) +
@@ -317,6 +359,24 @@ def images():
     local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
           'ui-bg_flat_75_ffffff_40x100.png ' +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_55_fbf9ee_1x400.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_75_dadada_1x400.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_75_e6e6e6_1x400.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_highlight-soft_75_cccccc_1x100.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-bg_glass_65_ffffff_1x400.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'ui-icons_454545_256x240.png ' +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
 
 
 def fonts():
@@ -325,22 +385,22 @@ def fonts():
     # S3
     local('aws s3 cp %s/' % (Config().LOCAL_FONTS_DIR) +
           'fontawesome-webfont.eot ' +
-          '%s/' % (Config().S3_PATH) +
+          '%s/fonts/' % (Config().S3_PATH) +
           'fontawesome-webfont.eot --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_FONTS_DIR) +
           'fontawesome-webfont.svg ' +
-          '%s/' % (Config().S3_PATH) +
+          '%s/fonts/' % (Config().S3_PATH) +
           'fontawesome-webfont.svg --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_FONTS_DIR) +
           'fontawesome-webfont.ttf ' +
-          '%s/' % (Config().S3_PATH) +
+          '%s/fonts/' % (Config().S3_PATH) +
           'fontawesome-webfont.ttf --acl public-read')
     local('aws s3 cp %s/' % (Config().LOCAL_FONTS_DIR) +
           'fontawesome-webfont.woff ' +
-          '%s/' % (Config().S3_PATH) +
+          '%s/fonts/' % (Config().S3_PATH) +
           'fontawesome-webfont.woff --acl public-read')
     local('aws s3 cp %s/FontAwesome.otf ' % (Config().LOCAL_FONTS_DIR) +
-          '%s/FontAwesome.otf --acl public-read' % (Config().S3_PATH))
+          '%s/fonts/FontAwesome.otf --acl public-read' % (Config().S3_PATH))
 
     # Server
     local('scp %s/fontawesome-webfont.eot ' % (Config().LOCAL_FONTS_DIR) +

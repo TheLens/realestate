@@ -12,7 +12,7 @@ import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from datetime import (
-    # datetime,
+    datetime,
     timedelta
 )
 from landrecords.config import Config
@@ -37,7 +37,7 @@ class Scrape(object):
 
         self.driver = webdriver.PhantomJS(
             executable_path='%s/phantomjs' % Config().SCRIPTS_DIR,
-            service_log_path='%s/ghostdriver.log' % Config().LOG_DIR,
+            service_log_path='%s/landrecords.log' % Config().LOG_DIR,
             port=0)
         # self.driver = webdriver.Firefox(timeout=60)
 
@@ -407,9 +407,14 @@ class Scrape(object):
 
         current_date = self.initial_date
 
+        final_date = (self.until_date + timedelta(days=1)).strftime('%Y-%m-%d')
+
         # Must search each date one at a time because there is a limit of
         # 300 results per search.
-        while current_date != (self.until_date + timedelta(days=1)):
+        while current_date.strftime('%Y-%m-%d') != final_date:
+            log.debug(current_date)
+            log.debug(self.until_date)
+
             year = current_date.strftime('%Y')  # "2014"
             month = current_date.strftime('%m')  # "09"
             day = current_date.strftime('%d')  # "09"
@@ -463,8 +468,7 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
-    Scrape().main()
-    # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/
-    # land-records/repo/data/sale-error-html/error.html')
-    # assert Scrape.check_that_not_error('/Users/thomasthoren/projects/
-    # land-records/repo/data/raw/2014-02-18/form-html/OPR288694480.html')
+    Scrape(
+        initial_date=Config().YESTERDAY_DATETIME,
+        until_date=Config().YESTERDAY_DATETIME
+    ).main()

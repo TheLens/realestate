@@ -44,7 +44,9 @@ function mapSearching() {
   var data = prepareData();
 
   var current_page = $('#table-wrapper').attr('data-current-page');
+  current_page = parseInt(current_page, 10);
   var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+  number_of_pages = parseInt(number_of_pages, 10);
   data.current_page = current_page;
   data.number_of_pages = number_of_pages;
   data.direction = null;
@@ -68,29 +70,29 @@ function mapSearching() {
         window.history.pushState(null,'hi',query_string);
       }
 
-      document.getElementById('current-page').innerHTML = info.current_page;
-      document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
+      document.getElementById('current-page').innerHTML = info.data.current_page;
+      document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
-      table_wrapper.setAttribute('data-current-page', info.current_page);
-      table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
-      table_wrapper.setAttribute('data-page-length', info.page_length);
+      table_wrapper.setAttribute('data-current-page', info.data.current_page);
+      table_wrapper.setAttribute('data-number-of-pages', info.data.number_of_pages);
+      table_wrapper.setAttribute('data-page-length', info.data.page_length);
 
-      $("#tbody").html(info.tabletemplate);
+      $("#tbody").html(info.table_template);
       $("#table-footer-wrapper").trigger("updateAll");
 
-      document.getElementById('results-language').innerHTML = info.results_language;
-      document.getElementById('results-not-found').style.display = info.show_results;
+      document.getElementById('results-language').innerHTML = info.data.results_language;
+      document.getElementById('results-not-found').style.display = info.data.show_results;
 
-      if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
-        selectedNeighborhood(data.neighborhood);
-        updateMap(info.jsdata, 1, 0, 1);
+      if (typeof info.data.neighborhood !== 'undefined' && info.data.neighborhood !== '') {
+        selectedNeighborhood(info.data.neighborhood);
+        updateMap(info.js_data, 1, 0, 1);
       } else {
         removeNeighborhoodLayer();
-        updateMap(info.jsdata, 1, 0, 0);
+        updateMap(info.js_data, 1, 0, 0);
       }
 
-      checkPagerButtons(info.current_page, info.number_of_pages);
+      checkPagerButtons(info.data.current_page, info.data.number_of_pages);
     }
   });
 }
@@ -152,13 +154,17 @@ function doSearch(category) {
 
   // Disable map-view filtering if new searches uses geographic parameters
   if (document.getElementById('neighborhood').value !== '' || document.getElementById('zip-code').value !== '' || typeof category !== 'undefined') {
-    document.getElementById("mapButton").checked = false;
+    document.getElementById("map-button").checked = false;
   }
 
   data.bounds = map.getBounds();
-  data.map_button_state = document.getElementById("mapButton").checked;
-  data.current_page = $('#table-wrapper').attr('data-current-page');
-  data.number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+  data.map_button_state = document.getElementById("map-button").checked;
+  var current_page = $('#table-wrapper').attr('data-current-page');
+  current_page = parseInt(current_page, 10);
+  data.current_page = current_page;
+  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+  number_of_pages = parseInt(number_of_pages, 10);
+  data.number_of_pages = number_of_pages;
   data.direction = null;
 
   var maprequest = JSON.stringify(data);
@@ -178,36 +184,38 @@ function doSearch(category) {
         window.history.pushState(null,'hi',query_string);
       }
       
-      document.getElementById('current-page').innerHTML = info.current_page;
-      document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
+      document.getElementById('current-page').innerHTML = info.data.current_page;
+      document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 
       var table_wrapper = document.querySelector('#table-wrapper');
-      table_wrapper.setAttribute('data-current-page', info.current_page);
-      table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
-      table_wrapper.setAttribute('data-page-length', info.page_length);
+      table_wrapper.setAttribute('data-current-page', info.data.current_page);
+      table_wrapper.setAttribute('data-number-of-pages', info.data.number_of_pages);
+      table_wrapper.setAttribute('data-page-length', info.data.page_length);
 
-      $("#tbody").html(info.tabletemplate);
+      $("#tbody").html(info.table_template);
       $("#table-footer-wrapper").trigger("updateAll");
 
-      document.getElementById('results-language').innerHTML = info.results_language;
-      document.getElementById('results-not-found').style.display = info.show_results;
+      document.getElementById('results-language').innerHTML = info.data.results_language;
+      document.getElementById('results-not-found').style.display = info.data.show_results;
 
-      if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
-        selectedNeighborhood(data.neighborhood);
-        updateMap(info.jsdata, 0, 0, 1);
+      if (typeof info.data.neighborhood !== 'undefined' && info.data.neighborhood !== '') {
+        selectedNeighborhood(info.data.neighborhood);
+        updateMap(info.js_data, 0, 0, 1);
       } else {
         removeNeighborhoodLayer();
-        updateMap(info.jsdata, 0, 0, 0);
+        updateMap(info.js_data, 0, 0, 0);
       }
 
-      checkPagerButtons(info.current_page, info.number_of_pages);
+      checkPagerButtons(info.data.current_page, info.data.number_of_pages);
     }
   });
 }
 
 $("body").on("click", ".page-forward", function () {
   var current_page = $('#table-wrapper').attr('data-current-page');
+  current_page = parseInt(current_page, 10);
   var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+  number_of_pages = parseInt(number_of_pages, 10);
 
   if (current_page !== number_of_pages) {
     var data = prepareData();
@@ -263,11 +271,12 @@ $("body").on("click", ".page-forward", function () {
 
     data.bounds = map.getBounds();
 
-    var map_button_state = document.getElementById("mapButton").checked;
+    var map_button_state = document.getElementById("map-button").checked;
     data.map_button_state = map_button_state;
 
     //Find pagination details
     var page_length = $('#table-wrapper').attr('data-page-length');
+    page_length = parseInt(page_length, 10);
     data.current_page = current_page;
     data.number_of_pages = number_of_pages;
     data.page_length = page_length;
@@ -280,27 +289,37 @@ $("body").on("click", ".page-forward", function () {
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
-        document.getElementById('current-page').innerHTML = info.current_page;
-        document.getElementById('number-of-pages').innerHTML = info.number_of_pages;
+        console.log('returned info:', info);
+        document.getElementById('current-page').innerHTML = info.data.current_page;
+        document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
-        table_wrapper.setAttribute('data-current-page', info.current_page);
-        table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
-        table_wrapper.setAttribute('data-page-length', info.page_length);
 
-        $("#tbody").html(info.tabletemplate);
+        //console.log($('#table-wrapper').attr('data-current-page'));
+        //console.log('current_page:', info.data.current_page);
+        //console.log('typeof current_page:', typeof info.data.current_page);
+        table_wrapper.setAttribute('data-current-page', info.data.current_page);
+        //console.log($('#table-wrapper').attr('data-current-page'));
+
+        table_wrapper.setAttribute('data-number-of-pages', info.data.number_of_pages);
+        table_wrapper.setAttribute('data-page-length', info.data.page_length);
+
+        //console.log('tbody before:', $("#tbody").html());
+        //console.log(info.table_template);
+        $("#tbody").html(info.table_template);
         $("#table-footer-wrapper").trigger("updateAll");
-        document.getElementById('results-language').innerHTML = info.results_language;
+        //console.log('tbody after:', $("#tbody").html());
+        document.getElementById('results-language').innerHTML = info.data.results_language;
 
-        if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
-          selectedNeighborhood(data.neighborhood);
-          updateMap(info.jsdata, 0, 1, 1);
+        if (typeof info.data.neighborhood !== 'undefined' && info.data.neighborhood !== '') {
+          selectedNeighborhood(info.data.neighborhood);
+          updateMap(info.js_data, 0, 1, 1);
         } else {
           removeNeighborhoodLayer();
-          updateMap(info.jsdata, 0, 1, 0);
+          updateMap(info.js_data, 0, 1, 0);
         }
 
-        checkPagerButtons(info.current_page, info.number_of_pages);
+        checkPagerButtons(info.data.current_page, info.data.number_of_pages);
       }
     });
   }
@@ -363,13 +382,16 @@ $("body").on("click", ".page-back", function () {
 
     data.bounds = map.getBounds();
 
-    var map_button_state = document.getElementById("mapButton").checked;
+    var map_button_state = document.getElementById("map-button").checked;
     data.map_button_state = map_button_state;
 
     //Find pagination details
     current_page = $('#table-wrapper').attr('data-current-page');
+    current_page = parseInt(current_page, 10);
     number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
+    number_of_pages = parseInt(number_of_pages, 10);
     var page_length = $('#table-wrapper').attr('data-page-length');
+    page_length = parseInt(page_length, 10);
     data.current_page = current_page;
     data.number_of_pages = number_of_pages;
     data.page_length = page_length;
@@ -377,34 +399,36 @@ $("body").on("click", ".page-back", function () {
 
     var maprequest = JSON.stringify(data);
 
+    console.log(data);
+
     $.ajax({
       url: js_app_routing + "/search",
       type: "POST",
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
-        document.getElementById('current-current-page').innerHTML = info.current_page;
-        document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
+        document.getElementById('current-page').innerHTML = info.data.current_page;
+        document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 
         var table_wrapper = document.querySelector('#table-wrapper');
-        table_wrapper.setAttribute('data-current-page', info.current_page);
-        table_wrapper.setAttribute('data-number-of-pages', info.number_of_pages);
-        table_wrapper.setAttribute('data-page-length', info.page_length);
+        table_wrapper.setAttribute('data-current-page', info.data.current_page);
+        table_wrapper.setAttribute('data-number-of-pages', info.data.number_of_pages);
+        table_wrapper.setAttribute('data-page-length', info.data.page_length);
 
-        $("#tbody").html(info.tabletemplate);
+        $("#tbody").html(info.table_template);
         $("#table-footer-wrapper").trigger("updateAll");
 
-        document.getElementById('results-language').innerHTML = info.results_language;
+        document.getElementById('results-language').innerHTML = info.data.results_language;
 
-        if (typeof data.neighborhood !== 'undefined' && data.neighborhood !== '') {
-          selectedNeighborhood(data.neighborhood);
-          updateMap(info.jsdata, 0, 1, 1);
+        if (typeof info.data.neighborhood !== 'undefined' && info.data.neighborhood !== '') {
+          selectedNeighborhood(info.data.neighborhood);
+          updateMap(info.js_data, 0, 1, 1);
         } else {
           removeNeighborhoodLayer();
-          updateMap(info.jsdata, 0, 1, 0);
+          updateMap(info.js_data, 0, 1, 0);
         }
 
-        checkPagerButtons(info.current_page, info.number_of_pages);
+        checkPagerButtons(info.data.current_page, info.data.number_of_pages);
       }
     });
   }
@@ -412,10 +436,10 @@ $("body").on("click", ".page-back", function () {
 
 function populateSearchParameters(data) {
   document.getElementById('name-address-box').value = data.name_address;
-  document.getElementById('amount1').value = (data.amountlow !== '' ? '$' : '') + data.amountlow;
-  document.getElementById('amount2').value = (data.amounthigh !== '' ? '$' : '') + data.amounthigh;
-  document.getElementById('date1').value = data.begindate;
-  document.getElementById('date2').value = data.enddate;
+  document.getElementById('amount1').value = (data.amount_low !== '' ? '$' : '') + data.amount_low;
+  document.getElementById('amount2').value = (data.amount_high !== '' ? '$' : '') + data.amount_high;
+  document.getElementById('date1').value = data.begin_date;
+  document.getElementById('date2').value = data.end_date;
   if (data.name_address === '') {
     if (data.neighborhood !== '') {
       document.getElementById('name-address-box').value = data.neighborhood;
@@ -423,7 +447,7 @@ function populateSearchParameters(data) {
       document.getElementById('name-address-box').value = data.zip_code;
     }
   }
-  if(data.amountlow !== '' || data.amounthigh !== '' || data.begindate !== '' || data.enddate !== '') {
+  if(data.amount_low !== '' || data.amount_high !== '' || data.begin_date !== '' || data.end_date !== '') {
     document.getElementById('filters').style.display = 'block';
     document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
   }
@@ -499,7 +523,7 @@ function getLocation(data) {
 function geoSearch(data) {
   var bounds = map.getBounds();
   data.bounds = bounds;
-  var map_button_state = document.getElementById("mapButton").checked;
+  var map_button_state = document.getElementById("map-button").checked;
   data.map_button_state = map_button_state;
 
   var page = $('#table-wrapper').attr('data-page');
@@ -532,12 +556,12 @@ function geoSearch(data) {
       $('#table-wrapper').data('number_of_pages', info.number_of_pages);
       $('#table-wrapper').data('page_length', info.page_length);
 
-      $("#tbody").html(info.tabletemplate);
+      $("#tbody").html(info.table_template);
       $("#table-footer-wrapper").trigger("updateAll");
       document.getElementById('results_language').innerHTML = info.results_language;
       document.getElementById('results-not-found').style.display = info.show_results;
 
-      updateMap(info.jsdata, 0);
+      updateMap(info.js_data, 0);
     }
   });
 }

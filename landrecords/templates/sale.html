@@ -18,15 +18,15 @@
           <div class="row">
             <div class="small-12 columns">
               {% for newrow in newrows %}
-                <div class="no-wrap" id="document_date">{{ newrow.document_date }}</div>
+                <div class="no-wrap" id="document-date">{{ newrow.document_date }}</div>
                 <div class="no-wrap" id="amount">{{ newrow.amount }}</div>
-                <div class="single_sale_listing" id="address"><strong>Address</strong><br>{{ newrow.address }}</div>
-                <div class="single_sale_listing" id="location_info"><strong>Location Info</strong><br>{{ newrow.location_info }}</div>
-                <div class="single_sale_listing" id="neighborhood"><strong>Neighborhood</strong><br>{{ newrow.neighborhood }}</div>
-                <div class="single_sale_listing" id="zip_code"><strong>ZIP code</strong><br>{{ newrow.zip_code }}</div>
-                <div class="single_sale_listing" id="sellers"><strong>Sellers</strong><br>{{ newrow.sellers }}</div>
-                <div class="single_sale_listing" id="buyers"><strong>Buyers</strong><br>{{ newrow.buyers }}</div>
-                <div class="single_sale_listing" id="instrument_no no-wrap">
+                <div class="single-sale-listing" id="address"><strong>Address</strong><br>{{ newrow.address }}</div>
+                <div class="single-sale-listing" id="location-info"><strong>Location Info</strong><br>{{ newrow.location_info }}</div>
+                <div class="single-sale-listing" id="neighborhood"><strong>Neighborhood</strong><br>{{ newrow.neighborhood }}</div>
+                <div class="single-sale-listing" id="zip-code"><strong>ZIP code</strong><br>{{ newrow.zip_code }}</div>
+                <div class="single-sale-listing" id="sellers"><strong>Sellers</strong><br>{{ newrow.sellers }}</div>
+                <div class="single-sale-listing" id="buyers"><strong>Buyers</strong><br>{{ newrow.buyers }}</div>
+                <div class="single-sale-listing" id="instrument-no no-wrap">
                   <div>
                     <strong>Instrument Number</strong>
                   </div>
@@ -36,10 +36,10 @@
                 </div>
               {% endfor %}
             </div>
-            <div class="small-12 columns" id="learn-more">
+            <div class="small-12 columns" id="learn-more" class="learn-more">
               <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">Learn more about this data.</a>
             </div>
-            <!-- <div class="small-12 columns" id="assessor">
+            <!-- <div class="small-12 columns" id="assessor" class="assessor">
               {{ data.assessor|safe }}
             </div> -->
           </div>
@@ -50,7 +50,7 @@
       </div>
     </div>
     {% include 'footer.html' %}
-    <div id="tooltip"></div>
+    <div id="tooltip" class="tooltip"></div>
     {% include 'js.html' %}
     <script type="text/javascript" src={{ js }}></script>
     <script type="text/javascript" src={{ sale_js }}></script>

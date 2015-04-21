@@ -113,10 +113,10 @@ class Models(object):
 
         data = {}
         data['name_address'] = request.args.get('q')
-        data['amountlow'] = request.args.get('a1')
-        data['amounthigh'] = request.args.get('a2')
-        data['begindate'] = request.args.get('d1')
-        data['enddate'] = request.args.get('d2')
+        data['amount_low'] = request.args.get('a1')
+        data['amount_high'] = request.args.get('a2')
+        data['begin_date'] = request.args.get('d1')
+        data['end_date'] = request.args.get('d2')
         data['neighborhood'] = request.args.get('nbhd')
         data['zip_code'] = request.args.get('zip')
 
@@ -189,7 +189,7 @@ class Models(object):
     def post_search(self, data):
         '''Process incoming POST data.'''
 
-        log.debug('post_search')
+        log.debug('post_search data received:')
         log.debug(data)
 
         data = self.decode_data(data)
@@ -275,6 +275,8 @@ class Models(object):
 
         data['update_date'] = self.get_last_updated_date()
 
+        log.debug('map_button_state')
+
         if data['map_button_state'] is True:  # map filtering is on
             query = self.filter_by_map(data)  # todo: was defined elsewhere
 
@@ -302,6 +304,9 @@ class Models(object):
         data = self.revert_entries(data)
 
         data['results_language'] = ResultsLanguage(data).main()
+
+        log.debug('data returned:')
+        log.debug(data)
 
         # newrows = q
         # todo: remove?
@@ -388,13 +393,13 @@ class Models(object):
         ).filter(
             Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begin_date']
         ).filter(
-            Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['end_date']
         ).filter(
-            Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amount_low']
         ).filter(
-            Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amount_high']
         ).filter(
             (Cleaned.latitude <= data['bounds'][0]) &
             (Cleaned.latitude >= data['bounds'][2]) &
@@ -426,13 +431,13 @@ class Models(object):
         ).filter(
             Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begin_date']
         ).filter(
-            Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['end_date']
         ).filter(
-            Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amount_low']
         ).filter(
-            Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amount_high']
         ).filter(
             (Cleaned.latitude <= data['bounds'][0]) &
             (Cleaned.latitude >= data['bounds'][2]) &
@@ -469,13 +474,13 @@ class Models(object):
         ).filter(
             Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begin_date']
         ).filter(
-            Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['end_date']
         ).filter(
-            Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amount_low']
         ).filter(
-            Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amount_high']
         ).all()
 
         session.close()
@@ -501,13 +506,13 @@ class Models(object):
         ).filter(
             Cleaned.zip_code.ilike('%%%s%%' % data['zip_code'])
         ).filter(
-            Cleaned.document_date >= '%s' % data['begindate']
+            Cleaned.document_date >= '%s' % data['begin_date']
         ).filter(
-            Cleaned.document_date <= '%s' % data['enddate']
+            Cleaned.document_date <= '%s' % data['end_date']
         ).filter(
-            Cleaned.amount >= '%s' % data['amountlow']
+            Cleaned.amount >= '%s' % data['amount_low']
         ).filter(
-            Cleaned.amount <= '%s' % data['amounthigh']
+            Cleaned.amount <= '%s' % data['amount_high']
         ).order_by(
             desc(Cleaned.document_date)
         ).offset(
@@ -524,14 +529,14 @@ class Models(object):
     def convert_entries_to_db_friendly(data):
         '''docstring'''
 
-        if data['amountlow'] == '':
-            data['amountlow'] = 0
-        if data['amounthigh'] == '':
-            data['amounthigh'] = 9999999999999
-        if data['begindate'] == '':
-            data['begindate'] = "1900-01-01"
-        if data['enddate'] == '':
-            data['enddate'] = (datetime.today()).strftime('%Y-%m-%d')
+        if data['amount_low'] == '':
+            data['amount_low'] = 0
+        if data['amount_high'] == '':
+            data['amount_high'] = 9999999999999
+        if data['begin_date'] == '':
+            data['begin_date'] = "1900-01-01"
+        if data['end_date'] == '':
+            data['end_date'] = (datetime.today()).strftime('%Y-%m-%d')
 
         return data
 
@@ -539,14 +544,14 @@ class Models(object):
     def revert_entries(data):
         '''docstring'''
 
-        if data['amountlow'] == 0:
-            data['amountlow'] = ''
-        if data['amounthigh'] == 9999999999999:
-            data['amounthigh'] = ''
-        if data['begindate'] == '1900-01-01':
-            data['begindate'] = ''
-        if data['enddate'] == (datetime.today()).strftime('%Y-%m-%d'):
-            data['enddate'] = ''
+        if data['amount_low'] == 0:
+            data['amount_low'] = ''
+        if data['amount_high'] == 9999999999999:
+            data['amount_high'] = ''
+        if data['begin_date'] == '1900-01-01':
+            data['begin_date'] = ''
+        if data['end_date'] == (datetime.today()).strftime('%Y-%m-%d'):
+            data['end_date'] = ''
 
         return data
 
@@ -558,7 +563,7 @@ class Models(object):
         features = []
         features_dict = {}
         for row in query:
-            log.debug(row.buyers)
+            # log.debug(row.buyers)
             if row.location_publish == "0":
                 row.document_date = row.document_date + "*"
                 continue

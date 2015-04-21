@@ -2,8 +2,8 @@
   <div class="small-12 columns">
     <div class="row collapse">
       <label>Search property sales records</label> 
-      <div class="small-10 medium-11 columns" id="input-div">
-        <input id="name-address-box" type="search" name="namesearch" placeholder="e.g. Paul N. Sens, Esplanade Ave." />
+      <div class="small-10 medium-11 columns slim input-div" id="input-div">
+        <input id="name-address-box" class="name-address-box" type="search" name="namesearch" placeholder="e.g. Paul N. Sens, Esplanade Ave." />
       </div>
       <div class="small-2 medium-1 slim columns">
         <button class="button postfix"><i class="fa fa-search"></i></button>
@@ -13,10 +13,10 @@
 </div>
 <div class="row">
   <div class="small-12 text-right columns">
-    <a id="advanced-search">Advanced <span class="no-wrap">search <i class="fa fa-caret-down"></i></span></a>
+    <a id="advanced-search" class="advanced-search">Advanced <span class="no-wrap">search <i class="fa fa-caret-down"></i></span></a>
   </div>
 </div>
-<div id="filters">
+<div id="filters" class="filters">
   <div class="row">
     <div class="small-1 columns">&nbsp;</div>
 
@@ -26,22 +26,22 @@
         <div class="small-6 medium-4 columns">
           <div class="search-range-title">Amount</div>
           <label>Low:</label>
-            <input id="amount1" class="currency" pattern="\d*" type="search" name="amount-low" placeholder="$">
+            <input id="amount1" class="amount1 currency" pattern="\d*" type="search" name="amount-low" placeholder="$">
           <label>High:</label>
-            <input id="amount2" class="currency" pattern="\d*" type="search" name="amount-high" placeholder="$">
+            <input id="amount2" class="amount2 currency" pattern="\d*" type="search" name="amount-high" placeholder="$">
         </div>
         <!-- end amount -->
 
         <!-- Date -->
         <div class="small-6 medium-4 columns">
           <div class="search-range-title">Date</div>
-          <label>From <span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="Our data only goes back to Feb. 18, 2014. Click to read more."><a id="date-from-label-text" href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">(since Feb. 18, 2014):</a>
+          <label>From <span data-tooltip aria-haspopup="true" class="has-tip tip-top" title="Our data only goes back to Feb. 18, 2014. Click to read more."><a id="date-from-label-text" class="date-from-label-text" href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank">(since Feb. 18, 2014):</a>
             </span>
-            <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank"><i id="date-from-label-icon" class="fa fa-info-circle">:</i></a>
+            <a href="http://thelensnola.org/about-the-lens-property-sales-search-tool" target="_blank"><i id="date-from-label-icon" class="fa fa-info-circle date-from-label-icon">:</i></a>
           </label>
-          <input id="date1" type="text" name="begin-date" placeholder="mm/dd/yyyy">
+          <input id="date1" class="date1" type="text" name="begin-date" placeholder="mm/dd/yyyy">
           <label>To:</label>
-          <input id="date2" type="text" name="end-date" placeholder="mm/dd/yyyy">
+          <input id="date2" class="date2" type="text" name="end-date" placeholder="mm/dd/yyyy">
         </div>
         <!-- End date -->
 
@@ -54,7 +54,7 @@
             <div class="small-6 medium-12 columns">
               <div class="search-range-title">Neighborhood</div>
                 <label>&nbsp;</label>
-                <select id="neighborhood">
+                <select id="neighborhood" class="neighborhood">
                   <option selected value="">Select</option>
                   {% for neighborhood in data.neighborhoods %}
                   <option value="{{ neighborhood }}">{{ neighborhood }}</option>
@@ -69,7 +69,7 @@
               <div class="small-6 medium-12 columns">
                 <div class="search-range-title zip">ZIP code</div>
                 <label class="zip-label">&nbsp;</label>
-                <select id="zip-code">
+                <select id="zip-code" class="zip-code">
                   <option selected value="">Select</option>
                   {% for zip_code in zip_codes %}
                   <option value="{{ zip_code }}">{{ zip_code }}</option>
@@ -84,7 +84,7 @@
     </div>
     <div class="small-1 columns">&nbsp;</div>
   </div>
-  <div class="row" id="search-button">
+  <div class="row" id="search-button" class="search-button">
     <div class="small-1 columns">
       &nbsp;
     </div>

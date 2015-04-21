@@ -94,9 +94,10 @@ class Build(object):
                     log.debug(error, exc_info=True)
                     session.rollback()
 
+                session.commit()
+
             initial_datetime += timedelta(days=1)
 
-        session.commit()
         session.close()
 
     def list_parse(self, parser_name, table):
@@ -135,9 +136,10 @@ class Build(object):
                     log.debug(error, exc_info=True)
                     session.rollback()
 
+                session.commit()
+
             initial_datetime += timedelta(days=1)
 
-        session.commit()
         session.close()
 
 if __name__ == '__main__':

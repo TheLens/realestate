@@ -29,7 +29,10 @@ class Views(object):
         self.search_area_js = Config().SEARCH_AREA_JS
         self.sale_js = Config().SALE_JS
         self.map_js = Config().MAP_JS
-        self.css = Config().CSS
+        self.lens_css = Config().LENS_CSS
+        self.landrecords_css = Config().LANDRECORDS_CSS
+        self.banner_css = Config().BANNER_CSS
+        self.table_css = Config().TABLE_CSS
         self.js_app_routing = Config().JS_APP_ROUTING
         self.zip_codes = Utils().zip_codes
 
@@ -67,7 +70,10 @@ class Views(object):
                 data=data,
                 # home_assets=self.home_assets
                 js=self.js,
-                css=self.css,
+                lens_css=self.lens_css,
+                landrecords_css=self.landrecords_css,
+                banner_css=self.banner_css,
+                table_css=self.table_css,
                 index_js=self.index_js,
                 search_area_js=self.search_area_js,
                 js_app_routing=self.js_app_routing,
@@ -93,7 +99,10 @@ class Views(object):
                 search_js=self.search_js,
                 search_area_js=self.search_area_js,
                 map_js=self.map_js,
-                css=self.css,
+                lens_css=self.lens_css,
+                landrecords_css=self.landrecords_css,
+                banner_css=self.banner_css,
+                table_css=self.table_css,
                 js_app_routing=self.js_app_routing,
                 zip_codes=self.zip_codes
             )
@@ -107,10 +116,19 @@ class Views(object):
 
         log.debug('post_search')
 
+        log.debug('returned newrows')
+        log.debug(newrows)
+
         table_template = render_template(
             'table.html',
             newrows=newrows
         )
+
+        log.debug('returned js_data:')
+        log.debug(js_data)
+
+        log.debug('returned data')
+        log.debug(data)
 
         return jsonify(
             table_template=table_template,
@@ -131,7 +149,10 @@ class Views(object):
                 js_data=js_data,
                 # sale_assets=self.sale_assets
                 js=self.js,
-                css=self.css,
+                lens_css=self.lens_css,
+                landrecords_css=self.landrecords_css,
+                banner_css=self.banner_css,
+                table_css=self.table_css,
                 sale_js=self.sale_js
             )
         )

@@ -1,4 +1,4 @@
-var map, dataLayer, neighborhoodLayer;
+var map, dataLayer, neighborhoodLayer, mapboxLayer, satelliteLayer;
 var clicked = 0;
 var dropdownFocus = 0;//0 is standard. dropdown selection = 1
 
@@ -38,7 +38,7 @@ function removeNeighborhoodLayer() {
 function updateNeighborhoodLayer(data) {
   if (map.hasLayer(neighborhoodLayer)) {
     map.removeLayer(neighborhoodLayer);
-  }  
+  }
 
   neighborhoodLayer = L.geoJson(data, {
     // filter: function (feature, layer) {
@@ -96,14 +96,14 @@ function loadMapTiles() {
   });
 
   L.mapbox.accessToken = 'pk.eyJ1IjoidHRob3JlbiIsImEiOiJEbnRCdmlrIn0.hX5nW5GQ-J4ayOS-3UQl5w';
-  var mapboxLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m70bek/{z}/{x}/{y}.png', {
+  mapboxLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m70bek/{z}/{x}/{y}.png', {
     attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
     scrollWheelZoom: false,
     detectRetina: true,
     minZoom: 9
     //opacity: 0
   });
-  var satelliteLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m6noin/{z}/{x}/{y}.png', {
+  satelliteLayer = L.tileLayer('https://{s}.tiles.mapbox.com/v3/tthoren.i7m6noin/{z}/{x}/{y}.png', {
     attribution: "<a href='https://www.mapbox.com/about/maps/' target='_blank'>&copy; Mapbox &copy; OpenStreetMap</a> <a class='mapbox-improve-map' href='https://www.mapbox.com/map-feedback/' target='_blank'>Feedback</a>",
     scrollWheelZoom: false,
     detectRetina: true,
@@ -137,7 +137,7 @@ function loadMapTiles() {
 function addLensLogoToMap() {
   var logo = L.control({position: 'bottomleft'});
   logo.onAdd = function () {
-    var div = L.DomUtil.create('div');
+    var div = L.DomUtil.create('div', 'logo');
     div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo-retina.png' alt='Lens logo' width='100'>";
     return div;
   };
@@ -302,12 +302,34 @@ function initialMapFunction(data) {
   //mapHover(dataLayer);
 
   map.on('moveend', function (e) {
-    if (document.getElementById("mapButton").checked === true) {
+    if (document.getElementById("map-button").checked === true) {
       mapSearching();
     }
   });
   map.on('click', function(e) {
     resetClicked();
+  });
+
+  // todo for satellite layer:
+  map.on('baselayerchange', function(event) {
+    // console.log('baselayerchange');
+    if (map.hasLayer(satelliteLayer)) {
+      // console.log('satelliteLayer');
+      $('.logo').css({
+        'background-color': 'rgba(255, 255, 255, 0.5)',
+        'box-shadow': '0px 0px 7px 7px rgba(255, 255, 255, 0.5)'
+      });
+      $('.leaflet-control-attribution').css({"background-color": 'rgba(255, 255, 255, 0.75)'});
+    }
+
+    if (map.hasLayer(mapboxLayer)) {
+      // console.log('mapboxLayer');
+      $('.logo').css({
+        'background-color': 'rgba(255, 255, 255, 0)',
+        'box-shadow': '0px 0px 0px 0px rgba(255, 255, 255, 0)'
+      });
+      $('.leaflet-control-attribution').css({"background-color": 'rgba(255, 255, 255, 0.25)'});
+    }
   });
 }
 

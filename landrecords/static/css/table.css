@@ -1,0 +1,269 @@
+table {
+    margin: 0;
+}
+#myTable {
+    border: 0;
+}
+#myTable th, #myTable tr, #myTable td {
+    border: 1px solid #E0E0E0;
+}
+#myTable, #myTable th, #myTable tr, #myTable td {
+    margin: 0;
+    font-size: 14px;
+    table-layout: auto;
+    border-collapse: collapse;
+    font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+#myTable thead th {
+    vertical-align: middle;
+}
+.table-container-fade {
+    position: absolute;
+    bottom: 25px;
+    width: 250px;
+    height: 15px;
+    background-image: -webkit-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+    background-image: -moz-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+    background-image: -ms-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+    background-image: -o-linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+    background-image: linear-gradient(180deg, rgba(255,255,255,.5), #fff);
+}
+
+/*
+ Large width
+*/
+@media screen and (min-width: 1025px) { 
+    #myTable {
+        border: none;
+        width: 100%;
+    }
+    #myTable thead {
+        display: none;
+    }
+    #myTable tr {
+        width: 100%;
+        height: auto;
+        padding: 4px 0;
+        border-bottom: 1px solid #A8A299;
+    }
+    #myTable td {
+        border: none;
+        width: 100%;
+    }
+    #myTable td.document-recorded {
+        display: none;
+    }
+    #myTable td.document-date, #myTable td.amount {
+        display: inline-block;
+        font-size: 18px;
+        padding: 1%;
+        color: #000;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        margin: 0;
+        font-weight: normal; 
+    }
+    #myTable td.document-date {
+        text-align: left;
+        margin-right: 0;
+        width: 54%;
+    }
+    #myTable td.amount {
+        text-align: right;
+        margin-left: 0;
+        width: 42%;
+    }
+    #myTable td.address {
+        font-size: 14px;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        padding: 4px;
+        margin: 0;
+        font-weight: normal;
+    }
+    #myTable td.location-info {
+        font-size: 14px;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        padding: 4px;
+        margin: 0;
+        font-weight: normal;
+    }
+    #myTable td.sellers, #myTable td.buyers {
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 0%;
+      margin-bottom: 0%;
+      text-align: left;
+      font-size: 14px;
+      color: #000;
+      font-weight: normal;
+      background-color: #FFF;
+      font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+    }
+    #myTable td.sellers {
+        margin-right: 0%;
+    }
+    #myTable td.buyers {
+        margin-left: 0%;
+    }
+    #myTable td.sellers:before, #myTable td.buyers:before {
+      font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.sellers:before {
+        content: "Sellers";
+    }
+    #myTable td.buyers:before {
+        content: "Buyers";
+    }
+    #myTable td.instrument-no {
+        font-size: 14px;
+        width: 100%;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        padding: 4px;
+        margin: 0;
+        font-weight: normal;
+    }
+    #myTable td.instrument-no:before {
+      font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.instrument-no:before {
+        content: "Instrument Number";
+    }
+    table.tablesorter tbody td,
+    table tr.even, table tr.alt, table tr:nth-of-type(even),
+    table.tablesorter tbody > tr:hover > td,
+    table.tablesorter tbody > tr:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.even:hover > td,
+    table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.odd:hover > td,
+    table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td {
+        background: #FFFFFF;
+    }
+}
+
+/* Mobile view */
+@media screen and (max-width: 600px) {  
+    #myTable {
+        border: none;
+        width: 100%;
+    }
+    #myTable thead {
+        display: none;
+    }
+    #myTable tr {
+        width: 100%;
+        height: auto;
+        padding: 4px 0;
+        border-top: none;
+    }
+    #myTable td {
+        border: none;
+        width: 100%;
+    }
+    #myTable td.document-recorded {
+        display: none;
+    }
+    #myTable td.document-date, #myTable td.amount {
+        width: 46%;
+        display: inline-block;
+        font-size: 18px;
+        padding: 0;
+        color: #000;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        font-weight: normal; 
+    }
+    #myTable td.document-date {
+        text-align: left;
+        margin: 2%;
+    }
+    #myTable td.amount {
+        text-align: right;
+        margin: 2%;
+        /*color: #B43018;*/
+    }
+    #myTable td.address {
+        font-size: 14px;
+        width: 96%;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        padding: 0;
+        margin: 2% 2% 1%;
+        font-weight: normal;
+    }
+    #myTable td.location-info {
+        font-size: 14px;
+        width: 96%;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        margin: 0 2% 2%;
+        padding: 0;
+        font-weight: normal;
+    }
+    #myTable td.sellers, #myTable td.buyers {
+      width: 46%;
+      display: inline-block;
+      vertical-align: top;
+      margin: 2%;
+      text-align: left;
+      font-size: 14px;
+      color: #000000;
+      font-weight: normal;
+      background-color: #E9E9E9;
+      font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+    }
+    #myTable td.sellers:before, #myTable td.buyers:before {
+      font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.sellers:before {
+        content: "Sellers";
+    }
+    #myTable td.buyers:before {
+        content: "Buyers";
+    }
+    #myTable td.instrument-no {
+        font-size: 14px;
+        width: 100%;
+        display: block;
+        font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+        color: #000;
+        padding: 4px 0 8px;
+        margin: 0;
+        font-weight: normal;
+    }
+    #myTable td.instrument-no:before {
+      font-size: 14px;
+      display: block;
+      font-weight: bold;
+    }
+    #myTable td.instrument-no:before {
+        content: "Instrument Number";
+    }
+    table.tablesorter tbody td,
+    table tr.even, table tr.alt, table tr:nth-of-type(even),
+    table.tablesorter tbody > tr:hover > td,
+    table.tablesorter tbody > tr:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.even:hover > td,
+    table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.even:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.odd:hover > td,
+    table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow > td,
+    table.tablesorter tbody > tr.odd:hover + tr.tablesorter-childRow + tr.tablesorter-childRow > td {
+        background: #FFFFFF;
+    }
+}

@@ -93,8 +93,8 @@ if __name__ == '__main__':
     try:
         # Default is to build entire archive since 2014/02/18
         Initialize(
-            # initial_date='2014-02-18',
-            # until_date='2014-02-20'
+            initial_date=Config().OPENING_DAY,
+            until_date=Config().YESTERDAY_DATE
         )
         # Initialize()
     except Exception, error:

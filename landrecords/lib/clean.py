@@ -120,12 +120,12 @@ class Join(object):
                 '; '
             ).label('address'),
             func.string_agg(
-                'Unit: ' + cast(Location.unit, Text) + ' ' +
-                'Condo: ' + cast(Location.condo, Text) + ' ' +
-                'Weeks: ' + cast(Location.weeks, Text) + ' ' +
-                'Subdivision: ' + cast(Location.subdivision, Text) + ' ' +
-                'District: ' + cast(Location.district, Text) + ' ' +
-                'Square: ' + cast(Location.square, Text) + ' ' +
+                'Unit: ' + cast(Location.unit, Text) + ', ' +
+                'Condo: ' + cast(Location.condo, Text) + ', ' +
+                'Weeks: ' + cast(Location.weeks, Text) + ', ' +
+                'Subdivision: ' + cast(Location.subdivision, Text) + ', ' +
+                'District: ' + cast(Location.district, Text) + ', ' +
+                'Square: ' + cast(Location.square, Text) + ', ' +
                 'Lot: ' + cast(Location.lot, Text),
                 '; '
             ).label('location_info')
