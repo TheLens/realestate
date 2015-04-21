@@ -5,7 +5,6 @@
 import logging
 import logging.handlers
 import os
-# import getpass
 
 from landrecords.config import Config
 
@@ -28,5 +27,3 @@ filehandler.setFormatter(formatter)
 
 # Add the handlers to the logger
 log.addHandler(filehandler)
-
-# return logger
