@@ -6,8 +6,8 @@ Geocode street addresses and find which neighborhood they are in.
 '''
 
 import psycopg2
-
-from sqlalchemy import create_engine, func, cast, Float
+import googlemaps
+from sqlalchemy import create_engine, func, cast, Float, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -26,8 +26,10 @@ class Geocode(object):
     def __init__(self):
         '''Generates connections to PostgreSQL and SQLAlchemy.'''
 
+        self.gmaps = googlemaps.Client(key=Config().GOOGLE_API_KEY)
+
         self.conn = psycopg2.connect(Config().SERVER_CONNECTION)
-        self.cur = self.conn.cursor()
+        self.cursor = self.conn.cursor()
 
         base = declarative_base()
         self.engine = create_engine(Config().SERVER_ENGINE)
@@ -88,38 +90,92 @@ class Geocode(object):
         session.commit()
         session.close()
 
+    def get_rows_with_null_rating(self):
+        '''Gets locations with rating IS NULL.'''
+
+        session = self.sn()
+
+        query = session.query(
+            Location.rating,
+            Location.document_id,
+            Location.street_number,
+            Location.address
+        ).filter(
+            Location.rating.is_(None)
+        ).all()
+
+        log.debug('Rows with rating is NULL: %d', len(query))
+
+        session.close()
+
+        return query
+
+    def process_google_results(self, result):
+        '''Process the returned geocoding results.'''
+
+        # log.debug(result)
+
+        dict_output = {}
+
+        geometry = result[0]['geometry']
+        address_components = result[0]['address_components']
+
+        # todo: result[1] or more?
+        dict_output['latitude'] = geometry['location']['lat']
+        dict_output['longitude'] = geometry['location']['lng']
+        dict_output['rating'] = geometry['location_type']
+
+        try:
+            dict_output['zip_code'] = address_components[7]['short_name']
+        except Exception, error:
+            log.exception(error, exc_info=True)
+            dict_output['zip_code'] = "None"
+
+        # log.debug(dict_output)
+
+        return dict_output
+
     def geocode(self):
         '''
-        This will geocode entries without ratings (new records), so
-        this is good for batch processing an untouched archive and
-        only processing new records.
-        An altered version of the following batch geocoding code:
-        http://postgis.net/docs/Geocode.html
+        Uses Google Geocoding API for locations with rating/lat/lng of NULL.
         '''
 
-        log.debug('Geocode')
-        print 'Geocoding...'
+        session = self.sn()
 
-        self.engine.execute("""UPDATE locations
-            SET (rating, zip_code, longitude, latitude) = (
-                COALESCE((g.geo).rating, -1),
-                (g.geo).addy.zip,
-                ST_X((g.geo).geomout)::numeric(8, 5),
-                ST_Y((g.geo).geomout)::numeric(8, 5)
-            )
-            FROM (
-                SELECT document_id
-                FROM locations
-                WHERE rating IS NULL
-                ORDER BY document_id
-            ) As a
-            LEFT JOIN (
-                SELECT document_id, (geocode(full_address, 1)) As geo
-                FROM locations
-                WHERE locations.rating IS NULL
-                ORDER BY document_id
-            ) As g ON a.document_id = g.document_id
-            WHERE a.document_id = locations.document_id;""")
+        log.debug('Geocode')
+        print '\nGeocoding...'
+
+        null_query = self.get_rows_with_null_rating()
+
+        for row in null_query:
+            full_address = row.street_number + ' ' + row.address + \
+                ', New Orleans, LA'
+
+            try:
+                geocode_result = self.gmaps.geocode(full_address)
+                dict_output = self.process_google_results(geocode_result)
+            except Exception, error:
+                log.exception(error, exc_info=True)
+
+            try:
+                with session.begin_nested():
+                    u = update(Location)
+                    u = u.values(dict_output)
+                    u = u.where(Location.document_id == row.document_id)
+                    session.execute(u)
+                    session.flush()
+            except Exception, error:
+                log.exception(error, exc_info=True)
+                session.rollback()
+
+            session.commit()
+
+            break  # todo: uncomment
+
+        session.close()
+
+        log.debug('Done geocoding')
 
 if __name__ == '__main__':
+    Geocode().google_geocode()
     pass
