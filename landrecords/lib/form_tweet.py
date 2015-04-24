@@ -42,18 +42,18 @@ class AutoTweet(object):
         document_recorded_late = ''
         time_period = ''
 
-        if Config().TODAY_DATETIME.strftime('%A') == 'Sunday':
+        if Config().TODAY_DATE.strftime('%A') == 'Sunday':
             sys.exit()
             return
-        elif Config().TODAY_DATETIME.strftime('%A') == 'Monday':
+        elif Config().TODAY_DATE.strftime('%A') == 'Monday':
             document_recorded_early = (
-                Config().TODAY_DATETIME - timedelta(days=7)
+                Config().TODAY_DATE - timedelta(days=7)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             document_recorded_late = (
-                Config().TODAY_DATETIME - timedelta(days=3)
+                Config().TODAY_DATE - timedelta(days=3)
             ).strftime(
                 '%Y-%m-%d'
             )
@@ -61,19 +61,19 @@ class AutoTweet(object):
             time_period = 'last week'
         else:
             document_recorded_early = (
-                Config().TODAY_DATETIME - timedelta(days=1)
+                Config().TODAY_DATE - timedelta(days=1)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             document_recorded_late = (
-                Config().TODAY_DATETIME - timedelta(days=1)
+                Config().TODAY_DATE - timedelta(days=1)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             time_period = (
-                Config().TODAY_DATETIME - timedelta(days=1)
+                Config().TODAY_DATE - timedelta(days=1)
             ).strftime('%A')
 
         return_dict = {}
@@ -106,11 +106,11 @@ class AutoTweet(object):
             Cleaned.amount.desc()
         ).limit(1).all()
 
-        # todo:
+        log.debug(query)
+
         # If no record found, terminate this script so it
         # doesn't tweet out nonsense.
-        # Could be because of federal holidays, the city didn't enter
-        # records on a given day, or any number of other reasons.
+        # Could be because of holidays, no records or old-fashioned bug.
         if len(query) == 0:
             sys.exit()
 
@@ -229,25 +229,47 @@ class AutoTweet(object):
         return_dict = self.figure_out_recorded_date()
 
         document_recorded_early = return_dict['document_recorded_early']
-        document_recorded_late = return_dict['document_recorded_late']
-        time_period = return_dict['time_period']
+        log.debug(
+            'document_recorded_early: %s',
+            document_recorded_early)
 
-        query_dict = self.get_highest_amount_details(
-            document_recorded_early, document_recorded_late)
+        document_recorded_late = return_dict['document_recorded_late']
+        log.debug(
+            'document_recorded_late: %s',
+            document_recorded_late)
+
+        time_period = return_dict['time_period']
+        log.debug('time_period: %s', time_period)
+
+        try:
+            query_dict = self.get_highest_amount_details(
+                document_recorded_early, document_recorded_late)
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
         amount = query_dict['amount']
+        log.debug('amount: %s', amount)
+
         instrument_no = query_dict['instrument_no']
+        log.debug('instrument_no: %s', instrument_no)
+
         neighborhood = query_dict['neighborhood']
+        log.debug('neighborhood: %s', neighborhood)
 
         # todo:
         # neighborhood = self.conversational_neighborhoods()
 
         url = self.form_url(instrument_no)
+        log.debug('url: %s', url)
 
         name = self.screenshot_name(instrument_no)
+        log.debug('name: %s', name)
 
         status = self.form_message(time_period, neighborhood, amount, url)
+        log.debug('status: %s', status)
+
         media = self.open_image(url, name)
+        log.debug('media: %s', media)
 
         print 'status:', status
         print 'media:', media

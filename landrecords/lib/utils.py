@@ -25,6 +25,15 @@ class Utils(object):
     ]
 
     @staticmethod
+    def convert_amount(amount):
+        '''Convert amounts to int type.'''
+
+        amount = re.sub(r"\$", r"", amount)
+        amount = re.sub(r"\,", r"", amount)
+
+        return int(float(amount))
+
+    @staticmethod
     def get_number_with_commas(value):
         '''Convert interger to string with commas.'''
 
@@ -42,7 +51,19 @@ class Utils(object):
         '''Convert yyyy-mm-dd to mm-dd-yyyy.'''
 
         if value is not None:
+            value = datetime.strptime(value, '%Y-%m-%d').date()
             return value.strftime("%m-%d-%Y")
+        else:
+            return "None"
+
+    @staticmethod
+    def ymd_to_mdy_slashes(value):
+        '''Convert yyyy-mm-dd to mm/dd/yyyy.'''
+
+        if value is not None:
+            value = datetime.strptime(value, '%Y-%m-%d').date()
+            value = value.strftime("%m/%d/%Y")
+            return value
         else:
             return "None"
 
@@ -54,17 +75,20 @@ class Utils(object):
             if isinstance(value, unicode):
                 # value = urllib.unquote(value).decode('utf8')
                 readable_date = str(value)
-                readable_date = datetime.strptime(readable_date, '%m/%d/%Y')
+                readable_date = datetime.strptime(
+                    readable_date, '%m/%d/%Y').date()
                 readable_date = readable_date.strftime('%b. %-d, %Y')
 
             else:
                 # value = str(value)
                 if no_day is False:
-                    readable_datetime = datetime.strptime(value, '%Y-%m-%d')
+                    readable_datetime = datetime.strptime(
+                        value, '%Y-%m-%d').date()
                     readable_date = readable_datetime.strftime(
                         '%A, %b. %-d, %Y')
                 else:
-                    readable_datetime = datetime.strptime(value, '%Y-%m-%d')
+                    readable_datetime = datetime.strptime(
+                        value, '%Y-%m-%d').date()
                     readable_date = readable_datetime.strftime('%b. %-d, %Y')
 
             readable_date = readable_date.replace('Mar.', 'March')

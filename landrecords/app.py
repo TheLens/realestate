@@ -8,7 +8,7 @@ import urllib
 # from flask.ext.cache import Cache
 from flask import (
     Flask,
-    render_template,
+    # render_template,
     request,
     Response
 )
@@ -127,6 +127,7 @@ def requires_auth(f):
     return decorated
 
 
+# todo
 # @cache.memoize(timeout=5000)
 @app.route("%s/dashboard/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
 @requires_auth
@@ -136,14 +137,22 @@ def dashboard():
     if request.method == 'GET':
         log.debug('GET dashboard')
 
-        return Views().get_dashboard()
+        # data = Models().get_dashboard()
+
+        # view = Views().get_dashboard(data)
+
+        # return view
 
     if request.method == 'POST':
         log.debug('POST dashboard')
 
-        data = request.get_json()
+        # data = request.get_json()
 
-        return Views().post_dashboard(data)
+        # data = Models().post_dashboard(data)
+
+        # view = Views().post_dashboard(data)
+
+        # return view
 
 
 @app.route("%s/webhook" % (Config().APP_ROUTING), methods=['POST'])
@@ -164,10 +173,9 @@ def page_not_found(error):
 
     log.debug(error)
 
-    return render_template('404.html',
-                           css=Config().CSS,
-                           js=Config().JS,
-                           indexjs=Config().INDEX_JS), 404
+    view = Views().get_error_page()
+
+    return view
 
 
 if __name__ == '__main__':

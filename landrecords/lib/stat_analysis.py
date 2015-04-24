@@ -42,7 +42,7 @@ class StatAnalysis(object):
         sql = """
             SELECT COUNT(*)
             FROM %s
-            WHERE detail_publish = '0'
+            WHERE detail_publish = False
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
             """ % (self.table, self.begin_date, self.end_date)
@@ -58,7 +58,7 @@ class StatAnalysis(object):
         sql = """
             SELECT COUNT(*)
             FROM %s
-            WHERE detail_publish = '1'
+            WHERE detail_publish IS True
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
             """ % (self.table, self.begin_date, self.end_date)
@@ -74,7 +74,7 @@ class StatAnalysis(object):
         sql = """
             SELECT COUNT(*)
             FROM %s
-            WHERE location_publish = '0'
+            WHERE location_publish IS False
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
             """ % (self.table, self.begin_date, self.end_date)
@@ -90,7 +90,7 @@ class StatAnalysis(object):
         sql = """
             SELECT COUNT(*)
             FROM %s
-            WHERE location_publish = '1'
+            WHERE location_publish IS True
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
             """ % (self.table, self.begin_date, self.end_date)

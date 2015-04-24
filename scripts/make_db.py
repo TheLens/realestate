@@ -6,7 +6,7 @@ import psycopg2
 from sqlalchemy import create_engine
 from subprocess import call, Popen, PIPE
 
-# from landrecords import log
+from landrecords import log
 from landrecords.config import Config
 from landrecords import db
 
@@ -18,21 +18,53 @@ class MakeDB(object):
     def main(self):
         '''Run all methods.'''
 
+        self.create_db()
+        self.create_tables()
         self.import_neighorhoods()
-        self.make_db()
         self.spatial_index_on_cleaned_geom()
 
     @staticmethod
-    def make_db():
+    def create_db():
+        '''Create database if it doesn\'t already exist.'''
+
+        log.debug('create_db')
+
+        try:
+            conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+            cur = conn.cursor()
+            sql = "SELECT 1;"
+            cur.execute(sql)
+        except Exception, error:
+            log.exception(error, exc_info=True)
+            call([
+                'createdb',
+                '%s' % Config().DATABASE_NAME
+            ])
+
+            conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+            cur = conn.cursor()
+            cur.execute("CREATE EXTENSION POSTGIS;")
+
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    @staticmethod
+    def create_tables():
         '''Create tables in SQLAlchemy.'''
 
-        engine = create_engine(Config().SERVER_ENGINE,
-                               implicit_returning=True)
+        log.debug('create_tables')
+
+        engine = create_engine(
+            Config().SERVER_ENGINE
+        )
         db.Base.metadata.create_all(engine)
 
     @staticmethod
     def import_neighorhoods():
         '''Import neighborhood shapefiles.'''
+
+        log.debug('import_neighorhoods')
 
         conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
         cur = conn.cursor()
@@ -41,11 +73,14 @@ class MakeDB(object):
             [
                 'shp2pgsql',
                 '-I',
+                '-a',  # appends data to existing table. don't create.
                 '{0}/neighborhoods/shapefile'.format(Config().GEO_DIR) +
-                '/Neighborhood_Statistical_Areas', 'neighborhoods'
+                '/Neighborhood_Statistical_Areas',
+                'neighborhoods'
             ],
             stdout=PIPE
         )
+
         p2 = Popen(
             [
                 'psql',
@@ -55,15 +90,17 @@ class MakeDB(object):
             stdin=p1.stdout,
             stdout=PIPE
         )
+
         p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
         p2.communicate()[0]
 
         # If need to alter geometry's SRID
-        cur.execute("SELECT updategeometrysrid('neighborhoods','geom',3452);")
+        cur.execute("""
+            SELECT updategeometrysrid('neighborhoods', 'geom', 3452);""")
         cur.execute("""
             ALTER TABLE neighborhoods
-            ALTER COLUMN geom TYPE geometry(MultiPolygon,4326)
-            USING ST_Transform(geom,4326);""")
+            ALTER COLUMN geom TYPE geometry(MultiPolygon, 4326)
+            USING ST_Transform(geom, 4326);""")
 
         conn.commit()
 
@@ -74,34 +111,21 @@ class MakeDB(object):
     def spatial_index_on_cleaned_geom():
         '''Create spatial index on cleaned table.'''
 
-        call([
-            'psql',
-            '%s' % Config().DATABASE_NAME,
-            '-c',
-            'CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);'
-        ])
+        log.debug('spatial_index_on_cleaned_geom')
 
-    # def delete_duplicate_neighborhoods():
-        # cur.execute("DELETE FROM neighborhoods USING neighborhoods n2 WHERE
-        # neighborhoods.gnocdc_lab = n2.gnocdc_lab AND neighborhoods.gid
-        # < n2.gid;")
-        # Note: Using PostGIS to export CBD as JSON
-        # produced a file with errors,
-        # so I had to manually export that selection in QGIS and change to
-        # MultiPolygon in text editor.
+        conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+        cur = conn.cursor()
 
-    # def neighborhoods_json():
-        # local("ogr2ogr -f GeoJSON -s_srs
-        # ESRI::../data/neighborhoods/102682.prj
-        # -t_srs EPSG:4326 neighborhoods.json
-        # ../data/neighborhoods/Neighborhood_Statistical_Areas.shp")
-        # local("topojson -o neighborhoods-topo.json
-        # --properties name=gnocdc_lab
-        # neighborhoods.json")
-        # cp neighborhoods-topo.json static/js/neigbhorhoods-topo.js
-        # vim neighborhoods-topo.js: var neighborhoods = {...};
-        # minify: yuicompressor neighborhoods-topo.js
-        # -o neighborhoods-topo.min.js
+        sql = """
+            CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);"""
+
+        cur.execute(sql)
+
+        conn.commit()
+
+        cur.close()
+        conn.close()
 
 if __name__ == '__main__':
     MakeDB().main()
+    # MakeDB().create_db()

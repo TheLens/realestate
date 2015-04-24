@@ -74,8 +74,8 @@ class EmailTemplate(object):
             '\n' +
             '\n'
         ).format(
-            Utils().ymd_to_full_date(self.initial_date, no_day=True),
-            Utils().ymd_to_full_date(self.until_date, no_day=True),
+            Utils().ymd_to_mdy_slashes(self.initial_date),
+            Utils().ymd_to_mdy_slashes(self.until_date),
             format(stat.count(), ','),
             Utils().ymd_to_full_date(self.initial_date),
             Utils().ymd_to_full_date(self.until_date),

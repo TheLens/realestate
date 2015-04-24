@@ -159,49 +159,66 @@ class Views(object):
 
         return response
 
-    # def get_dashboard(self, data, newrows, js_data, parameters):
-    #     '''Return GET view for /realestate/dashboard'''
+    # todo
+    def get_dashboard(self, data, newrows, js_data, parameters):
+        '''Return GET view for /realestate/dashboard'''
 
-    #     response = make_response(
-    #         render_template(
-    #             'search.html',
-    #             data=data,
-    #             newrows=newrows,
-    #             js_data=js_data,
-    #             parameters=parameters,
-    #             js=Config().JS,
-    #             searchjs=Config().SEARCH_JS,
-    #             searchAreajs=Config().SEARCH_AREA_JS,
-    #             mapjs=Config().MAP_JS,
-    #             css=Config().CSS,
-    #             js_app_routing=Config().JS_APP_ROUTING,
-    #             zip_codes=Utils().zip_codes
-    #         )
-    #     )
+        response = make_response(
+            render_template(
+                'dashboard.html',
+                data=data,
+                newrows=newrows,
+                js_data=js_data,
+                parameters=parameters,
+                js=self.js,
+                search_js=self.search_js,
+                search_area_js=self.search_area_js,
+                map_js=self.map_js,
+                lens_css=self.lens_css,
+                js_app_routing=self.js_app_routing,
+                zip_codes=self.zip_codes
+            )
+        )
 
-    #     return response
+        return response
 
-    # def post_dashboard(self, data, newrows, js_data, parameters):
-    #     '''Return POST view for /realestate/dashboard'''
+    # todo
+    def post_dashboard(self, data, newrows, js_data, parameters):
+        '''Return POST view for /realestate/dashboard'''
 
-    #     response = make_response(
-    #         render_template(
-    #             'search.html',
-    #             data=data,
-    #             newrows=newrows,
-    #             js_data=js_data,
-    #             parameters=parameters,
-    #             js=Config().JS,
-    #             searchjs=Config().SEARCH_JS,
-    #             searchAreajs=Config().SEARCH_AREA_JS,
-    #             mapjs=Config().MAP_JS,
-    #             css=Config().CSS,
-    #             js_app_routing=Config().JS_APP_ROUTING,
-    #             zip_codes=Utils().zip_codes
-    #         )
-    #     )
+        response = make_response(
+            render_template(
+                'dashboard.html',
+                data=data,
+                newrows=newrows,
+                js_data=js_data,
+                parameters=parameters,
+                js=self.js,
+                search_js=self.search_js,
+                search_area_js=self.search_area_js,
+                map_js=self.map_js,
+                lens_css=self.lens_css,  # todo
+                js_app_routing=self.js_app_routing,
+                zip_codes=self.zip_codes
+            )
+        )
 
-    #     return response
+        return response
+
+    def get_error_page(self):
+        '''Return 404 error page.'''
+
+        response = make_response(
+            render_template(
+                '404.html',
+                lens_css=self.lens_css,  # todo
+                js=self.js,
+                index_js=self.index_js
+            )
+        )
+
+        return response, 404
+
 
 if __name__ == '__main__':
     pass

@@ -8,9 +8,10 @@ from unittest import TestCase
 import os
 import fnmatch
 from subprocess import call
+from landrecords.config import Config
 
 # ignore stuff in virtualenvs or version control directories
-ignore_patterns = ('bin', 'scripts', 'tests', 'misc')
+ignore_patterns = ('scripts', 'tests', 'misc')
 
 
 def ignore(dir):
@@ -33,9 +34,7 @@ class TestPylint(TestCase):
 
         # Find all .py files
         files_list = []
-        for root, dirnames, filenames in os.walk(
-            '/Users/thomasthoren/projects/land-records/repo'
-        ):
+        for root, dirnames, filenames in os.walk('%s' % Config().PROJECT_DIR):
             if ignore(root):
                 continue
 
@@ -43,8 +42,13 @@ class TestPylint(TestCase):
                 files_list.append(os.path.join(root, filename))
 
         for f in files_list:
-            call(['pylint',
-                  f])
+            call([
+                'pylint',
+                '--errors-only',
+                # '--ignore=check_assessor_urls.py',  # todo: not working
+                # --disable=invalid-name,
+                f
+            ])
 
         # errors = pep8style.check_files(files_list).total_errors
 

@@ -11,10 +11,7 @@ import re
 import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from datetime import (
-    datetime,
-    timedelta
-)
+from datetime import date, timedelta
 from landrecords.config import Config
 from landrecords.lib.mail import Mail
 from landrecords import log
@@ -27,8 +24,8 @@ class Scrape(object):
     # todo: write function with rewrite = False that ignores any
     # sales previously scraped.
     def __init__(self,
-                 initial_date=Config().OPENING_DATETIME,
-                 until_date=Config().YESTERDAY_DATETIME,
+                 initial_date=Config().YESTERDAY_DATE,
+                 until_date=Config().YESTERDAY_DATE,
                  rewrite=True):
         '''Initialize self variables and PhantomJS browser.'''
 
@@ -407,11 +404,9 @@ class Scrape(object):
 
         current_date = self.initial_date
 
-        final_date = (self.until_date + timedelta(days=1)).strftime('%Y-%m-%d')
-
         # Must search each date one at a time because there is a limit of
         # 300 results per search.
-        while current_date.strftime('%Y-%m-%d') != final_date:
+        while current_date != (self.until_date + timedelta(days=1)):
             log.debug(current_date)
             log.debug(self.until_date)
 
@@ -421,7 +416,7 @@ class Scrape(object):
 
             log.debug(year + '-' + month + '-' + day)
 
-            # Check if folder for this day exists. if not, then make one
+            # Check if folder for this day exists. If not, then make one.
             pagedir = "%s/raw/%s-%s-%s/page-html" % (
                 Config().DATA_DIR, year, month, day)
             log.debug(pagedir)
@@ -469,6 +464,6 @@ class Scrape(object):
 
 if __name__ == '__main__':
     Scrape(
-        initial_date=Config().YESTERDAY_DATETIME,
-        until_date=Config().YESTERDAY_DATETIME
+        initial_date=date(2015, 4, 13),
+        until_date=Config().YESTERDAY_DATE
     ).main()

@@ -3,7 +3,6 @@
 '''JOIN the four individual tables, clean and commit to cleaned.'''
 
 import re
-
 from sqlalchemy import create_engine, insert, func, cast, Text, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -24,9 +23,7 @@ class Join(object):
 
     '''JOIN the four individual tables.'''
 
-    def __init__(self,
-                 initial_date=Config().OPENING_DAY,
-                 until_date=Config().YESTERDAY_DATE):
+    def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
 
         self.initial_date = initial_date
@@ -113,7 +110,7 @@ class Join(object):
 
         subquery = session.query(
             Location.document_id,
-            func.min(Location.location_publish).label('location_publish'),
+            func.bool_and(Location.location_publish).label('location_publish'),
             func.string_agg(
                 cast(Location.street_number, Text) + ' ' +
                 cast(Location.address, Text),
@@ -280,18 +277,19 @@ class Clean(object):
 
     '''Clean the joined tables and commit to cleaned.'''
 
-    def __init__(self,
-                 initial_date=Config().OPENING_DAY,
-                 until_date=Config().YESTERDAY_DATE):
+    def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
-
-        self.initial_date = initial_date
-        self.until_date = until_date
 
         base = declarative_base()
         self.engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
+
+        self.initial_date = initial_date
+        self.until_date = until_date
+
+        log.debug('self.initial_date: %s', self.initial_date)
+        log.debug('self.until_date: %s', self.until_date)
 
     def update_cleaned_geom(self):
         '''Update the PostGIS geom field in the cleaned table.'''
@@ -320,43 +318,6 @@ class Clean(object):
             row['neighborhood'] = row['neighborhood'].title()
 
         return rows
-
-    def prep_locations_for_geocoding(self):
-        '''
-        Geocodes existing records and/or new records — any records that have
-        not yet been geocoded. Geocoder takes strings:
-        123 Main St, New Orleans, LA 70119
-        I took a shortcut. Instead of finding a way to concatenate the address
-        pieces on the fly, I concatenated them all into a new column, then read
-        from that column. Sloppy, but it works for now.
-        '''
-
-        log.debug('Prep locations for geocoding')
-        print 'Prepping locations for geocoding...'
-
-        self.engine.execute("""UPDATE locations
-            SET full_address = street_number::text || ' ' ||
-            address::text || ', New Orleans, LA';""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' ST ', ' SAINT ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FIRST ', ' 1ST ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SECOND ', ' 2ND ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' THIRD ', ' 3RD ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FOURTH ', ' 4TH ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' FIFTH ', ' 5TH ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SIXTH ', ' 6TH ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' SEVENTH ', ' 7TH ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' EIGHTH ', ' 8TH ');""")
-        self.engine.execute("""UPDATE locations
-            SET full_address = replace(full_address, ' NINTH ', ' 9TH ');""")
 
     @staticmethod
     def check_for_acronyms(rows):
@@ -718,8 +679,6 @@ class Clean(object):
         # log.debug(len(clean_rows))
 
         self.commit_rows(clean_rows)
-
-        self.prep_locations_for_geocoding()
 
 if __name__ == '__main__':
     Clean().main()

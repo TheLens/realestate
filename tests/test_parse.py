@@ -1,310 +1,532 @@
 # -*- coding: utf-8 -*-
 
-# from __future__ import absolute_import
-
 # import mock
 from unittest import TestCase
 
 from landrecords.config import Config
 from landrecords.lib.parse import (
     AllPurposeParser,
-    DetailParser
-    # VendorParser,
-    # VendeeParser,
-    # LocationParser
+    DetailParser,
+    VendorParser,
+    VendeeParser,
+    LocationParser
 )
 
 
 class TestAllPurposeParser(TestCase):
     "TestAllPurposeParser"
 
-    # def test_all_purpose_parser(self):
-    #     "TK"
+    html_path = (
+        '%s/' % Config().DATA_DIR +
+        'raw/2014-02-18/form-html/OPR288694480.html')
 
-    #     html = (
-    #         '%s/' % Config().DATA_DIR +
-    #         'raw/2014-02-18/form-html/OPR288694480.html')
+    def test_all_purpose_get_document_id_var(self):
+        '''Test that AllPurposeParser has document ID as self variable.'''
 
-    #     output = AllPurposeParser(html)
+        document_id = AllPurposeParser(self.html_path).document_id
 
-    #     self.assertEqual(output, mock_object)
+        self.assertEqual(document_id, "OPR288694480")
 
-    def test_all_purpose_parser_document_id(self):
-        "test_all_purpose_parser_document_id"
+    def test_all_purpose_get_document_id_method(self):
+        '''Test AllPurposeParser method for finding document ID.'''
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        output = AllPurposeParser(html).document_id
-
-        self.assertEqual(output, "OPR288694480")
-
-    def test_all_purpose_get_document_id(self):
-        "test_all_purpose_get_document_id"
-
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        document_id = AllPurposeParser(html).get_document_id(html)
+        document_id = AllPurposeParser(
+            self.html_path).get_document_id(self.html_path)
 
         self.assertEqual(document_id, "OPR288694480")
 
 
 class TestDetailParser(TestCase):
-    "TestDetailParser"
 
-    # def test_parse_rows(self):
-    #     "Extract detail rows."
+    '''Test parser for details table.'''
 
-    #     html = (
-    #         '%s/' % Config().DATA_DIR +
-    #         'raw/2014-02-18/form-html/OPR288694480.html')
+    html_path = (
+        '%s/' % Config().DATA_DIR +
+        'raw/2014-02-18/form-html/OPR288694480.html')
 
-    #     output = DetailParser(html).parse_rows()
+    # todo: rows, parse_rows
 
-    #     self.assertEqual(output, mock_soup_object)
+    def test_get_field_document_type_var(self):
+        "test_get_field_document_type_var"
 
-    def test_get_field_document_type(self):
-        "test_get_field_document_type"
-
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        document_type = DetailParser(html).document_type
+        document_type = DetailParser(self.html_path).document_type
 
         self.assertEqual(document_type, "SALE")
 
-    def test_get_field_instrument_no(self):
-        "test_get_field_instrument_no"
+    def test_get_field_instrument_no_var(self):
+        "test_get_field_instrument_no_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        instrument_no = DetailParser(html).instrument_no
+        instrument_no = DetailParser(self.html_path).instrument_no
 
         self.assertEqual(instrument_no, "2014-06269")
 
-    def test_get_field_multi_seq(self):
-        "test_get_field_multi_seq"
+    def test_get_field_multi_seq_var(self):
+        "test_get_field_multi_seq_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        multi_seq = DetailParser(html).multi_seq
+        multi_seq = DetailParser(self.html_path).multi_seq
 
         self.assertEqual(multi_seq, "0")
 
-    def test_get_field_min_(self):
-        "test_get_field_min_"
+    def test_get_field_min__var(self):
+        "test_get_field_min__var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        min_ = DetailParser(html).min_
+        min_ = DetailParser(self.html_path).min_
 
         self.assertEqual(min_, "")
 
-    def test_get_field_cin(self):
-        "test_get_field_cin"
+    def test_get_field_cin_var(self):
+        "test_get_field_cin_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        cin = DetailParser(html).cin
+        cin = DetailParser(self.html_path).cin
 
         self.assertEqual(cin, "549928")
 
-    def test_get_field_book_type(self):
-        "test_get_field_book_type"
+    def test_get_field_book_type_var(self):
+        "test_get_field_book_type_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        book_type = DetailParser(html).book_type
+        book_type = DetailParser(self.html_path).book_type
 
         self.assertEqual(book_type, "")
 
-    def test_get_field_book(self):
-        "test_get_field_book"
+    def test_get_field_book_var(self):
+        "test_get_field_book_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        book = DetailParser(html).book
+        book = DetailParser(self.html_path).book
 
         self.assertEqual(book, "")
 
-    def test_get_field_page(self):
-        "test_get_field_page"
+    def test_get_field_page_var(self):
+        "test_get_field_page_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        page = DetailParser(html).page
+        page = DetailParser(self.html_path).page
 
         self.assertEqual(page, "")
 
-    def test_get_field_document_date(self):
-        "test_get_field_document_date"
+    def test_get_field_document_date_var_none(self):
+        '''
+        Test that if no document date is entered,
+        then a value of None/NULL is returned.
+        '''
 
-        html = (
+        html_no_document_date = (
             '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
+            'raw/2014-05-01/form-html/OPR291526640.html')
 
-        document_date = DetailParser(html).document_date
+        document_date = DetailParser(html_no_document_date).document_date
+
+        self.assertEqual(document_date, None)
+
+    def test_get_field_document_date_var(self):
+        "test_get_field_document_date_var"
+
+        document_date = DetailParser(self.html_path).document_date
 
         self.assertEqual(document_date, "02/10/2014")
 
-    def test_get_field_document_recorded(self):
-        "test_get_field_document_recorded"
+    def test_get_field_document_recorded_var(self):
+        "test_get_field_document_recorded_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
+        document_recorded = DetailParser(self.html_path).document_recorded
 
-        document_recorded = DetailParser(html).document_recorded
+        self.assertEqual(document_recorded, "02/18/2014 10:35:37 AM")
 
-        self.assertEqual(document_recorded, "02/18/2014 11:35:37 AM")
+    def test_get_field_amount_var(self):
+        "test_get_field_amount_var"
 
-    def test_get_field_amount(self):
-        "test_get_field_amount"
-
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        amount = DetailParser(html).amount
+        amount = DetailParser(self.html_path).amount
 
         self.assertEqual(amount, 41000)
 
-    def test_get_field_status(self):
-        "test_get_field_status"
+    def test_get_field_status_var(self):
+        "test_get_field_status_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        status = DetailParser(html).status
+        status = DetailParser(self.html_path).status
 
         self.assertEqual(status, "Verified")
 
-    def test_get_field_prior_mortgage_doc_type(self):
-        "test_get_field_prior_mortgage_doc_type"
+    def test_get_field_prior_mortgage_doc_type_var(self):
+        "test_get_field_prior_mortgage_doc_type_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        prior_mortgage_doc_type = DetailParser(html).prior_mortgage_doc_type
+        prior_mortgage_doc_type = DetailParser(
+            self.html_path
+        ).prior_mortgage_doc_type
 
         self.assertEqual(prior_mortgage_doc_type, "")
 
-    def test_get_field_prior_conveyance_doc_type(self):
-        "test_get_field_prior_conveyance_doc_type"
+    def test_get_field_prior_conveyance_doc_type_var(self):
+        "test_get_field_prior_conveyance_doc_type_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        output = DetailParser(html).prior_conveyance_doc_type
+        output = DetailParser(self.html_path).prior_conveyance_doc_type
 
         self.assertEqual(output, "")
 
-    def test_get_field_cancel_status(self):
-        "test_get_field_cancel_status"
+    def test_get_field_cancel_status_var(self):
+        "test_get_field_cancel_status_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        cancel_status = DetailParser(html).cancel_status
+        cancel_status = DetailParser(self.html_path).cancel_status
 
         self.assertEqual(cancel_status, "")
 
-    def test_get_field_remarks(self):
-        "test_get_field_remarks"
+    def test_get_field_remarks_var(self):
+        "test_get_field_remarks_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        remarks = DetailParser(html).remarks
+        remarks = DetailParser(self.html_path).remarks
 
         self.assertEqual(remarks, "")
 
-    def test_get_field_no_pages_in_image(self):
-        "test_get_field_no_pages_in_image"
+    def test_get_field_no_pages_in_image_var(self):
+        "test_get_field_no_pages_in_image_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        no_pages_in_image = DetailParser(html).no_pages_in_image
+        no_pages_in_image = DetailParser(self.html_path).no_pages_in_image
 
         self.assertEqual(no_pages_in_image, "8")
 
-    def test_get_field_image(self):
-        "test_get_field_image"
+    def test_get_field_image_var(self):
+        "test_get_field_image_var"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
-
-        image = DetailParser(html).image
+        image = DetailParser(self.html_path).image
 
         self.assertEqual(image, "")
 
-    def test_convert_amount(self):
-        "test_convert_amount"
+    # def test_form_dict(self):
+    #     "test_form_dict"
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
+    #     output = DetailParser(self.html_path).form_dict()
 
-        output1 = DetailParser(html).convert_amount('0')
-        output2 = DetailParser(html).convert_amount('10')
-        output3 = DetailParser(html).convert_amount('100')
-        output4 = DetailParser(html).convert_amount('1000')
-        output5 = DetailParser(html).convert_amount('10000')
-
-        output6 = DetailParser(html).convert_amount('$0')
-        output7 = DetailParser(html).convert_amount('$10')
-        output8 = DetailParser(html).convert_amount('$100')
-        output9 = DetailParser(html).convert_amount('$1000')
-        output10 = DetailParser(html).convert_amount('$10000')
-
-        output11 = DetailParser(html).convert_amount('$1,000')
-
-        self.assertEqual(output1, 0)
-        self.assertEqual(output2, 10)
-        self.assertEqual(output3, 100)
-        self.assertEqual(output4, 1000)
-        self.assertEqual(output5, 10000)
-        self.assertEqual(output6, 0)
-        self.assertEqual(output7, 10)
-        self.assertEqual(output8, 100)
-        self.assertEqual(output9, 1000)
-        self.assertEqual(output10, 10000)
-        self.assertEqual(output11, 1000)
+    #     self.assertEqual(type(output), dict)
 
     def test_form_dict(self):
-        "test_form_dict"
+        '''docstring'''
 
-        html = (
-            '%s/' % Config().DATA_DIR +
-            'raw/2014-02-18/form-html/OPR288694480.html')
+        details_dict = {
+            'status': 'Verified',
+            'document_recorded': '02/18/2014 10:35:37 AM',
+            'prior_conveyance_doc_type': '',
+            'no_pages_in_image': '8',
+            'prior_mortgage_doc_type': '',
+            'cin': '549928',
+            'instrument_no': '2014-06269',
+            'page': '',
+            'amount': 41000,
+            'book_type': '',
+            'document_id': 'OPR288694480',
+            'cancel_status': '',
+            'min_': '',
+            'remarks': '',
+            'document_type': 'SALE',
+            'image': '',
+            'book': '',
+            'multi_seq': '0',
+            'document_date': '02/10/2014'
+        }
 
-        output = DetailParser(html).form_dict()
+        test_details_dict = DetailParser(self.html_path).form_dict()
 
-        self.assertEqual(type(output), dict)
-        # self.assertEqual(output, {...})
+        self.assertEqual(test_details_dict, details_dict)
+
+
+class TestVendorParser(TestCase):
+
+    '''TestVendorParser'''
+
+    html_path = (
+        '%s/' % Config().DATA_DIR +
+        'raw/2014-02-18/form-html/OPR288694480.html')
+
+    def test_get_vendor_blank(self):
+        "test_get_vendor_blank"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_blank1 = l[0]['vendor_blank']
+        vendor_blank2 = l[1]['vendor_blank']
+
+        self.assertEqual(vendor_blank1, "1")
+        self.assertEqual(vendor_blank2, "2")
+
+    def test_get_vendor_p_c(self):
+        "test_get_vendor_p_c"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_p_c1 = l[0]['vendor_p_c']
+        vendor_p_c2 = l[1]['vendor_p_c']
+
+        self.assertEqual(vendor_p_c1, "C")
+        self.assertEqual(vendor_p_c2, "C")
+
+    def test_get_vendor_lastname(self):
+        "test_get_vendor_lastname"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_lastname1 = l[0]['vendor_lastname']
+        vendor_lastname2 = l[1]['vendor_lastname']
+
+        self.assertEqual(
+            vendor_lastname1,
+            "NEW ORLEANS REDEVELOPMENT AUTHORITY"
+        )
+        self.assertEqual(
+            vendor_lastname2,
+            "COMMUNITY IMPROVEMENT AGENCY"
+        )
+
+    def test_get_vendor_firstname(self):
+        "test_get_vendor_firstname"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_firstname1 = l[0]['vendor_firstname']
+        vendor_firstname2 = l[1]['vendor_firstname']
+
+        self.assertEqual(vendor_firstname1, "")
+        self.assertEqual(vendor_firstname2, "")
+
+    def test_get_vendor_relator(self):
+        "test_get_vendor_relator"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_relator1 = l[0]['vendor_relator']
+        vendor_relator2 = l[1]['vendor_relator']
+
+        self.assertEqual(vendor_relator1, "FKA")
+        self.assertEqual(vendor_relator2, "")
+
+    def test_get_vendor_cancel_status(self):
+        "test_get_vendor_cancel_status"
+
+        l = VendorParser(self.html_path).form_list()
+
+        vendor_cancel_status1 = l[0]['vendor_cancel_status']
+        vendor_cancel_status2 = l[1]['vendor_cancel_status']
+
+        self.assertEqual(vendor_cancel_status1, "")
+        self.assertEqual(vendor_cancel_status2, "")
+
+    def test_form_list(self):
+        '''docstring'''
+
+        vendors_list = [{
+            'vendor_blank': '1',
+            'vendor_p_c': 'C',
+            'vendor_relator': 'FKA',
+            'vendor_cancel_status': '',
+            'vendor_firstname': '',
+            'document_id': 'OPR288694480',
+            'vendor_lastname': 'NEW ORLEANS REDEVELOPMENT AUTHORITY'
+        }, {
+            'vendor_blank': '2',
+            'vendor_p_c': 'C',
+            'vendor_relator': '',
+            'vendor_cancel_status': '',
+            'vendor_firstname': '',
+            'document_id': 'OPR288694480',
+            'vendor_lastname': 'COMMUNITY IMPROVEMENT AGENCY'
+        }]
+
+        test_vendors_list = VendorParser(self.html_path).form_list()
+
+        self.assertEqual(vendors_list, test_vendors_list)
+
+
+class TestVendeeParser(TestCase):
+
+    '''TestVendeeParser'''
+
+    html_path = (
+        '%s/' % Config().DATA_DIR +
+        'raw/2014-02-18/form-html/OPR288694480.html')
+
+    def test_get_vendee_blank(self):
+        "test_get_vendee_blank"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_blank = l[0]['vendee_blank']
+
+        self.assertEqual(vendee_blank, "1")
+
+    def test_get_vendee_p_c(self):
+        "test_get_vendee_p_c"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_p_c = l[0]['vendee_p_c']
+
+        self.assertEqual(vendee_p_c, "C")
+
+    def test_get_vendee_lastname(self):
+        "test_get_vendee_lastname"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_lastname = l[0]['vendee_lastname']
+
+        self.assertEqual(vendee_lastname, "UV SOLO TRUST")
+
+    def test_get_vendee_firstname(self):
+        "test_get_vendee_firstname"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_firstname = l[0]['vendee_firstname']
+
+        self.assertEqual(vendee_firstname, "")
+
+    def test_get_vendee_relator(self):
+        "test_get_vendee_relator"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_relator = l[0]['vendee_relator']
+
+        self.assertEqual(vendee_relator, "")
+
+    def test_get_vendee_cancel_status(self):
+        "test_get_vendee_cancel_status"
+
+        l = VendeeParser(self.html_path).form_list()
+
+        vendee_cancel_status = l[0]['vendee_cancel_status']
+
+        self.assertEqual(vendee_cancel_status, "")
+
+    def test_form_list(self):
+        '''docstring'''
+
+        vendees_list = [{
+            'vendee_lastname': 'UV SOLO TRUST',
+            'vendee_cancel_status': '',
+            'vendee_p_c': 'C',
+            'vendee_firstname': '',
+            'vendee_relator': '',
+            'vendee_blank': '1',
+            'document_id': 'OPR288694480'
+        }]
+
+        test_vendees_list = VendeeParser(self.html_path).form_list()
+
+        self.assertEqual(vendees_list, test_vendees_list)
+
+
+class TestLocationParser(TestCase):
+
+    "TestLocationParser"
+
+    html_path = (
+        '%s/' % Config().DATA_DIR +
+        'raw/2014-02-18/form-html/OPR288694480.html')
+
+    def test_get_field_subdivision(self):
+        "test_get_field_subdivision"
+
+        subdivision = LocationParser(self.html_path).get_subdivision(0)
+
+        self.assertEqual(subdivision, "ARDYN PARK")
+
+    def test_get_field_condo(self):
+        "test_get_field_condo"
+
+        condo = LocationParser(self.html_path).get_condo(0)
+
+        self.assertEqual(condo, "")
+
+    def test_get_field_district(self):
+        "test_get_field_district"
+
+        district = LocationParser(self.html_path).get_district(0)
+
+        self.assertEqual(district, "3RD")
+
+    def test_get_field_square(self):
+        "test_get_field_square"
+
+        square = LocationParser(self.html_path).get_square(0)
+
+        self.assertEqual(square, "4-A")
+
+    def test_get_field_street_number(self):
+        "test_get_field_street_number"
+
+        street_number = LocationParser(
+            self.html_path).get_street_number(0)
+
+        self.assertEqual(street_number, "7532")
+
+    def test_get_field_address(self):
+        "test_get_field_address"
+
+        address = LocationParser(self.html_path).get_address(0)
+
+        self.assertEqual(address, "PRIMROSE DR")
+
+    def test_get_field_unit(self):
+        "test_get_field_unit"
+
+        unit = LocationParser(self.html_path).get_unit(0)
+
+        self.assertEqual(unit, "")
+
+    def test_get_field_weeks(self):
+        "test_get_field_weeks"
+
+        weeks = LocationParser(self.html_path).get_weeks(0)
+
+        self.assertEqual(weeks, "")
+
+    def test_get_field_cancel_stat(self):
+        "test_get_field_cancel_stat"
+
+        cancel_stat = LocationParser(self.html_path).get_cancel_stat(0)
+
+        self.assertEqual(cancel_stat, " ")
+
+    def test_get_field_freeform_legal(self):
+        "test_get_field_freeform_legal"
+
+        freeform_legal = LocationParser(
+            self.html_path).get_freeform_legal(0)
+
+        self.assertEqual(freeform_legal, "")
+
+    # todo: closer look with various versions
+    def test_get_field_cancel_status(self):
+        "test_get_field_cancel_status"
+
+        cancel_status = LocationParser(
+            self.html_path).get_cancel_status(0)
+
+        self.assertEqual(cancel_status, " ")
+
+    # todo: closer look with various HTML, for "xx to xx"
+    def test_get_field_lot(self):
+        "test_get_field_lot"
+
+        lot = LocationParser(self.html_path).get_lot(0)
+
+        self.assertEqual(lot, "17-A")
+
+    def test_form_list(self):
+        '''docstring'''
+
+        locations_list = [{
+            'square': '4-A',
+            'address': 'PRIMROSE DR',
+            'condo': '',
+            'cancel_stat': ' ',
+            'unit': '',
+            'freeform_legal': '',
+            'subdivision': 'ARDYN PARK',
+            'street_number': '7532',
+            'district': '3RD',
+            'cancel_status': ' ',
+            'document_id': 'OPR288694480',
+            'lot': '17-A',
+            'weeks': ''
+        }]
+
+        test_locations_list = LocationParser(self.html_path).form_list()
+
+        self.assertEqual(locations_list, test_locations_list)

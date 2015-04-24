@@ -6,11 +6,10 @@ publish records to the cleaned table.
 '''
 
 from landrecords.config import Config
-# from landrecords.lib.log import Log
-
 from landrecords.lib.build import Build
 from landrecords.lib.clean import Clean
 from landrecords.lib.geocode import Geocode
+from landrecords.lib.get_dates import GetDates
 from landrecords.lib.mail import Mail
 from landrecords.lib.publish import Publish
 # from landrecords.lib.check_temp_status import CheckTemp
@@ -26,34 +25,52 @@ class Initialize(object):
     '''
 
     def __init__(self,
-                 initial_date=Config().OPENING_DAY,
-                 until_date=Config().YESTERDAY_DATE):
+                 initial_date=None,
+                 until_date=None):
         '''Runs through all classes.'''
 
-        self.initial_date = initial_date
-        self.until_date = until_date
+        if initial_date is not None and until_date is not None:
+            self.initial_date = initial_date
+            self.until_date = until_date
+        else:
+            date_range = GetDates().get_date_range()
+            self.initial_date = date_range['initial_date']
+            self.until_date = date_range['until_date']
 
-        log.debug(self.initial_date)
-        log.debug(self.until_date)
+        log.debug('self.initial_date: %s', self.initial_date)
+        log.debug('self.until_date: %s', self.until_date)
 
-        # Build(  # todo: should first check if data is already in DB.
-        #     initial_date=self.initial_date,
-        #     until_date=self.until_date
-        # ).build_all()
+        try:
+            Build(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).build_all()
 
-        # Clean().prep_locations_for_geocoding()
-        # Geocode().geocode()  # Geocoding entire archive can take over an hour
-        # Geocode().update_locations_with_neighborhoods()
+            # Clean().prep_locations_for_geocoding()
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
-        Clean(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).main()
+        try:
+            Geocode().geocode()  # Geocoding takes over an hour
+            Geocode().update_locations_with_neighborhoods()
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
-        Publish(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).check_them_all()
+        try:
+            Publish(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).main()
+        except Exception, error:
+            log.exception(error, exc_info=True)
+
+        try:
+            Clean(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).main()
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
         # dashboard_sync.DashboardSync()  # todo
 
@@ -91,12 +108,13 @@ class Initialize(object):
 
 if __name__ == '__main__':
     try:
-        # Default is to build entire archive since 2014/02/18
+        # Default is to build and clean anything that needs it.
+        # Specify custom date range in 'YYYY-mm-dd' string format
+        # or use variables such as Config().OPENING_DAY.
         Initialize(
             initial_date=Config().OPENING_DAY,
-            until_date=Config().YESTERDAY_DATE
+            until_date=Config().OPENING_DAY
         )
-        # Initialize()
     except Exception, error:
         log.exception(error, exc_info=True)
         Mail(
@@ -104,4 +122,6 @@ if __name__ == '__main__':
             body='Check log for more details.',
             frm='tthoren@thelensnola.org',
             to=['tthoren@thelensnola.org']
-        ).send_as_text()
+        ).send_with_attachment(
+            files=['%s/landrecords.log' % Config().LOG_DIR]
+        )

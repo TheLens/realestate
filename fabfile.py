@@ -17,11 +17,23 @@ def config():
         Config().SERVER_APP_DIR))
 
 
+def delete_dates():
+    '''landrecords/lib/delete_dates.py'''
+
+    local('scp %s/delete_dates.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+
+
 def git_ignore():
     '''.gitignore'''
 
     local('scp %s/.gitignore ' % (Config().LOCAL_PROJECT_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_PROJECT_DIR))
+
+
+def geocode():
+    local('scp %s/geocode.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
 
 
 def init():
@@ -112,9 +124,6 @@ def scripts():
     '''/scripts/'''
 
     local('scp %s/backup.sh tom@%s:%s' % (
-        Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
-        Config().SERVER_SCRIPTS_DIR))
-    local('scp %s/create_neighborhood_geojson.py tom@%s:%s' % (
         Config().LOCAL_SCRIPTS_DIR, Config().SERVER_NAME,
         Config().SERVER_SCRIPTS_DIR))
     local('scp %s/delete_db.py tom@%s:%s' % (
@@ -209,11 +218,15 @@ def lib():
         Config().SERVER_LIB_DIR))
     local('scp %s/dashboard_sync.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/delete_dates.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/email_template.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/form_tweet.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/geocode.py tom@%s:%s' % (
+        Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
+    local('scp %s/get_dates.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
     local('scp %s/libraries.py tom@%s:%s' % (
         Config().LOCAL_LIB_DIR, Config().SERVER_NAME, Config().SERVER_LIB_DIR))
@@ -296,6 +309,17 @@ def images():
     local('aws s3 cp %s/corporate-realty.jpg ' % (Config().LOCAL_IMAGES_DIR) +
           '%s/css/images/' % (Config().S3_PATH) +
           'corporate-realty.jpg --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'corporate-realty-large.jpg ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'corporate-realty-large.jpg --acl public-read')
+    local('aws s3 cp %s/corporate-realty.png ' % (Config().LOCAL_IMAGES_DIR) +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'corporate-realty.png --acl public-read')
+    local('aws s3 cp %s/' % (Config().LOCAL_IMAGES_DIR) +
+          'corporate-realty-large.png ' +
+          '%s/css/images/' % (Config().S3_PATH) +
+          'corporate-realty-large.png --acl public-read')
     local('aws s3 cp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
           '%s/css/images/favicon.ico --acl public-read' % (Config().S3_PATH))
     local('aws s3 cp %s/icons-000000.png ' % (Config().LOCAL_IMAGES_DIR) +
@@ -344,6 +368,12 @@ def images():
 
     # Server
     local('scp %s/corporate-realty.jpg ' % (Config().LOCAL_IMAGES_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/corporate-realty-large.jpg ' % (Config().LOCAL_IMAGES_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/corporate-realty.png ' % (Config().LOCAL_IMAGES_DIR) +
+          'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
+    local('scp %s/corporate-realty-large.png ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
     local('scp %s/favicon.ico ' % (Config().LOCAL_IMAGES_DIR) +
           'tom@%s:%s' % (Config().SERVER_NAME, Config().SERVER_IMAGES_DIR))
@@ -522,6 +552,14 @@ def doitall():
     fonts()
     git_ignore()
     config()
+
+
+def python():
+    '''Deploy all *.py files.'''
+
+    app()
+    scripts()
+    lib()
 
 
 def s3():

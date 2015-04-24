@@ -5,7 +5,8 @@
 import re
 from bs4 import BeautifulSoup
 
-from landrecords import log
+# from landrecords import log
+from landrecords.lib.utils import Utils
 
 
 class AllPurposeParser(object):
@@ -22,8 +23,6 @@ class AllPurposeParser(object):
         '''Find a sale\'s document ID based on the file name.'''
 
         doc_id = re.search(r"(\w+)\.html", html_path).group(1)
-
-        log.debug('Document ID: %s', doc_id)
 
         return doc_id
 
@@ -49,7 +48,7 @@ class DetailParser(object):
         self.page = self.get_field(7)
         self.document_date = self.get_field(8)
         self.document_recorded = self.get_field(9)
-        self.amount = self.convert_amount(self.get_field(10))
+        self.amount = Utils().convert_amount(self.get_field(10))
         self.status = self.get_field(11)
         self.prior_mortgage_doc_type = self.get_field(12)
         self.prior_conveyance_doc_type = self.get_field(13)
@@ -87,8 +86,12 @@ class DetailParser(object):
     def get_field(self, row_id):
         '''Extract values in rows.'''
 
+        # log.debug(row_id)
+
         cells = self.rows[row_id].find_all('td')
         field = str(cells[1].string)  # 0 is key, 1 is value
+
+        # log.debug(field)
 
         # prekey = cells[0]
         # log.debug(prekey)
@@ -109,15 +112,9 @@ class DetailParser(object):
                 # log.debug('Key 2.0: %s', key)
                 field = None
 
+        # log.debug(field)
+
         return field
-
-    @staticmethod
-    def convert_amount(amount):
-        '''Convert amounts to int type.'''
-
-        amount = re.sub(r"\$", r"", amount)
-        amount = re.sub(r"\,", r"", amount)
-        return int(float(amount))
 
     def form_dict(self):
         '''Return dict of details rows.'''
@@ -277,12 +274,6 @@ class LocationParser(object):
 
         self.document_id = AllPurposeParser(html_path).document_id
 
-    # def log_open(self, f):
-    #     log.debug('Opening a file...')
-    #     log.debug(f)
-
-    #     return open(f, 'r')
-
     def get_rows(self, html_path):
         '''Return rows for locations.'''
 
@@ -304,6 +295,9 @@ class LocationParser(object):
             'table',
             id="ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals"
         ).find_all('tr')
+
+        # log.debug('rows:')
+        # log.debug(rows)
 
         return rows
 
@@ -334,6 +328,8 @@ class LocationParser(object):
                 'freeform_legal': self.get_freeform_legal(table_no),
                 'document_id': self.document_id
             }
+            # log.debug('dict_output:')
+            # log.debug(dict_output)
             list_output.append(dict_output)
 
         return list_output
@@ -353,7 +349,13 @@ class LocationParser(object):
 
         overall_index = table_no * 10 + row_index
 
+        # log.debug('overall_index:')
+        # log.debug(overall_index)
+
         field = self.rows[overall_index].find_all('span')[cell_index]
+
+        # log.debug('field:')
+        # log.debug(field)
 
         return self.convert_to_string(field)
 
@@ -410,12 +412,16 @@ class LocationParser(object):
     def get_address(self, table_no):
         '''Returns the address field value.'''
 
+        # log.debug('get_address:')
+
         row_index = 5
         cell_index = 3
 
-        weeks = self.get_field(row_index, cell_index, table_no)
+        address = self.get_field(row_index, cell_index, table_no)
 
-        return weeks
+        # log.debug(address)
+
+        return address
 
     def get_unit(self, table_no):
         '''Returns the unit field value.'''
@@ -463,16 +469,16 @@ class LocationParser(object):
         row_index = 3
         overall_index = table_no * 10 + row_index
 
-        field = ""
+        cancel_status = ""
 
         cells = self.rows[overall_index].find_all('span')
 
         if len(cells) == 10:  # There are Lot from and Lot to fields
-            field = self.convert_to_string(cells[9])
+            cancel_status = self.convert_to_string(cells[9])
         else:
-            field = self.convert_to_string(cells[7])
+            cancel_status = self.convert_to_string(cells[7])
 
-        return field
+        return cancel_status
 
     def get_lot(self, table_no):
         '''Returns the lot field value.'''
@@ -500,4 +506,9 @@ class LocationParser(object):
         return lot
 
 if __name__ == '__main__':
+    # from landrecords.config import Config
+    # html_path = (
+    #     '%s/' % Config().DATA_DIR +
+    #     'raw/2014-02-18/form-html/OPR288694480.html')
+    # print LocationParser(html_path).form_list()
     pass

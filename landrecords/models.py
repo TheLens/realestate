@@ -4,7 +4,6 @@
 
 import math
 import urllib
-from datetime import datetime
 
 # from flask.ext.cache import Cache
 from flask import (
@@ -182,18 +181,19 @@ class Models(object):
         data['results_language'] = ResultsLanguage(data).main()
 
         log.debug('data')
-        log.debug(data)
+        # log.debug(data)
 
         return data, query, jsdata
 
     def post_search(self, data):
         '''Process incoming POST data.'''
 
-        log.debug('post_search data received:')
-        log.debug(data)
+        log.debug('post_search')
 
         data = self.decode_data(data)
         data = self.convert_entries_to_db_friendly(data)
+
+        log.debug(data)
 
         # If a geo query (search near me). Not yet a feature.
         # if 'latitude' in data and 'longitude' in data:
@@ -261,6 +261,8 @@ class Models(object):
 
         query = self.find_page_of_publishable_rows_fitting_criteria(data)
 
+        log.debug(query)
+
         return query
 
     def mapquery_db(self, data):
@@ -327,7 +329,7 @@ class Models(object):
         ).filter(
             Cleaned.instrument_no == '%s' % (instrument_no)
         ).filter(
-            Cleaned.detail_publish == '1'  # Only publish trusted data
+            Cleaned.detail_publish.is_(True)  # Only publish trusted data
         ).all()
 
         for row in query:
@@ -347,7 +349,7 @@ class Models(object):
             "features": features
         }
 
-        conds = (data['assessor_publish'] == '0' or
+        conds = (data['assessor_publish'] is False or
                  data['assessor_publish'] is None or
                  data['assessor_publish'] == '')
 
@@ -382,7 +384,7 @@ class Models(object):
         query = session.query(
             Cleaned
         ).filter(
-            Cleaned.detail_publish == '1'
+            Cleaned.detail_publish.is_(True)
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
             (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
@@ -420,7 +422,7 @@ class Models(object):
         query = session.query(
             Cleaned
         ).filter(
-            Cleaned.detail_publish == '1'
+            Cleaned.detail_publish.is_(True)
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
             (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
@@ -460,10 +462,12 @@ class Models(object):
 
         session = self.sn()
 
+        # log.debug(data)
+
         query = session.query(
             Cleaned
         ).filter(
-            Cleaned.detail_publish == '1'
+            Cleaned.detail_publish.is_(True)
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
             (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
@@ -483,6 +487,8 @@ class Models(object):
             Cleaned.amount <= '%s' % data['amount_high']
         ).all()
 
+        # log.debug(query)
+
         session.close()
 
         return query
@@ -492,10 +498,12 @@ class Models(object):
 
         session = self.sn()
 
+        # log.debug(data)
+
         query = session.query(
             Cleaned
         ).filter(
-            Cleaned.detail_publish == '1'
+            Cleaned.detail_publish.is_(True)
         ).filter(
             (Cleaned.sellers.ilike('%%%s%%' % data['name_address'])) |
             (Cleaned.buyers.ilike('%%%s%%' % data['name_address'])) |
@@ -521,6 +529,8 @@ class Models(object):
             '%d' % int(data['page_length'])
         ).all()
 
+        # log.debug(query)
+
         session.close()
 
         return query
@@ -536,7 +546,7 @@ class Models(object):
         if data['begin_date'] == '':
             data['begin_date'] = "1900-01-01"
         if data['end_date'] == '':
-            data['end_date'] = (datetime.today()).strftime('%Y-%m-%d')
+            data['end_date'] = Config().TODAY_DAY
 
         return data
 
@@ -550,7 +560,7 @@ class Models(object):
             data['amount_high'] = ''
         if data['begin_date'] == '1900-01-01':
             data['begin_date'] = ''
-        if data['end_date'] == (datetime.today()).strftime('%Y-%m-%d'):
+        if data['end_date'] == Config().TODAY_DAY:
             data['end_date'] = ''
 
         return data
@@ -564,7 +574,7 @@ class Models(object):
         features_dict = {}
         for row in query:
             # log.debug(row.buyers)
-            if row.location_publish == "0":
+            if row.location_publish is False:
                 row.document_date = row.document_date + "*"
                 continue
             if row.permanent_flag is False:
@@ -610,7 +620,7 @@ class Models(object):
         query = session.query(
             Cleaned
         ).filter(
-            Cleaned.detail_publish == '1'
+            Cleaned.detail_publish.is_(True)
         ).order_by(
             desc(Cleaned.document_recorded)
         ).limit(1).all()

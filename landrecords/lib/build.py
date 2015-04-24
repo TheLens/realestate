@@ -21,21 +21,22 @@ class Build(object):
 
     '''Take structured data and enter into database.'''
 
-    def __init__(self,
-                 initial_date=Config().OPENING_DAY,
-                 until_date=Config().YESTERDAY_DATE):
+    def __init__(self, initial_date=None, until_date=None):
         '''
         Create self variables for date range and establish connections to
         the database.
         '''
 
-        self.initial_date = initial_date
-        self.until_date = until_date
-
         base = declarative_base()
         engine = create_engine(Config().SERVER_ENGINE)
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
+
+        self.initial_date = initial_date
+        self.until_date = until_date
+
+        log.debug('self.initial_date: %s', self.initial_date)
+        log.debug('self.until_date: %s', self.until_date)
 
     def build_all(self):
         '''Runs through all of the building methods.'''
@@ -44,19 +45,19 @@ class Build(object):
         print 'Building...'
 
         log.debug('Detail')
-        print '\nDetail...'
+        print '\nAdding to details table for:'
         self.dict_parse('DetailParser', 'Detail')
 
         log.debug('Vendor')
-        print '\nVendor...'
+        print '\nAdding to vendors table for:'
         self.list_parse('VendorParser', 'Vendor')
 
         log.debug('Vendee')
-        print '\nVendee...'
+        print '\nAdding to vendees table for:'
         self.list_parse('VendeeParser', 'Vendee')
 
         log.debug('Location')
-        print '\nLocation...'
+        print '\nAdding to locations table for:'
         self.list_parse('LocationParser', 'Location')
 
     def dict_parse(self, parser_name, table):
@@ -64,8 +65,9 @@ class Build(object):
 
         session = self.sn()
 
-        initial_datetime = datetime.strptime(self.initial_date, '%Y-%m-%d')
-        until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d')
+        initial_datetime = datetime.strptime(
+            self.initial_date, '%Y-%m-%d').date()
+        until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d').date()
 
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')
@@ -108,8 +110,9 @@ class Build(object):
 
         session = self.sn()
 
-        initial_datetime = datetime.strptime(self.initial_date, '%Y-%m-%d')
-        until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d')
+        initial_datetime = datetime.strptime(
+            self.initial_date, '%Y-%m-%d').date()
+        until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d').date()
 
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')

@@ -38,6 +38,7 @@ class Delete(object):
         '''Runs through each method.'''
 
         # self.dump_dashboard_table()
+        # self.drop_db()
         self.vacuum_database()
         self.drop_tables()
 
@@ -61,6 +62,23 @@ class Delete(object):
                 '-f',
                 '{0}'.format(Config().BACKUP_DIR) +
                 '/dashboard_table_{0}.sql'.format(Config().TODAY_DATE)
+            ])
+        except Exception, error:
+            log.debug(error, exc_info=True)
+
+    @staticmethod
+    def drop_db():
+        '''
+        Deletes the database.
+        '''
+
+        log.debug('drop DB')
+
+        # Backup dashboard table, if it exists
+        try:
+            call([
+                'dropdb',
+                '%s' % Config().DATABASE_NAME
             ])
         except Exception, error:
             log.debug(error, exc_info=True)
