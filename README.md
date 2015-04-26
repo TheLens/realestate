@@ -1,5 +1,7 @@
 # New Orleans land records
 
+[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records)
+
 [http://vault.thelensnola.org/realestate](http://vault.thelensnola.org/realestate)
 
 This app scrapes the latest property sales in New Orleans, stores the records in a database and publishes the results with a map.
@@ -28,7 +30,7 @@ Contains the SQLAlchemy table classes.
 
 ### Scraping
 
-####### `scrape.py`
+###### `scrape.py`
 
 The daily scraper that checks for the previous day's sales and saves the HTML for those records. It uses [Selenium](https://github.com/SeleniumHQ/selenium/tree/master/py) and [PhantomJS](http://phantomjs.org/). This also makes a note of when each date was scraped and what the Land Records Division's permanent date range was at the time of that scrape (see `check_temp_status.py` for details).
 
