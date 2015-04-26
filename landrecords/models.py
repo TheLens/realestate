@@ -22,7 +22,7 @@ from landrecords.db import (
     Cleaned,
     Neighborhood
 )
-from landrecords.lib.check_assessor_urls import Assessor
+# from landrecords.lib.check_assessor_urls import Assessor
 from landrecords import log
 from landrecords.lib.results_language import ResultsLanguage
 from landrecords.lib.utils import Utils
@@ -349,25 +349,25 @@ class Models(object):
             "features": features
         }
 
-        conds = (data['assessor_publish'] is False or
-                 data['assessor_publish'] is None or
-                 data['assessor_publish'] == '')
+        # conds = (data['assessor_publish'] is False or
+        #          data['assessor_publish'] is None or
+        #          data['assessor_publish'] == '')
 
-        if conds:
-            data['assessor'] = (
-                "Could not find this property on the Orleans Parish" +
-                "Assessor's Office site. <a href='http://www.qpublic" +
-                ".net/la/orleans/search1.html' target='_blank'>" +
-                "Search based on other criteria.</a>")
-        else:
-            url_param = Assessor().form_assessor_url(
-                address, location_info)
-            data['assessor_url'] = "http://qpublic9.qpublic.net/" + \
-                "la_orleans_display" + \
-                ".php?KEY=%s" % (url_param)
-            data['assessor'] = "<a href='%s' target='_blank'>Read more " + \
-                "about this property on the Assessor's Office's" + \
-                "website.</a>" % (data['assessor_url'])
+        # if conds:
+        #     data['assessor'] = (
+        #         "Could not find this property on the Orleans Parish" +
+        #         "Assessor's Office site. <a href='http://www.qpublic" +
+        #         ".net/la/orleans/search1.html' target='_blank'>" +
+        #         "Search based on other criteria.</a>")
+        # else:
+        #     url_param = Assessor().form_assessor_url(
+        #         address, location_info)
+        #     data['assessor_url'] = "http://qpublic9.qpublic.net/" + \
+        #         "la_orleans_display" + \
+        #         ".php?KEY=%s" % (url_param)
+        #     data['assessor'] = "<a href='%s' target='_blank'>Read more " + \
+        #         "about this property on the Assessor's Office's" + \
+        #         "website.</a>" % (data['assessor_url'])
 
         if len(query) == 0:
             session.close()
