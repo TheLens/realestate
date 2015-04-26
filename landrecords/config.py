@@ -4,6 +4,7 @@
 
 from datetime import date, timedelta
 import getpass
+import os
 
 
 class Config(object):
@@ -17,7 +18,7 @@ class Config(object):
         '''Create self variables.'''
 
         self.USER = getpass.getuser()
-        self.PROJECT_DIR = '..'
+        self.VIRTUAL_ENV = os.environ['VIRTUAL_ENV']
 
         if self.USER == 'thomasthoren':  # Check if local
             self.SERVER_ENGINE = 'postgresql://myuser:' + \
@@ -25,16 +26,16 @@ class Config(object):
             self.SERVER_CONNECTION = 'dbname=landrecords user=myuser'
             self.DATABASE_NAME = 'landrecords'
 
-            self.BACKUP_DIR = '%s/backups' % self.PROJECT_DIR
-            self.DATA_DIR = '%s/data' % self.PROJECT_DIR
-            self.LOG_DIR = '%s/logs' % self.PROJECT_DIR
-            self.LIB_DIR = '%s/landrecords/lib' % self.PROJECT_DIR
-            self.GEO_DIR = '/Users/thomasthoren/projects/' + \
-                'geographic-data/repo'
-            self.PICTURES_DIR = '%s' % self.PROJECT_DIR + \
-                '/landrecords/static/pictures'
-            self.SCRIPTS_DIR = '%s' % self.PROJECT_DIR + \
-                '/scripts'
+            self.PROJECT_DIR = '%s/repo' % self.VIRTUAL_ENV
+            self.BACKUP_DIR = '%s/repo/backups' % self.VIRTUAL_ENV
+            self.DATA_DIR = '%s/repo/data' % self.VIRTUAL_ENV
+            self.LOG_DIR = '%s/repo/logs' % self.VIRTUAL_ENV
+            self.LIB_DIR = '%s/repo/landrecords/lib' % self.VIRTUAL_ENV
+            self.GEO_DIR = '/Users/thomasthoren/projects/geographic-data/repo'
+            self.PICTURES_DIR = '%s' % self.VIRTUAL_ENV + \
+                '/repo/landrecords/static/pictures'
+            self.SCRIPTS_DIR = '%s' % self.VIRTUAL_ENV + \
+                '/repo/scripts'
 
             self.PROJECT_URL = 'http://localhost:5000/realestate'
 
@@ -67,14 +68,15 @@ class Config(object):
                 'password=mypass'
             self.DATABASE_NAME = 'landrecords'
 
+            self.PROJECT_DIR = '%s/repo' % self.VIRTUAL_ENV
             self.BACKUP_DIR = '/backups/land-records'
-            self.DATA_DIR = '%s/data' % self.PROJECT_DIR
-            self.LOG_DIR = '%s/logs' % self.PROJECT_DIR
-            self.LIB_DIR = '%s/landrecords/lib' % self.PROJECT_DIR
+            self.DATA_DIR = '%s/repo/data' % self.VIRTUAL_ENV
+            self.LOG_DIR = '%s/repo/logs' % self.VIRTUAL_ENV
+            self.LIB_DIR = '%s/repo/landrecords/lib' % self.VIRTUAL_ENV
             self.GEO_DIR = '/apps/geographic-data/repo'
-            self.PICTURES_DIR = '%s' % self.PROJECT_DIR + \
+            self.PICTURES_DIR = '%s/repo' % self.VIRTUAL_ENV + \
                 '/landrecords/static/pictures'
-            self.SCRIPTS_DIR = '%s/scripts' % self.PROJECT_DIR
+            self.SCRIPTS_DIR = '%s/repo/scripts' % self.VIRTUAL_ENV
 
             self.PROJECT_URL = 'http://vault.thelensnola.org/realestate'
 
@@ -116,40 +118,40 @@ class Config(object):
         # Stuff that is permanent, such as for fabfile deployment
         self.SERVER_NAME = 'vault.thelensnola.org'
 
-        self.LOCAL_PROJECT_DIR = '%s' % self.PROJECT_DIR
-        self.LOCAL_APP_DIR = '%s/landrecords' % self.PROJECT_DIR
-        self.LOCAL_DATA_DIR = '%s/data' % self.PROJECT_DIR
-        self.LOCAL_SCRIPTS_DIR = '%s/scripts' % self.PROJECT_DIR
-        self.LOCAL_TESTS_DIR = '%s/tests' % self.PROJECT_DIR
-        self.LOCAL_TEMPLATE_DIR = '%s/landrecords' % self.PROJECT_DIR + \
+        self.LOCAL_PROJECT_DIR = '%s/repo' % self.VIRTUAL_ENV
+        self.LOCAL_APP_DIR = '%s/repo/landrecords' % self.VIRTUAL_ENV
+        self.LOCAL_DATA_DIR = '%s/repo/data' % self.VIRTUAL_ENV
+        self.LOCAL_SCRIPTS_DIR = '%s/repo/scripts' % self.VIRTUAL_ENV
+        self.LOCAL_TESTS_DIR = '%s/repo/tests' % self.VIRTUAL_ENV
+        self.LOCAL_TEMPLATE_DIR = '%s/repo/landrecords' % self.VIRTUAL_ENV + \
             '/templates'
-        self.LOCAL_LIB_DIR = '%s/landrecords/lib' % self.PROJECT_DIR
-        self.LOCAL_CSS_DIR = '%s' % self.PROJECT_DIR + \
-            '/landrecords/static/css'
-        self.LOCAL_JS_DIR = '%s' % self.PROJECT_DIR + \
-            '/landrecords/static/js'
-        self.LOCAL_FONTS_DIR = '%s' % self.PROJECT_DIR + \
-            '/landrecords/static/fonts'
-        self.LOCAL_IMAGES_DIR = '%s' % self.PROJECT_DIR + \
-            '/landrecords/static/css/images'
+        self.LOCAL_LIB_DIR = '%s/repo/landrecords/lib' % self.VIRTUAL_ENV
+        self.LOCAL_CSS_DIR = '%s' % self.VIRTUAL_ENV + \
+            '/repo/landrecords/static/css'
+        self.LOCAL_JS_DIR = '%s' % self.VIRTUAL_ENV + \
+            '/repo/landrecords/static/js'
+        self.LOCAL_FONTS_DIR = '%s' % self.VIRTUAL_ENV + \
+            '/repo/landrecords/static/fonts'
+        self.LOCAL_IMAGES_DIR = '%s' % self.VIRTUAL_ENV + \
+            '/repo/landrecords/static/css/images'
 
-        self.SERVER_PROJECT_DIR = '%s' % self.PROJECT_DIR
-        self.SERVER_APP_DIR = '%s/landrecords' % self.PROJECT_DIR
-        self.SERVER_DATA_DIR = '%s/data' % self.PROJECT_DIR
-        self.SERVER_SCRIPTS_DIR = '%s/scripts' % self.PROJECT_DIR
-        self.SERVER_TESTS_DIR = '%s/tests' % self.PROJECT_DIR
-        self.SERVER_TEMPLATE_DIR = '%s' % self.PROJECT_DIR + \
+        self.SERVER_PROJECT_DIR = '%s/repo' % self.VIRTUAL_ENV
+        self.SERVER_APP_DIR = '%s/repo/landrecords' % self.VIRTUAL_ENV
+        self.SERVER_DATA_DIR = '%s/repo/data' % self.VIRTUAL_ENV
+        self.SERVER_SCRIPTS_DIR = '%s/repo/scripts' % self.VIRTUAL_ENV
+        self.SERVER_TESTS_DIR = '%s/repo/tests' % self.VIRTUAL_ENV
+        self.SERVER_TEMPLATE_DIR = '%s/repo' % self.VIRTUAL_ENV + \
             '/landrecords/templates'
-        self.SERVER_LIB_DIR = '%s' % self.PROJECT_DIR + \
+        self.SERVER_LIB_DIR = '%s/repo' % self.VIRTUAL_ENV + \
             '/landrecords/lib'
-        self.SERVER_CSS_DIR = '%s' % self.PROJECT_DIR + \
+        self.SERVER_CSS_DIR = '%s/repo' % self.VIRTUAL_ENV + \
             '/landrecords/static/css'
-        self.SERVER_JS_DIR = '%s' % self.PROJECT_DIR + \
+        self.SERVER_JS_DIR = '%s/repo' % self.VIRTUAL_ENV + \
             '/landrecords/static/js'
-        self.SERVER_FONTS_DIR = '%s' % self.PROJECT_DIR + \
+        self.SERVER_FONTS_DIR = '%s/repo' % self.VIRTUAL_ENV + \
             '/landrecords/static/fonts'
-        self.SERVER_IMAGES_DIR = '%s' % self.PROJECT_DIR + \
-            '/landrecords/static/css/images'
+        self.SERVER_IMAGES_DIR = '%s' % self.VIRTUAL_ENV + \
+            '/repo/landrecords/static/css/images'
 
         '''
         Variables, passwords, etc.
