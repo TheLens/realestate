@@ -37,16 +37,16 @@ class GetDates(object):
         # log.debug(existing_until_date)
 
         # Check if all dates already added
-        yesterday_date = (Config().YESTERDAY_DATETIME).date()
+        yesterday_date = (Config().YESTERDAY_DATE).date()
 
         if existing_until_date == yesterday_date:
             raise ValueError("All dates already added to database.")
 
-        initial_datetime = existing_until_date + timedelta(days=1)
-        until_datetime = Config().YESTERDAY_DATETIME
+        initial_date = existing_until_date + timedelta(days=1)
+        until_date = Config().YESTERDAY_DATE
 
-        initial_date = initial_datetime.strftime('%Y-%m-%d')
-        until_date = until_datetime.strftime('%Y-%m-%d')
+        initial_date = initial_date.strftime('%Y-%m-%d')
+        until_date = until_date.strftime('%Y-%m-%d')
 
         return_dict = {}
         return_dict['initial_date'] = initial_date

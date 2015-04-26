@@ -87,7 +87,7 @@ def sale(instrument_no=None):
     data, jsdata, newrows = Models().get_sale(instrument_no)
 
     if data is None:
-        page_not_found()
+        page_not_found(404)
     else:
         return Views().get_sale(data, jsdata, newrows)
 

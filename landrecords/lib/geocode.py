@@ -170,12 +170,11 @@ class Geocode(object):
 
             session.commit()
 
-            break  # todo: uncomment
+            # break
 
         session.close()
 
         log.debug('Done geocoding')
 
 if __name__ == '__main__':
-    Geocode().google_geocode()
     pass
