@@ -1,10 +1,16 @@
 # New Orleans land records
 
-[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records)
-
 [http://vault.thelensnola.org/realestate](http://vault.thelensnola.org/realestate)
 
 This app scrapes the latest property sales in New Orleans, stores the records in a database and publishes the results with a map.
+
+[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records)
+
+[![Documentation Status](https://readthedocs.org/projects/land-records/badge/?version=latest)](https://readthedocs.org/projects/land-records/?badge=latest)
+
+Documentation: https://readthedocs.org/projects/land-records/
+Issues: https://github.com/TheLens/land-records/issues
+Testing: https://travis-ci.org/TheLens/land-records
 
 Dependencies:
 
