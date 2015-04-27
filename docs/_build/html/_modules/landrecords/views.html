@@ -1,0 +1,315 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.views &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.views</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;Renders the views.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">absolute_import</span>
+
+<span class="c"># from flask.ext.cache import Cache</span>
+<span class="kn">from</span> <span class="nn">flask</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">render_template</span><span class="p">,</span>
+    <span class="n">jsonify</span><span class="p">,</span>
+    <span class="n">make_response</span>
+<span class="p">)</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.utils</span> <span class="kn">import</span> <span class="n">Utils</span>
+
+
+<div class="viewcode-block" id="Views"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views">[docs]</a><span class="k">class</span> <span class="nc">Views</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Methods for each page in the app.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Commonly accessed static files.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">index_js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">INDEX_JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SEARCH_JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">search_area_js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SEARCH_AREA_JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sale_js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SALE_JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">map_js</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">MAP_JS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">LENS_CSS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">landrecords_css</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">LANDRECORDS_CSS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">banner_css</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">BANNER_CSS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">table_css</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TABLE_CSS</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">js_app_routing</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">JS_APP_ROUTING</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zip_codes</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">zip_codes</span>
+
+        <span class="c"># self.home_assets = {</span>
+        <span class="c">#     &#39;js&#39;: self.js,</span>
+        <span class="c">#     &#39;css&#39;: self.css,</span>
+        <span class="c">#     &#39;index_js&#39;: self.index_js,</span>
+        <span class="c">#     &#39;search_area_js&#39;: self.search_area_js,</span>
+        <span class="c">#     &#39;js_app_routing&#39;: self.js_app_routing,</span>
+        <span class="c">#     &#39;zip_codes&#39;: self.zip_codes</span>
+        <span class="c"># }</span>
+        <span class="c"># self.search_assets = {</span>
+        <span class="c">#     &#39;js&#39;: self.js,</span>
+        <span class="c">#     &#39;search_js&#39;: self.search_js,</span>
+        <span class="c">#     &#39;search_area_js&#39;: self.search_area_js,</span>
+        <span class="c">#     &#39;map_js&#39;: self.map_js,</span>
+        <span class="c">#     &#39;css&#39;: self.css,</span>
+        <span class="c">#     &#39;js_app_routing&#39;: self.js_app_routing,</span>
+        <span class="c">#     &#39;zip_codes&#39;: self.zip_codes</span>
+        <span class="c"># }</span>
+        <span class="c"># self.sale_assets = {</span>
+        <span class="c">#     &#39;js&#39;: self.js,</span>
+        <span class="c">#     &#39;css&#39;: self.css,</span>
+        <span class="c">#     &#39;salejs&#39;: self.sale_js</span>
+        <span class="c"># }</span>
+
+<div class="viewcode-block" id="Views.get_home"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.get_home">[docs]</a>    <span class="k">def</span> <span class="nf">get_home</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return view for /realestate/&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_home&#39;</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;index.html&#39;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="c"># home_assets=self.home_assets</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>
+                <span class="n">landrecords_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">landrecords_css</span><span class="p">,</span>
+                <span class="n">banner_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">banner_css</span><span class="p">,</span>
+                <span class="n">table_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_css</span><span class="p">,</span>
+                <span class="n">index_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index_js</span><span class="p">,</span>
+                <span class="n">search_area_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_area_js</span><span class="p">,</span>
+                <span class="n">js_app_routing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js_app_routing</span><span class="p">,</span>
+                <span class="n">zip_codes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zip_codes</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span>
+</div>
+<div class="viewcode-block" id="Views.get_search"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.get_search">[docs]</a>    <span class="k">def</span> <span class="nf">get_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">newrows</span><span class="p">,</span> <span class="n">js_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return GET view for /realestate/search&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_search&#39;</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;search.html&#39;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">newrows</span><span class="o">=</span><span class="n">newrows</span><span class="p">,</span>
+                <span class="n">js_data</span><span class="o">=</span><span class="n">js_data</span><span class="p">,</span>
+                <span class="c"># search_assets=self.search_assets</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">search_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_js</span><span class="p">,</span>
+                <span class="n">search_area_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_area_js</span><span class="p">,</span>
+                <span class="n">map_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">map_js</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>
+                <span class="n">landrecords_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">landrecords_css</span><span class="p">,</span>
+                <span class="n">banner_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">banner_css</span><span class="p">,</span>
+                <span class="n">table_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_css</span><span class="p">,</span>
+                <span class="n">js_app_routing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js_app_routing</span><span class="p">,</span>
+                <span class="n">zip_codes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zip_codes</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Views.post_search"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.post_search">[docs]</a>    <span class="k">def</span> <span class="nf">post_search</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">newrows</span><span class="p">,</span> <span class="n">js_data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return updated views for /realestate/search&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;post_search&#39;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;returned newrows&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">newrows</span><span class="p">)</span>
+
+        <span class="n">table_template</span> <span class="o">=</span> <span class="n">render_template</span><span class="p">(</span>
+            <span class="s">&#39;table.html&#39;</span><span class="p">,</span>
+            <span class="n">newrows</span><span class="o">=</span><span class="n">newrows</span>
+        <span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;returned js_data:&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">js_data</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;returned data&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">jsonify</span><span class="p">(</span>
+            <span class="n">table_template</span><span class="o">=</span><span class="n">table_template</span><span class="p">,</span>
+            <span class="n">js_data</span><span class="o">=</span><span class="n">js_data</span><span class="p">,</span>
+            <span class="n">data</span><span class="o">=</span><span class="n">data</span>
+        <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Views.get_sale"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.get_sale">[docs]</a>    <span class="k">def</span> <span class="nf">get_sale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">js_data</span><span class="p">,</span> <span class="n">newrows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return GET view for /realestate/sale&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_sale&#39;</span><span class="p">)</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;sale.html&#39;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">newrows</span><span class="o">=</span><span class="n">newrows</span><span class="p">,</span>
+                <span class="n">js_data</span><span class="o">=</span><span class="n">js_data</span><span class="p">,</span>
+                <span class="c"># sale_assets=self.sale_assets</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>
+                <span class="n">landrecords_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">landrecords_css</span><span class="p">,</span>
+                <span class="n">banner_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">banner_css</span><span class="p">,</span>
+                <span class="n">table_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">table_css</span><span class="p">,</span>
+                <span class="n">sale_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sale_js</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="c"># todo</span></div>
+<div class="viewcode-block" id="Views.get_dashboard"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.get_dashboard">[docs]</a>    <span class="k">def</span> <span class="nf">get_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">newrows</span><span class="p">,</span> <span class="n">js_data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return GET view for /realestate/dashboard&#39;&#39;&#39;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;dashboard.html&#39;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">newrows</span><span class="o">=</span><span class="n">newrows</span><span class="p">,</span>
+                <span class="n">js_data</span><span class="o">=</span><span class="n">js_data</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">search_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_js</span><span class="p">,</span>
+                <span class="n">search_area_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_area_js</span><span class="p">,</span>
+                <span class="n">map_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">map_js</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>
+                <span class="n">js_app_routing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js_app_routing</span><span class="p">,</span>
+                <span class="n">zip_codes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zip_codes</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span>
+
+    <span class="c"># todo</span></div>
+<div class="viewcode-block" id="Views.post_dashboard"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.post_dashboard">[docs]</a>    <span class="k">def</span> <span class="nf">post_dashboard</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">newrows</span><span class="p">,</span> <span class="n">js_data</span><span class="p">,</span> <span class="n">parameters</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return POST view for /realestate/dashboard&#39;&#39;&#39;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;dashboard.html&#39;</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+                <span class="n">newrows</span><span class="o">=</span><span class="n">newrows</span><span class="p">,</span>
+                <span class="n">js_data</span><span class="o">=</span><span class="n">js_data</span><span class="p">,</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">search_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_js</span><span class="p">,</span>
+                <span class="n">search_area_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">search_area_js</span><span class="p">,</span>
+                <span class="n">map_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">map_js</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>  <span class="c"># todo</span>
+                <span class="n">js_app_routing</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js_app_routing</span><span class="p">,</span>
+                <span class="n">zip_codes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">zip_codes</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span>
+</div>
+<div class="viewcode-block" id="Views.get_error_page"><a class="viewcode-back" href="../../misc.html#landrecords.views.Views.get_error_page">[docs]</a>    <span class="k">def</span> <span class="nf">get_error_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return 404 error page.&#39;&#39;&#39;</span>
+
+        <span class="n">response</span> <span class="o">=</span> <span class="n">make_response</span><span class="p">(</span>
+            <span class="n">render_template</span><span class="p">(</span>
+                <span class="s">&#39;404.html&#39;</span><span class="p">,</span>
+                <span class="n">lens_css</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">lens_css</span><span class="p">,</span>  <span class="c"># todo</span>
+                <span class="n">js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">js</span><span class="p">,</span>
+                <span class="n">index_js</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">index_js</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">response</span><span class="p">,</span> <span class="mi">404</span>
+
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

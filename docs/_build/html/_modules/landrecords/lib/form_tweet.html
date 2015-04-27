@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.form_tweet &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.form_tweet</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;Runs logic to find what to tweet and forms language for tweet.&#39;&#39;&#39;</span>
+
+<span class="c"># todo: run this separate from 3 a.m. scrape/initialize/etc cron job.</span>
+<span class="c"># run this on a cron at same time we want to tweet.</span>
+
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="kn">import</span> <span class="n">call</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.db</span> <span class="kn">import</span> <span class="n">Cleaned</span>
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.twitter</span> <span class="kn">import</span> <span class="n">Twitter</span>
+
+
+<div class="viewcode-block" id="AutoTweet"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet">[docs]</a><span class="k">class</span> <span class="nc">AutoTweet</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Runs logic to find what to tweet and forms language for tweet.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and establish connection to database.&#39;&#39;&#39;</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sn</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.figure_out_recorded_date"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.figure_out_recorded_date">[docs]</a>    <span class="k">def</span> <span class="nf">figure_out_recorded_date</span><span class="p">():</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Treat Tuesday-Saturday like any other day. Don\&#39;t do anything on</span>
+<span class="sd">        Sundays. Mondays tweet about entire previous week.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">document_recorded_early</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">document_recorded_late</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">time_period</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%A&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;Sunday&#39;</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+            <span class="k">return</span>
+        <span class="k">elif</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%A&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;Monday&#39;</span><span class="p">:</span>
+            <span class="n">document_recorded_early</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">7</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="p">)</span>
+
+            <span class="n">document_recorded_late</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="p">)</span>
+
+            <span class="n">time_period</span> <span class="o">=</span> <span class="s">&#39;last week&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">document_recorded_early</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="p">)</span>
+
+            <span class="n">document_recorded_late</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span>
+                <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span>
+            <span class="p">)</span>
+
+            <span class="n">time_period</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%A&#39;</span><span class="p">)</span>
+
+        <span class="n">return_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;document_recorded_early&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">document_recorded_early</span>
+        <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;document_recorded_late&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">document_recorded_late</span>
+        <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;time_period&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">time_period</span>
+
+        <span class="k">return</span> <span class="n">return_dict</span>
+</div>
+<div class="viewcode-block" id="AutoTweet.get_highest_amount_details"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.get_highest_amount_details">[docs]</a>    <span class="k">def</span> <span class="nf">get_highest_amount_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                                   <span class="n">document_recorded_early</span><span class="p">,</span>
+                                   <span class="n">document_recorded_late</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get the relevant fields about the sale with the highest amount.&#39;&#39;&#39;</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">detail_publish</span><span class="p">,</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">document_recorded</span><span class="p">,</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">neighborhood</span><span class="p">,</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">instrument_no</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">detail_publish</span> <span class="o">==</span> <span class="s">&#39;1&#39;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&gt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">document_recorded_early</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&lt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">document_recorded_late</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span>
+            <span class="n">Cleaned</span><span class="o">.</span><span class="n">amount</span><span class="o">.</span><span class="n">desc</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+
+        <span class="c"># If no record found, terminate this script so it</span>
+        <span class="c"># doesn&#39;t tweet out nonsense.</span>
+        <span class="c"># Could be because of holidays, no records or old-fashioned bug.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="n">query_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+            <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;$&#39;</span> <span class="o">+</span> <span class="n">format</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+            <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;instrument_no&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">instrument_no</span>
+            <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">neighborhood</span>
+            <span class="c"># todo: neighborhood cleaning in clean.py? &quot;Dev&quot; =&gt; &quot;Development&quot;</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">query_dict</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.conversational_neighborhoods"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.conversational_neighborhoods">[docs]</a>    <span class="k">def</span> <span class="nf">conversational_neighborhoods</span><span class="p">(</span><span class="n">neighborhood</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Converts neighborhoods to the way you would refer to them in</span>
+<span class="sd">        conversation. Ex. &quot;French Quarter&quot; =&gt; &quot;the French Quarter.&quot;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="c"># todo: needs work</span>
+
+        <span class="n">nbhd_list</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="s">&#39;BLACK PEARL&#39;</span>
+            <span class="s">&#39;BYWATER&#39;</span>
+            <span class="s">&#39;CENTRAL BUSINESS DISTRICT&#39;</span>
+            <span class="s">&#39;DESIRE AREA&#39;</span>
+            <span class="s">&#39;FAIRGROUNDS&#39;</span>
+            <span class="s">&#39;FISCHER DEV&#39;</span>
+            <span class="s">&#39;FLORIDA AREA&#39;</span>
+            <span class="s">&#39;FLORIDA DEV&#39;</span>
+            <span class="s">&#39;FRENCH QUARTER&#39;</span>
+            <span class="s">&#39;GARDEN DISTRICT&#39;</span>
+            <span class="s">&#39;IRISH CHANNEL&#39;</span>
+            <span class="s">&#39;LOWER GARDEN DISTRICT&#39;</span>
+            <span class="s">&#39;LOWER NINTH WARD&#39;</span>
+            <span class="s">&#39;MARIGNY&#39;</span>
+            <span class="s">&#39;SEVENTH WARD&#39;</span>
+            <span class="s">&#39;ST. BERNARD AREA&#39;</span>
+            <span class="s">&#39;ST. THOMAS DEV&#39;</span>
+            <span class="s">&#39;U.S. NAVAL BASE&#39;</span>
+        <span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">nbhd</span> <span class="ow">in</span> <span class="n">nbhd_list</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">neighborhood</span> <span class="o">==</span> <span class="n">nbhd</span><span class="p">:</span>
+                <span class="n">neighborhood</span> <span class="o">=</span> <span class="s">&#39;the &#39;</span> <span class="o">+</span> <span class="n">neighborhood</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.form_url"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.form_url">[docs]</a>    <span class="k">def</span> <span class="nf">form_url</span><span class="p">(</span><span class="n">instrument_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Append instrument number to /realestate/sale/&#39;&#39;&#39;</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="s">&#39;http://vault.thelensnola.org/realestate/sale/&#39;</span> <span class="o">+</span> \
+            <span class="n">instrument_no</span>
+
+        <span class="k">return</span> <span class="n">url</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.screenshot_name"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.screenshot_name">[docs]</a>    <span class="k">def</span> <span class="nf">screenshot_name</span><span class="p">(</span><span class="n">instrument_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Form filename for map screenshot.&#39;&#39;&#39;</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-high-amount.png&#39;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">TODAY_DATE</span><span class="p">,</span> <span class="n">instrument_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">name</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.get_image"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.get_image">[docs]</a>    <span class="k">def</span> <span class="nf">get_image</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Take screenshot of map with PhantomJS.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_image&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;url: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
+        <span class="n">call</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/phantomjs&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SCRIPTS_DIR</span><span class="p">,</span>
+              <span class="s">&#39;</span><span class="si">%s</span><span class="s">/screen.js&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SCRIPTS_DIR</span><span class="p">,</span>
+              <span class="n">url</span><span class="p">,</span>
+              <span class="s">&#39;</span><span class="si">%s</span><span class="s">/tweets/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">PICTURES_DIR</span><span class="p">,</span> <span class="n">name</span><span class="p">)])</span>
+</div>
+<div class="viewcode-block" id="AutoTweet.open_image"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.open_image">[docs]</a>    <span class="k">def</span> <span class="nf">open_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get file path to screenshot.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_image</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="n">filename</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/tweets/</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">PICTURES_DIR</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">filename</span>
+
+        <span class="c"># with open(filename, &#39;rb&#39;) as image:</span>
+        <span class="c">#     return image</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AutoTweet.form_message"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.form_message">[docs]</a>    <span class="k">def</span> <span class="nf">form_message</span><span class="p">(</span><span class="n">time_period</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">url</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Plug variables into mab lib sentences.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;form_message&#39;</span><span class="p">)</span>
+
+        <span class="c"># options = []</span>
+
+        <span class="n">message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s">&quot;Priciest property sale recorded {0} was in {1}: {2}.</span><span class="se">\n</span><span class="s">{3}&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">time_period</span><span class="p">,</span>
+            <span class="n">neighborhood</span><span class="p">,</span>
+            <span class="n">amount</span><span class="p">,</span>
+            <span class="n">url</span>
+        <span class="p">)</span>
+
+        <span class="c"># option = random.choice(options)</span>
+
+        <span class="k">return</span> <span class="n">message</span>
+</div>
+<div class="viewcode-block" id="AutoTweet.main"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.form_tweet.AutoTweet.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs through all methods.&#39;&#39;&#39;</span>
+
+        <span class="n">return_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">figure_out_recorded_date</span><span class="p">()</span>
+
+        <span class="n">document_recorded_early</span> <span class="o">=</span> <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;document_recorded_early&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&#39;document_recorded_early: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+            <span class="n">document_recorded_early</span><span class="p">)</span>
+
+        <span class="n">document_recorded_late</span> <span class="o">=</span> <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;document_recorded_late&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&#39;document_recorded_late: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+            <span class="n">document_recorded_late</span><span class="p">)</span>
+
+        <span class="n">time_period</span> <span class="o">=</span> <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;time_period&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;time_period: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">time_period</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">query_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_highest_amount_details</span><span class="p">(</span>
+                <span class="n">document_recorded_early</span><span class="p">,</span> <span class="n">document_recorded_late</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">amount</span> <span class="o">=</span> <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;amount: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">amount</span><span class="p">)</span>
+
+        <span class="n">instrument_no</span> <span class="o">=</span> <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;instrument_no&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;instrument_no: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">instrument_no</span><span class="p">)</span>
+
+        <span class="n">neighborhood</span> <span class="o">=</span> <span class="n">query_dict</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;neighborhood: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">)</span>
+
+        <span class="c"># todo:</span>
+        <span class="c"># neighborhood = self.conversational_neighborhoods()</span>
+
+        <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_url</span><span class="p">(</span><span class="n">instrument_no</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;url: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+
+        <span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">screenshot_name</span><span class="p">(</span><span class="n">instrument_no</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;name: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">form_message</span><span class="p">(</span><span class="n">time_period</span><span class="p">,</span> <span class="n">neighborhood</span><span class="p">,</span> <span class="n">amount</span><span class="p">,</span> <span class="n">url</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;status: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+
+        <span class="n">media</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">open_image</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;media: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">media</span><span class="p">)</span>
+
+        <span class="k">print</span> <span class="s">&#39;status:&#39;</span><span class="p">,</span> <span class="n">status</span>
+        <span class="k">print</span> <span class="s">&#39;media:&#39;</span><span class="p">,</span> <span class="n">media</span>
+        <span class="c"># Twitter(status=status).send_with_media(media=media)</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">AutoTweet</span><span class="p">()</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

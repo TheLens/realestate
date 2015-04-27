@@ -1,0 +1,775 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.clean &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.clean</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;JOIN the four individual tables, clean and commit to cleaned.&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">exc</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords.db</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Cleaned</span><span class="p">,</span>
+    <span class="n">Detail</span><span class="p">,</span>
+    <span class="n">Location</span><span class="p">,</span>
+    <span class="n">Vendee</span><span class="p">,</span>
+    <span class="n">Vendor</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.libraries</span> <span class="kn">import</span> <span class="n">Library</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+
+
+<div class="viewcode-block" id="Join"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join">[docs]</a><span class="k">class</span> <span class="nc">Join</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;JOIN the four individual tables.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_date</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">until_date</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and establish connection to database.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sn</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Join.get_details"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.get_details">[docs]</a>    <span class="k">def</span> <span class="nf">get_details</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gathers relevant details fields for cleaned.&#39;&#39;&#39;</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">subquery</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Detail</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&gt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&lt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">subquery</span><span class="p">)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subquery</span>
+</div>
+<div class="viewcode-block" id="Join.get_vendees"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.get_vendees">[docs]</a>    <span class="k">def</span> <span class="nf">get_vendees</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gathers relevant vendees fields for cleaned.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_vendees&#39;</span><span class="p">)</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">subquery</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Vendee</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">string_agg</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Vendee</span><span class="o">.</span><span class="n">vendee_firstname</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Vendee</span><span class="o">.</span><span class="n">vendee_lastname</span><span class="p">,</span> <span class="n">Text</span><span class="p">),</span>
+                <span class="s">&#39;, &#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;buyers&#39;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span>
+            <span class="n">Vendee</span><span class="o">.</span><span class="n">document_id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
+
+        <span class="c"># log.debug(subquery)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subquery</span>
+</div>
+<div class="viewcode-block" id="Join.get_vendors"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.get_vendors">[docs]</a>    <span class="k">def</span> <span class="nf">get_vendors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gathers relevant vendors fields for cleaned.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_vendors&#39;</span><span class="p">)</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">subquery</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Vendor</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">string_agg</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Vendor</span><span class="o">.</span><span class="n">vendor_firstname</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Vendor</span><span class="o">.</span><span class="n">vendor_lastname</span><span class="p">,</span> <span class="n">Text</span><span class="p">),</span>
+                <span class="s">&#39;, &#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;sellers&#39;</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span>
+            <span class="n">Vendor</span><span class="o">.</span><span class="n">document_id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
+
+        <span class="c"># log.debug(subquery)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subquery</span>
+</div>
+<div class="viewcode-block" id="Join.get_locations"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.get_locations">[docs]</a>    <span class="k">def</span> <span class="nf">get_locations</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Gathers relevant locations fields for cleaned.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_locations&#39;</span><span class="p">)</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">subquery</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Location</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">bool_and</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">location_publish</span><span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;location_publish&#39;</span><span class="p">),</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">string_agg</span><span class="p">(</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">street_number</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span>
+                <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">address</span><span class="p">,</span> <span class="n">Text</span><span class="p">),</span>
+                <span class="s">&#39;; &#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;address&#39;</span><span class="p">),</span>
+            <span class="n">func</span><span class="o">.</span><span class="n">string_agg</span><span class="p">(</span>
+                <span class="s">&#39;Unit: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;Condo: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">condo</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;Weeks: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">weeks</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;Subdivision: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">subdivision</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;District: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">district</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;Square: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">square</span><span class="p">,</span> <span class="n">Text</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                <span class="s">&#39;Lot: &#39;</span> <span class="o">+</span> <span class="n">cast</span><span class="p">(</span><span class="n">Location</span><span class="o">.</span><span class="n">lot</span><span class="p">,</span> <span class="n">Text</span><span class="p">),</span>
+                <span class="s">&#39;; &#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">label</span><span class="p">(</span><span class="s">&#39;location_info&#39;</span><span class="p">)</span>
+            <span class="c"># todo: Once SQLAlchemy supports this, add these fields this way.</span>
+            <span class="c"># &#39;mode() WITHIN GROUP (ORDER BY locations.zip_code) AS zip_code&#39;,</span>
+            <span class="c"># &#39;mode() WITHIN GROUP (ORDER BY locations.latitude) AS latitude&#39;,</span>
+            <span class="c"># &#39;mode() WITHIN GROUP (ORDER BY locations.longitude) &#39; +</span>
+            <span class="c"># &#39; AS longitude&#39;,</span>
+            <span class="c"># &#39;mode() WITHIN GROUP (ORDER BY locations.neighborhood) &#39; +</span>
+            <span class="c"># &#39;AS neighborhood&#39;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">group_by</span><span class="p">(</span>
+            <span class="n">Location</span><span class="o">.</span><span class="n">document_id</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">subquery</span><span class="p">()</span>
+
+        <span class="c"># log.debug(subquery)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">subquery</span>
+</div>
+<div class="viewcode-block" id="Join.join_subqueries"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.join_subqueries">[docs]</a>    <span class="k">def</span> <span class="nf">join_subqueries</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs a JOIN on subqueries.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;join_subqueries&#39;</span><span class="p">)</span>
+
+        <span class="n">subq_vendees</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vendees</span><span class="p">()</span>
+        <span class="n">subq_vendors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_vendors</span><span class="p">()</span>
+        <span class="n">subq_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_locations</span><span class="p">()</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;query...&#39;</span><span class="p">)</span>
+        <span class="n">query</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_date</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">instrument_no</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">detail_publish</span><span class="p">,</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">permanent_flag</span><span class="p">,</span>
+            <span class="n">subq_vendees</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">buyers</span><span class="p">,</span>
+            <span class="n">subq_vendors</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">sellers</span><span class="p">,</span>
+            <span class="n">subq_location</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">location_publish</span><span class="p">,</span>
+            <span class="n">subq_location</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+            <span class="n">subq_location</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">location_info</span>
+            <span class="c"># todo: Once SQLAlchemy supports WITHIN GROUP, uncomment these.</span>
+            <span class="c"># subq_location.c.zip_code,</span>
+            <span class="c"># subq_location.c.latitude,</span>
+            <span class="c"># subq_location.c.longitude,</span>
+            <span class="c"># subq_location.c.neighborhood</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">subq_vendees</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">subq_vendors</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+            <span class="n">subq_location</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&gt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">&lt;=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;len(query): </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">query</span><span class="p">))</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">query</span>
+</div>
+<div class="viewcode-block" id="Join.get_rows_from_query"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.get_rows_from_query">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows_from_query</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Convert query result to row of dicts.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_rows_from_query&#39;</span><span class="p">)</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">join_subqueries</span><span class="p">()</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">query</span><span class="p">:</span>
+            <span class="n">dict_val</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">__dict__</span>
+            <span class="k">del</span> <span class="n">dict_val</span><span class="p">[</span><span class="s">&#39;_labels&#39;</span><span class="p">]</span>  <span class="c"># todo: necessary?</span>
+            <span class="c"># del dict_val[&#39;document_id&#39;]  # leave for now bc of ___ todo</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_val</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;len(rows): </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="Join.add_location_fields_temp_hack"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Join.add_location_fields_temp_hack">[docs]</a>    <span class="k">def</span> <span class="nf">add_location_fields_temp_hack</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">incoming_rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        SQLAlchemy doesn&#39;t yet support WITHIN GROUP, which is necessary for</span>
+<span class="sd">        using mode() aggregate function in PostgreSQL 9.4 (see get_locations()</span>
+<span class="sd">        for normal use). So instead, this hack will temporary do that job.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">USER</span> <span class="o">==</span> <span class="s">&#39;thomasthoren&#39;</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT</span>
+<span class="s">                document_id,</span>
+<span class="s">                -- mode(zip_code) AS zip_code,</span>
+<span class="s">                -- mode(latitude) AS latitude,</span>
+<span class="s">                -- mode(longitude) AS longitude,</span>
+<span class="s">                -- mode(neighborhood) AS neighborhood</span>
+<span class="s">                mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,</span>
+<span class="s">                mode() WITHIN GROUP (ORDER BY latitude) AS latitude,</span>
+<span class="s">                mode() WITHIN GROUP (ORDER BY longitude) AS longitude,</span>
+<span class="s">                mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood</span>
+<span class="s">            FROM locations</span>
+<span class="s">            GROUP BY document_id&quot;&quot;&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;SELECT</span>
+<span class="s">                document_id,</span>
+<span class="s">                mode(zip_code) AS zip_code,</span>
+<span class="s">                mode(latitude) AS latitude,</span>
+<span class="s">                mode(longitude) AS longitude,</span>
+<span class="s">                mode(neighborhood) AS neighborhood</span>
+<span class="s">                -- mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,</span>
+<span class="s">                -- mode() WITHIN GROUP (ORDER BY latitude) AS latitude,</span>
+<span class="s">                -- mode() WITHIN GROUP (ORDER BY longitude) AS longitude,</span>
+<span class="s">                -- mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood</span>
+<span class="s">            FROM locations</span>
+<span class="s">            GROUP BY document_id&quot;&quot;&quot;</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Form dict</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">location_dict</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                <span class="s">&#39;zip_code&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+                <span class="s">&#39;latitude&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span>
+                <span class="s">&#39;longitude&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span>
+                <span class="s">&#39;neighborhood&#39;</span><span class="p">:</span> <span class="n">row</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span>
+            <span class="p">}</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">location_dict</span><span class="p">)</span>
+
+        <span class="c"># Merge fields</span>
+        <span class="k">for</span> <span class="n">incoming_row</span> <span class="ow">in</span> <span class="n">incoming_rows</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">incoming_row</span><span class="p">[</span><span class="s">&#39;document_id&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;document_id&#39;</span><span class="p">]:</span>
+                    <span class="n">incoming_row</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span>
+                    <span class="n">incoming_row</span><span class="p">[</span><span class="s">&#39;latitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;latitude&#39;</span><span class="p">]</span>
+                    <span class="n">incoming_row</span><span class="p">[</span><span class="s">&#39;longitude&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;longitude&#39;</span><span class="p">]</span>
+                    <span class="n">incoming_row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">incoming_rows</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;document_id&#39;</span><span class="p">]</span>  <span class="c"># Not part of Cleaned</span>
+
+        <span class="k">return</span> <span class="n">incoming_rows</span>
+
+</div></div>
+<div class="viewcode-block" id="Clean"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean">[docs]</a><span class="k">class</span> <span class="nc">Clean</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Clean the joined tables and commit to cleaned.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_date</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">until_date</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and establish connection to database.&#39;&#39;&#39;</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sn</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;self.initial_date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;self.until_date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Clean.update_cleaned_geom"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.update_cleaned_geom">[docs]</a>    <span class="k">def</span> <span class="nf">update_cleaned_geom</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Update the PostGIS geom field in the cleaned table.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Update Cleaned geometry&#39;</span><span class="p">)</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;UPDATE cleaned</span>
+<span class="s">            SET geom = ST_SetSRID(ST_MakePoint(longitude, latitude), 4326);&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.prep_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.prep_rows">[docs]</a>    <span class="k">def</span> <span class="nf">prep_rows</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns all rows in Titlecase.&#39;&#39;&#39;</span>
+
+        <span class="c"># This loop returns text that is not all-caps, but is still flawed:</span>
+        <span class="c"># to standardize upper and lowercases</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Capitalizes the first letter in each word.</span>
+            <span class="c"># Results in words like Llc, Xiv, etc</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_acronyms"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_acronyms">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_acronyms</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects acronyms.&#39;&#39;&#39;</span>
+
+        <span class="c"># This loop scans for the above problem words and replaces them with</span>
+        <span class="c"># their substitutes:</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Check for occurences of problematic acronyms</span>
+            <span class="k">for</span> <span class="n">acronym</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">acronyms</span><span class="p">:</span>
+                <span class="n">acronym0</span> <span class="o">=</span> <span class="n">acronym</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>  <span class="c"># Problem acronym</span>
+                <span class="n">acronym1</span> <span class="o">=</span> <span class="n">acronym</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>  <span class="c"># Solution acronym</span>
+                <span class="c"># If find problem acronym (acronym0) in a string,</span>
+                <span class="c"># replace with solution acronym (acronym1)</span>
+
+                <span class="c"># log.debug(row[&#39;sellers&#39;])</span>
+                <span class="c"># log.debug(type(row[&#39;sellers&#39;]))</span>
+
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">acronym0</span><span class="p">,</span> <span class="n">acronym1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">])</span>
+
+                <span class="c"># log.debug(row[&#39;sellers&#39;])</span>
+                <span class="c"># log.debug(type(row[&#39;sellers&#39;]))</span>
+
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">acronym0</span><span class="p">,</span> <span class="n">acronym1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">acronym0</span><span class="p">,</span> <span class="n">acronym1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">acronym0</span><span class="p">,</span> <span class="n">acronym1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_mcnames"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_mcnames">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_mcnames</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects Mc___ names.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Check for occurences of problematic &quot;Mc&quot; names. Corrections</span>
+            <span class="c"># assume that the letter after should be capitalized:</span>
+            <span class="k">for</span> <span class="n">mcname</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">mc_names</span><span class="p">:</span>
+                <span class="n">mcname0</span> <span class="o">=</span> <span class="n">mcname</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">mcname1</span> <span class="o">=</span> <span class="n">mcname</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">mcname0</span><span class="p">,</span> <span class="n">mcname1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">mcname0</span><span class="p">,</span> <span class="n">mcname1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">mcname0</span><span class="p">,</span> <span class="n">mcname1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">mcname0</span><span class="p">,</span> <span class="n">mcname1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_abbreviations"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_abbreviations">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_abbreviations</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects abbreviations.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Check for problematic abbreviations:</span>
+            <span class="k">for</span> <span class="n">abbreviation</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">abbreviations</span><span class="p">:</span>
+                <span class="n">abbreviation0</span> <span class="o">=</span> <span class="n">abbreviation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">abbreviation1</span> <span class="o">=</span> <span class="n">abbreviation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">abbreviation0</span><span class="p">,</span> <span class="n">abbreviation1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">abbreviation0</span><span class="p">,</span> <span class="n">abbreviation1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">abbreviation0</span><span class="p">,</span> <span class="n">abbreviation1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">abbreviation0</span><span class="p">,</span> <span class="n">abbreviation1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_adress_abbreviations"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_adress_abbreviations">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_adress_abbreviations</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects address abbreviations.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Fix address abbreviations (for AP style purposes)</span>
+            <span class="k">for</span> <span class="n">address_abbreviation</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">streets</span><span class="p">:</span>
+                <span class="n">address0</span> <span class="o">=</span> <span class="n">address_abbreviation</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">address1</span> <span class="o">=</span> <span class="n">address_abbreviation</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">address0</span><span class="p">,</span> <span class="n">address1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">address0</span><span class="p">,</span> <span class="n">address1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">])</span>
+                <span class="c"># Good for &quot;E&quot; to &quot;E.&quot; too:</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">address0</span><span class="p">,</span> <span class="n">address1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_middle_initials"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_middle_initials">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_middle_initials</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects middle initials.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">middle_initial</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">middle_initials</span><span class="p">:</span>
+                <span class="n">middle_initial0</span> <span class="o">=</span> <span class="n">middle_initial</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">middle_initial1</span> <span class="o">=</span> <span class="n">middle_initial</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+                <span class="c"># log.debug(row[&#39;sellers&#39;])</span>
+                <span class="c"># log.debug(type(row[&#39;sellers&#39;]))</span>
+
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">middle_initial0</span><span class="p">,</span> <span class="n">middle_initial1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">])</span>
+
+                <span class="c"># log.debug(row[&#39;sellers&#39;])</span>
+                <span class="c"># log.debug(type(row[&#39;sellers&#39;]))</span>
+
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">middle_initial0</span><span class="p">,</span> <span class="n">middle_initial1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.check_for_neighborhood_names"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.check_for_neighborhood_names">[docs]</a>    <span class="k">def</span> <span class="nf">check_for_neighborhood_names</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Corrects neighborhood names.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">neighborhood_name</span> <span class="ow">in</span> <span class="n">Library</span><span class="p">()</span><span class="o">.</span><span class="n">neighborhood_names</span><span class="p">:</span>
+                <span class="n">name0</span> <span class="o">=</span> <span class="n">neighborhood_name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">name1</span> <span class="o">=</span> <span class="n">neighborhood_name</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="n">name0</span><span class="p">,</span> <span class="n">name1</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.regex_subs"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.regex_subs">[docs]</a>    <span class="k">def</span> <span class="nf">regex_subs</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;More than simple find-and-replace tasks.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># Must do regex for &quot;St&quot; and others. Imagine &quot;123 Star St&quot;.</span>
+            <span class="c"># Scanning for &quot; St&quot; in the above loop would catch the start of</span>
+            <span class="c"># the street name here. &quot;St &quot; wouldn&#39;t work either.</span>
+            <span class="c"># Check for &quot;St&quot; followed by end-of-line character:</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&quot;St$&quot;</span><span class="p">,</span> <span class="s">r&quot;St.&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&quot;Ave$&quot;</span><span class="p">,</span> <span class="s">r&quot;Ave.&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&quot;Dr$&quot;</span><span class="p">,</span> <span class="s">r&quot;Dr.&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">])</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&quot;Inc$&quot;</span><span class="p">,</span> <span class="s">r&quot;Inc.&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">])</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&quot;Inc$&quot;</span><span class="p">,</span> <span class="s">r&quot;Inc.&quot;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.convert_amounts"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.convert_amounts">[docs]</a>    <span class="k">def</span> <span class="nf">convert_amounts</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Convert string, with or without $ and commas, to rounded int.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;\$&#39;</span><span class="p">,</span> <span class="s">r&#39;&#39;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>  <span class="c"># remove the $</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">r&#39;,&#39;</span><span class="p">,</span> <span class="s">r&#39;&#39;</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>  <span class="c"># remove comma</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>  <span class="c"># change string to a float</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>  <span class="c"># round to nearest dollar</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s">&#39;amount&#39;</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="Clean.clean_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.clean_rows">[docs]</a>    <span class="k">def</span> <span class="nf">clean_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Run rows through all cleaning methods.&#39;&#39;&#39;</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_acronyms</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_mcnames</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_abbreviations</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_adress_abbreviations</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_middle_initials</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_for_neighborhood_names</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">regex_subs</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(rows))</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_amounts</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(rows))</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_stuff_addresses</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(rows))</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_stuff_location_info</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(rows))</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_punctuation</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(rows))</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.clean_punctuation"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.clean_punctuation">[docs]</a>    <span class="k">def</span> <span class="nf">clean_punctuation</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Fix punctuation (leading/trailing spaces or commas).&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;sellers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
+                <span class="s">&#39; ,&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;  &#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; ,&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;buyers&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
+                <span class="s">&#39; ,&#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;  &#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; ,&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
+                <span class="s">&quot; ,&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;  &#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; ,&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span>
+                <span class="s">&quot; ,&quot;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;  &#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; ,&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="s">&#39;  &#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span>
+            <span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; ,&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.other_stuff_addresses"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.other_stuff_addresses">[docs]</a>    <span class="k">def</span> <span class="nf">other_stuff_addresses</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs checks for addresses.&#39;&#39;&#39;</span>
+
+        <span class="c"># log.debug(rows)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="n">all_addresses_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+            <span class="n">address_list1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">address_list1</span><span class="p">:</span>
+                <span class="n">address_list2</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+                <span class="n">individual_address_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">address_list2</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="c"># If first addition:</span>
+                        <span class="k">if</span> <span class="n">individual_address_text</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                            <span class="n">individual_address_text</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                        <span class="k">else</span><span class="p">:</span>  <span class="c"># If second addition or later</span>
+                            <span class="n">individual_address_text</span> <span class="o">=</span> <span class="p">(</span>
+                                <span class="n">individual_address_text</span> <span class="o">+</span>
+                                <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                                <span class="n">j</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">all_addresses_text</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">and</span> <span class="n">individual_address_text</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">all_addresses_text</span> <span class="o">=</span> <span class="n">individual_address_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">elif</span> <span class="n">individual_address_text</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                    <span class="n">all_addresses_text</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="n">all_addresses_text</span> <span class="o">+</span>
+                        <span class="s">&#39;; &#39;</span> <span class="o">+</span>
+                        <span class="n">individual_address_text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+            <span class="c"># location_info = location_info.replace(&#39;;&#39;, &#39;,&#39;)</span>
+            <span class="c"># So can split on commas for both semi-colons and commas</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;address&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_addresses_text</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Clean.other_stuff_location_info"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.other_stuff_location_info">[docs]</a>    <span class="k">def</span> <span class="nf">other_stuff_location_info</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs checks for location_info.&#39;&#39;&#39;</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+            <span class="c"># To remove district ordinal</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;1st&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;2nd&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;3rd&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;4th&#39;</span><span class="p">,</span> <span class="s">&#39;4&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;5th&#39;</span><span class="p">,</span> <span class="s">&#39;5&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;6th&#39;</span><span class="p">,</span> <span class="s">&#39;6&#39;</span><span class="p">)</span>
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;7th&#39;</span><span class="p">,</span> <span class="s">&#39;7&#39;</span><span class="p">)</span>
+
+            <span class="n">all_locations_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+            <span class="n">list1</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;;&#39;</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">list1</span><span class="p">:</span>
+                <span class="n">list2</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+                <span class="n">individiual_location_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">list2</span><span class="p">:</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="k">if</span> <span class="n">j</span><span class="o">.</span><span class="n">strip</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;:&#39;</span><span class="p">:</span>
+                            <span class="c"># If first addition:</span>
+                            <span class="k">if</span> <span class="n">individiual_location_text</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                                <span class="n">individiual_location_text</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                            <span class="k">else</span><span class="p">:</span>  <span class="c"># If second addition or later</span>
+                                <span class="n">individiual_location_text</span> <span class="o">=</span> <span class="p">(</span>
+                                    <span class="n">individiual_location_text</span> <span class="o">+</span>
+                                    <span class="s">&#39;, &#39;</span> <span class="o">+</span>
+                                    <span class="n">j</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                    <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                        <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                        <span class="k">continue</span>
+
+                <span class="k">if</span> <span class="n">all_locations_text</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">individiual_location_text</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                        <span class="n">all_locations_text</span> <span class="o">=</span> <span class="n">individiual_location_text</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">individiual_location_text</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                        <span class="n">all_locations_text</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="n">all_locations_text</span> <span class="o">+</span>
+                            <span class="s">&#39;; &#39;</span> <span class="o">+</span>
+                            <span class="n">individiual_location_text</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+
+            <span class="n">row</span><span class="p">[</span><span class="s">&#39;location_info&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">all_locations_text</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="Clean.commit_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.commit_rows">[docs]</a>    <span class="k">def</span> <span class="nf">commit_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">rows</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Commits JOIN-ed rows to the cleaned table.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Committing </span><span class="si">%d</span><span class="s"> rows&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="k">for</span> <span class="n">count</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">rows</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">begin_nested</span><span class="p">():</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="n">Cleaned</span><span class="p">)</span>
+                    <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+            <span class="k">except</span> <span class="n">exc</span><span class="o">.</span><span class="n">IntegrityError</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;count: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;count: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">exception</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s"> rows committed&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Clean.main"><a class="viewcode-back" href="../../../build.html#landrecords.lib.clean.Clean.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Run Join() and Clean() scripts.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Clean&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;Cleaning...&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;get_rows_from_query&#39;</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">Join</span><span class="p">(</span>
+            <span class="n">initial_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span>
+            <span class="n">until_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">get_rows_from_query</span><span class="p">()</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;add_location_fields_temp_hack&#39;</span><span class="p">)</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">Join</span><span class="p">(</span>
+            <span class="n">initial_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span>
+            <span class="n">until_date</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">add_location_fields_temp_hack</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;len(rows): </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+
+        <span class="n">prepped_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">prep_rows</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(prepped_rows))</span>
+
+        <span class="n">clean_rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">clean_rows</span><span class="p">(</span><span class="n">prepped_rows</span><span class="p">)</span>
+        <span class="c"># log.debug(len(clean_rows))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">commit_rows</span><span class="p">(</span><span class="n">clean_rows</span><span class="p">)</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Clean</span><span class="p">()</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.results_language &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.results_language</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;Builds languages for returned results.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.lib.utils</span> <span class="kn">import</span> <span class="n">Utils</span>
+
+
+<div class="viewcode-block" id="ResultsLanguage"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage">[docs]</a><span class="k">class</span> <span class="nc">ResultsLanguage</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Methods for each page in the app.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Starting things off.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="n">data</span>
+
+<div class="viewcode-block" id="ResultsLanguage.plural_or_not"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.plural_or_not">[docs]</a>    <span class="k">def</span> <span class="nf">plural_or_not</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Checks if more than one result.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;number_of_records&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">plural_or_not</span> <span class="o">=</span> <span class="s">&quot;sale&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">plural_or_not</span> <span class="o">=</span> <span class="s">&quot;sales&quot;</span>
+
+        <span class="k">return</span> <span class="n">plural_or_not</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_initial_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_initial_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_initial_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">plural_or_not</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Creates initial sentence language.&#39;&#39;&#39;</span>
+
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_number_with_commas</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;number_of_records&#39;</span><span class="p">]))</span> <span class="o">+</span> <span class="s">&#39; &#39;</span> <span class="o">+</span> <span class="n">plural_or_not</span> <span class="o">+</span> <span class="s">&#39; found&#39;</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_keyword_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_keyword_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_keyword_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds keyword or key phrase language.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name_address&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name_address&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&#39; for key phrase &quot;&#39;</span> <span class="o">+</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name_address&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span>
+                <span class="c"># for &#39;keyword&#39;</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&#39; for keyword &quot;&#39;</span> <span class="o">+</span> \
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;name_address&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span>
+                <span class="c"># for &#39;keyword&#39;</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_nbhd_zip_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_nbhd_zip_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_nbhd_zip_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds neighborhood or ZIP code language.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; in the &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                    <span class="s">&quot; neighborhood and &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span>
+                <span class="c"># in the Mid-City neighborhood and 70119</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; in the &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;neighborhood&#39;</span><span class="p">]</span> <span class="o">+</span> \
+                    <span class="s">&quot; neighborhood&quot;</span>
+                <span class="c"># in the Mid-City neighborhood</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; in ZIP code &quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;zip_code&#39;</span><span class="p">]</span>
+            <span class="c"># in ZIP code 70119</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_amount_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_amount_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_amount_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds amount language.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_low&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_high&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; where the price was between &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_num_with_curr_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_low&#39;</span><span class="p">])</span> <span class="o">+</span> \
+                    <span class="o">+</span> <span class="s">&quot; and &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_num_with_curr_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_high&#39;</span><span class="p">])</span>
+                <span class="c"># where the amount is between $10 and $20</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; where the price was greater than &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_num_with_curr_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_low&#39;</span><span class="p">])</span>
+                <span class="c"># where the amount is greater than $10</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_high&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; where the price was less than &quot;</span> <span class="o">+</span> \
+                <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_num_with_curr_sign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;amount_high&#39;</span><span class="p">])</span>
+            <span class="c"># where the amount is less than $20</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_date_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_date_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_date_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds date language.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;begin_date&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;end_date&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; between &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">ymd_to_full_date</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;begin_date&#39;</span><span class="p">],</span>
+                        <span class="n">no_day</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="s">&quot;, and &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">ymd_to_full_date</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;end_date&#39;</span><span class="p">],</span>
+                        <span class="n">no_day</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c"># between Feb. 10, 2014, and Feb. 12, 2014</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; after &quot;</span> <span class="o">+</span> \
+                    <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">ymd_to_full_date</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;begin_date&#39;</span><span class="p">],</span>
+                        <span class="n">no_day</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                <span class="c"># after Feb. 10, 2014.</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;end_date&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+            <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&quot; before &quot;</span> <span class="o">+</span> \
+                <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">ymd_to_full_date</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;end_date&#39;</span><span class="p">],</span>
+                    <span class="n">no_day</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="c"># before Feb. 20, 2014.</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.add_map_filtering_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_map_filtering_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_map_filtering_language</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Adds language depending on whether map filtering is turned on.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">&#39;map_button_state&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="bp">True</span><span class="p">:</span>
+            <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&#39; in the current map view&#39;</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="ResultsLanguage.add_final_sentence_language"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.add_final_sentence_language">[docs]</a>    <span class="k">def</span> <span class="nf">add_final_sentence_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Endings for the sentences.&#39;&#39;&#39;</span>
+
+        <span class="c"># Punctuation comes before quotation marks</span>
+        <span class="k">if</span> <span class="n">final_sentence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;&#39;&quot;</span> <span class="ow">or</span> <span class="n">final_sentence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;&quot;&#39;</span><span class="p">:</span>
+            <span class="n">last_character</span> <span class="o">=</span> <span class="n">final_sentence</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">final_sentence_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+            <span class="n">final_sentence_list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span>
+            <span class="n">final_sentence_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">last_character</span><span class="p">)</span>
+            <span class="n">final_sentence</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">final_sentence_list</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">final_sentence</span> <span class="o">+=</span> <span class="s">&#39;.&#39;</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div>
+<div class="viewcode-block" id="ResultsLanguage.main"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.results_language.ResultsLanguage.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs through all sentence-building methods.&#39;&#39;&#39;</span>
+
+        <span class="n">plural_or_not</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">plural_or_not</span><span class="p">()</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_initial_language</span><span class="p">(</span><span class="n">plural_or_not</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_keyword_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_nbhd_zip_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_amount_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_date_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_map_filtering_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+        <span class="n">final_sentence</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_final_sentence_language</span><span class="p">(</span><span class="n">final_sentence</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">final_sentence</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

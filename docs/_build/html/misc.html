@@ -1,0 +1,846 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Misc. &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="index.html" />
+    <link rel="next" title="Scrape" href="scrape.html" />
+    <link rel="prev" title="Database" href="database.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scrape.html" title="Scrape"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="database.html" title="Database"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Land records 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-landrecords.app">
+<span id="id1"></span><span id="misc"></span><h1>Misc.<a class="headerlink" href="#module-landrecords.app" title="Permalink to this headline">¶</a></h1>
+<p>The controller that routes requests and returns responses.</p>
+<dl class="function">
+<dt id="landrecords.app.authenticate">
+<code class="descclassname">landrecords.app.</code><code class="descname">authenticate</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#authenticate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.authenticate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return error message.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.check_auth">
+<code class="descclassname">landrecords.app.</code><code class="descname">check_auth</code><span class="sig-paren">(</span><em>username</em>, <em>password</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#check_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.check_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if given username and password match correct credentials.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>username</strong> (<em>string</em>) &#8211; The entered username.</li>
+<li><strong>password</strong> (<em>string</em>) &#8211; The entered password.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bool. True if username and password are correct, False otherwise.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.dashboard">
+<code class="descclassname">landrecords.app.</code><code class="descname">dashboard</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>The admin dashboard page for making adjustments to the database.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.home">
+<code class="descclassname">landrecords.app.</code><code class="descname">home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a GET call for the homepage (/) and returns the view.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.page_not_found">
+<code class="descclassname">landrecords.app.</code><code class="descname">page_not_found</code><span class="sig-paren">(</span><em>error</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#page_not_found"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.page_not_found" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an error page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>error</strong> (<em>not sure</em>) &#8211; The error message(?).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The view.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.requires_auth">
+<code class="descclassname">landrecords.app.</code><code class="descname">requires_auth</code><span class="sig-paren">(</span><em>f</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#requires_auth"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.requires_auth" title="Permalink to this definition">¶</a></dt>
+<dd><p>Authorization process.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.sale">
+<code class="descclassname">landrecords.app.</code><code class="descname">sale</code><span class="sig-paren">(</span><em>instrument_no=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#sale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.sale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a GET request for a particular sale&#8217;s individual page.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>instrument_no</strong> (<em>string</em>) &#8211; The sale&#8217;s instrument number, determined via the URL.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">The sale&#8217;s page or an error page if no sale found.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.search">
+<code class="descclassname">landrecords.app.</code><code class="descname">search</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a request (GET or POST) for the /search page and returns a view
+of some or all of the /search page, depending on whether GET or POST.</p>
+<p>todo:
+:param request: Incoming data
+:type request: dict?
+:returns: View of search page.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.searchbar_input">
+<code class="descclassname">landrecords.app.</code><code class="descname">searchbar_input</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#searchbar_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.searchbar_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>Receives a ___ call from the autocomplete dropdown and returns a dict
+of suggestions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>query</strong> (<em>string</em>) &#8211; The search bar input.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A dict of matching suggestions.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.app.webhook">
+<code class="descclassname">landrecords.app.</code><code class="descname">webhook</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/app.html#webhook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.app.webhook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Webhook class to keep server and S3 in sync</p>
+</dd></dl>
+
+<span class="target" id="module-landrecords.models"></span><p>The models.</p>
+<dl class="class">
+<dt id="landrecords.models.Models">
+<em class="property">class </em><code class="descclassname">landrecords.models.</code><code class="descname">Models</code><span class="sig-paren">(</span><em>initial_date=None</em>, <em>until_date=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gathers data from particular requests.</p>
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.build_features_json">
+<em class="property">static </em><code class="descname">build_features_json</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.build_features_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.build_features_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.convert_entries_to_db_friendly">
+<em class="property">static </em><code class="descname">convert_entries_to_db_friendly</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.convert_entries_to_db_friendly"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.convert_entries_to_db_friendly" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.decode_data">
+<em class="property">static </em><code class="descname">decode_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.decode_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.decode_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.determine_pages">
+<code class="descname">determine_pages</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.determine_pages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.determine_pages" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.do_not_filter_by_map">
+<code class="descname">do_not_filter_by_map</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.do_not_filter_by_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.do_not_filter_by_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.filter_by_map">
+<code class="descname">filter_by_map</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.filter_by_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.filter_by_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.find_all_publishable_rows_fitting_criteria">
+<code class="descname">find_all_publishable_rows_fitting_criteria</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.find_all_publishable_rows_fitting_criteria"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.find_all_publishable_rows_fitting_criteria" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.find_page_of_publishable_rows_fitting_criteria">
+<code class="descname">find_page_of_publishable_rows_fitting_criteria</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.find_page_of_publishable_rows_fitting_criteria"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.find_page_of_publishable_rows_fitting_criteria" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.get_home">
+<code class="descname">get_home</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.get_home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.get_home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets data for the homepage (/).</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.get_last_updated_date">
+<code class="descname">get_last_updated_date</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.get_last_updated_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.get_last_updated_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.get_neighborhoods">
+<code class="descname">get_neighborhoods</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.get_neighborhoods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.get_neighborhoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.get_sale">
+<code class="descname">get_sale</code><span class="sig-paren">(</span><em>instrument_no</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.get_sale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.get_sale" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.get_search">
+<code class="descname">get_search</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.get_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.get_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>GET call to /realestate/search.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.map_query_length">
+<code class="descname">map_query_length</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.map_query_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.map_query_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.mapquery_db">
+<code class="descname">mapquery_db</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.mapquery_db"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.mapquery_db" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.parse_query_string">
+<em class="property">static </em><code class="descname">parse_query_string</code><span class="sig-paren">(</span><em>request</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.parse_query_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.parse_query_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses URL query string parameters.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.post_search">
+<code class="descname">post_search</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.post_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.post_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process incoming POST data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.query_search_term_limit_3">
+<code class="descname">query_search_term_limit_3</code><span class="sig-paren">(</span><em>table</em>, <em>term</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.query_search_term_limit_3"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.query_search_term_limit_3" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the top three results for autocomplete dropdown.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.query_with_map_boundaries">
+<code class="descname">query_with_map_boundaries</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.query_with_map_boundaries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.query_with_map_boundaries" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.revert_entries">
+<em class="property">static </em><code class="descname">revert_entries</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.revert_entries"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.revert_entries" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.models.Models.searchbar_input">
+<code class="descname">searchbar_input</code><span class="sig-paren">(</span><em>term</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.searchbar_input"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.searchbar_input" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.models.Models.update_pager">
+<em class="property">static </em><code class="descname">update_pager</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/models.html#Models.update_pager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.models.Models.update_pager" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="landrecords.models.desc">
+<code class="descclassname">landrecords.models.</code><code class="descname">desc</code><span class="sig-paren">(</span><em>column</em><span class="sig-paren">)</span><a class="headerlink" href="#landrecords.models.desc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Produce a descending <code class="docutils literal"><span class="pre">ORDER</span> <span class="pre">BY</span></code> clause element.</p>
+<p>e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">desc</span>
+
+<span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>will produce SQL as:</p>
+<div class="highlight-python"><div class="highlight"><pre>SELECT id, name FROM user ORDER BY name DESC
+</pre></div>
+</div>
+<p>The <a class="reference internal" href="#landrecords.models.desc" title="landrecords.models.desc"><code class="xref py py-func docutils literal"><span class="pre">desc()</span></code></a> function is a standalone version of the
+<code class="xref py py-meth docutils literal"><span class="pre">ColumnElement.desc()</span></code> method available on all SQL expressions,
+e.g.:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">stmt</span> <span class="o">=</span> <span class="n">select</span><span class="p">([</span><span class="n">users_table</span><span class="p">])</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">users_table</span><span class="o">.</span><span class="n">c</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">desc</span><span class="p">())</span>
+</pre></div>
+</div>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>column</strong> &#8211; A <code class="xref py py-class docutils literal"><span class="pre">ColumnElement</span></code> (e.g. scalar SQL expression)
+with which to apply the <a class="reference internal" href="#landrecords.models.desc" title="landrecords.models.desc"><code class="xref py py-func docutils literal"><span class="pre">desc()</span></code></a> operation.</td>
+</tr>
+</tbody>
+</table>
+<div class="admonition seealso">
+<p class="first admonition-title">See also</p>
+<p><code class="xref py py-func docutils literal"><span class="pre">asc()</span></code></p>
+<p><code class="xref py py-func docutils literal"><span class="pre">nullsfirst()</span></code></p>
+<p><code class="xref py py-func docutils literal"><span class="pre">nullslast()</span></code></p>
+<p class="last"><code class="xref py py-meth docutils literal"><span class="pre">Select.order_by()</span></code></p>
+</div>
+</dd></dl>
+
+<span class="target" id="module-landrecords.views"></span><p>Renders the views.</p>
+<dl class="class">
+<dt id="landrecords.views.Views">
+<em class="property">class </em><code class="descclassname">landrecords.views.</code><code class="descname">Views</code><a class="reference internal" href="_modules/landrecords/views.html#Views"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for each page in the app.</p>
+<dl class="method">
+<dt id="landrecords.views.Views.get_dashboard">
+<code class="descname">get_dashboard</code><span class="sig-paren">(</span><em>data</em>, <em>newrows</em>, <em>js_data</em>, <em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.get_dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.get_dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return GET view for /realestate/dashboard</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.views.Views.get_error_page">
+<code class="descname">get_error_page</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.get_error_page"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.get_error_page" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return 404 error page.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.views.Views.get_home">
+<code class="descname">get_home</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.get_home"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.get_home" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return view for /realestate/</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.views.Views.get_sale">
+<code class="descname">get_sale</code><span class="sig-paren">(</span><em>data</em>, <em>js_data</em>, <em>newrows</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.get_sale"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.get_sale" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return GET view for /realestate/sale</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.views.Views.get_search">
+<code class="descname">get_search</code><span class="sig-paren">(</span><em>data</em>, <em>newrows</em>, <em>js_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.get_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.get_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return GET view for /realestate/search</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.views.Views.post_dashboard">
+<code class="descname">post_dashboard</code><span class="sig-paren">(</span><em>data</em>, <em>newrows</em>, <em>js_data</em>, <em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.post_dashboard"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.post_dashboard" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return POST view for /realestate/dashboard</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.views.Views.post_search">
+<em class="property">static </em><code class="descname">post_search</code><span class="sig-paren">(</span><em>data</em>, <em>newrows</em>, <em>js_data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/views.html#Views.post_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.views.Views.post_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return updated views for /realestate/search</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.delete_dates"></span><p>Deletes certain dates from database.</p>
+<dl class="class">
+<dt id="landrecords.lib.delete_dates.DeleteDates">
+<em class="property">class </em><code class="descclassname">landrecords.lib.delete_dates.</code><code class="descname">DeleteDates</code><span class="sig-paren">(</span><em>initial_date=None</em>, <em>until_date=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/delete_dates.html#DeleteDates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.delete_dates.DeleteDates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes certain dates from database.</p>
+<dl class="method">
+<dt id="landrecords.lib.delete_dates.DeleteDates.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/delete_dates.html#DeleteDates.main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.delete_dates.DeleteDates.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run Join() and Clean() scripts.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.email_template"></span><p>Forms the daily email summary.</p>
+<dl class="class">
+<dt id="landrecords.lib.email_template.EmailTemplate">
+<em class="property">class </em><code class="descclassname">landrecords.lib.email_template.</code><code class="descname">EmailTemplate</code><span class="sig-paren">(</span><em>initial_date=None</em>, <em>until_date=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/email_template.html#EmailTemplate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.email_template.EmailTemplate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Email template class, including subject and body generators.</p>
+<dl class="method">
+<dt id="landrecords.lib.email_template.EmailTemplate.generate_body">
+<code class="descname">generate_body</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/email_template.html#EmailTemplate.generate_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.email_template.EmailTemplate.generate_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Combine the email body parts.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.email_template.EmailTemplate.generate_body_list">
+<code class="descname">generate_body_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/email_template.html#EmailTemplate.generate_body_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.email_template.EmailTemplate.generate_body_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate list of all sales in given date range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.email_template.EmailTemplate.generate_body_summary">
+<code class="descname">generate_body_summary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/email_template.html#EmailTemplate.generate_body_summary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.email_template.EmailTemplate.generate_body_summary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates body for email, including statistics.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.email_template.EmailTemplate.generate_subject">
+<code class="descname">generate_subject</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/email_template.html#EmailTemplate.generate_subject"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.email_template.EmailTemplate.generate_subject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates subject for email.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.form_tweet"></span><p>Runs logic to find what to tweet and forms language for tweet.</p>
+<dl class="class">
+<dt id="landrecords.lib.form_tweet.AutoTweet">
+<em class="property">class </em><code class="descclassname">landrecords.lib.form_tweet.</code><code class="descname">AutoTweet</code><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs logic to find what to tweet and forms language for tweet.</p>
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.conversational_neighborhoods">
+<em class="property">static </em><code class="descname">conversational_neighborhoods</code><span class="sig-paren">(</span><em>neighborhood</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.conversational_neighborhoods"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.conversational_neighborhoods" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts neighborhoods to the way you would refer to them in
+conversation. Ex. &#8220;French Quarter&#8221; =&gt; &#8220;the French Quarter.&#8221;</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.figure_out_recorded_date">
+<em class="property">static </em><code class="descname">figure_out_recorded_date</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.figure_out_recorded_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.figure_out_recorded_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Treat Tuesday-Saturday like any other day. Don&#8217;t do anything on
+Sundays. Mondays tweet about entire previous week.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.form_message">
+<em class="property">static </em><code class="descname">form_message</code><span class="sig-paren">(</span><em>time_period</em>, <em>neighborhood</em>, <em>amount</em>, <em>url</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.form_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.form_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plug variables into mab lib sentences.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.form_url">
+<em class="property">static </em><code class="descname">form_url</code><span class="sig-paren">(</span><em>instrument_no</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.form_url"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.form_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append instrument number to /realestate/sale/</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.form_tweet.AutoTweet.get_highest_amount_details">
+<code class="descname">get_highest_amount_details</code><span class="sig-paren">(</span><em>document_recorded_early</em>, <em>document_recorded_late</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.get_highest_amount_details"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.get_highest_amount_details" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the relevant fields about the sale with the highest amount.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.get_image">
+<em class="property">static </em><code class="descname">get_image</code><span class="sig-paren">(</span><em>url</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.get_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.get_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take screenshot of map with PhantomJS.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.form_tweet.AutoTweet.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs through all methods.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.form_tweet.AutoTweet.open_image">
+<code class="descname">open_image</code><span class="sig-paren">(</span><em>url</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.open_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.open_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get file path to screenshot.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.form_tweet.AutoTweet.screenshot_name">
+<em class="property">static </em><code class="descname">screenshot_name</code><span class="sig-paren">(</span><em>instrument_no</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/form_tweet.html#AutoTweet.screenshot_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.form_tweet.AutoTweet.screenshot_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Form filename for map screenshot.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.get_dates"></span><p>Gets date range for initialize script.</p>
+<dl class="class">
+<dt id="landrecords.lib.get_dates.GetDates">
+<em class="property">class </em><code class="descclassname">landrecords.lib.get_dates.</code><code class="descname">GetDates</code><a class="reference internal" href="_modules/landrecords/lib/get_dates.html#GetDates"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.get_dates.GetDates" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets date range for initialize script.</p>
+<dl class="method">
+<dt id="landrecords.lib.get_dates.GetDates.get_date_range">
+<code class="descname">get_date_range</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/get_dates.html#GetDates.get_date_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.get_dates.GetDates.get_date_range" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks which dates have not been entered into the database yet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.get_dates.GetDates.get_existing_until_date">
+<code class="descname">get_existing_until_date</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/get_dates.html#GetDates.get_existing_until_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.get_dates.GetDates.get_existing_until_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.libraries"></span><p>A collection of items.</p>
+<dl class="class">
+<dt id="landrecords.lib.libraries.Library">
+<em class="property">class </em><code class="descclassname">landrecords.lib.libraries.</code><code class="descname">Library</code><a class="reference internal" href="_modules/landrecords/lib/libraries.html#Library"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.libraries.Library" title="Permalink to this definition">¶</a></dt>
+<dd><p>The items.</p>
+<dl class="attribute">
+<dt id="landrecords.lib.libraries.Library.streets">
+<code class="descname">streets</code><em class="property"> = None</em><a class="headerlink" href="#landrecords.lib.libraries.Library.streets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Not sure what to do for &#8220;St.&#8221;. This &#8211;&gt; [&#8216; St&#8217;, &#8216; St.&#8217;] would also
+pick up something such as 123 Straight Road. The same could
+conceivably happen with &#8220;Ave&#8221;. &#8220;Dr&#8221; needs to become &#8220;Drive&#8221;, but have
+the same problem</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.mail"></span><p>Sends emails using Gmail.</p>
+<dl class="class">
+<dt id="landrecords.lib.mail.Mail">
+<em class="property">class </em><code class="descclassname">landrecords.lib.mail.</code><code class="descname">Mail</code><span class="sig-paren">(</span><em>subject='Land records summary', body='Here is your email', frm='tthoren&#64;thelensnola.org', to=['tthoren&#64;thelensnola.org']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mail methods include test, HTML and add attachments.</p>
+<dl class="method">
+<dt id="landrecords.lib.mail.Mail.add_headers">
+<code class="descname">add_headers</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail.add_headers"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail.add_headers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add email headers subject, from and to onto the message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.mail.Mail.send_as_html">
+<code class="descname">send_as_html</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail.send_as_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail.send_as_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Form HTML message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.mail.Mail.send_as_text">
+<code class="descname">send_as_text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail.send_as_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail.send_as_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Form plain text message.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.mail.Mail.send_email">
+<code class="descname">send_email</code><span class="sig-paren">(</span><em>msg</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail.send_email"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail.send_email" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes and sends the email.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.mail.Mail.send_with_attachment">
+<code class="descname">send_with_attachment</code><span class="sig-paren">(</span><em>files=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/mail.html#Mail.send_with_attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.mail.Mail.send_with_attachment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attach file to message.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.results_language"></span><p>Builds languages for returned results.</p>
+<dl class="class">
+<dt id="landrecords.lib.results_language.ResultsLanguage">
+<em class="property">class </em><code class="descclassname">landrecords.lib.results_language.</code><code class="descname">ResultsLanguage</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for each page in the app.</p>
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_amount_language">
+<code class="descname">add_amount_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_amount_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_amount_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds amount language.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_date_language">
+<code class="descname">add_date_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_date_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_date_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds date language.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_final_sentence_language">
+<em class="property">static </em><code class="descname">add_final_sentence_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_final_sentence_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_final_sentence_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Endings for the sentences.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_initial_language">
+<code class="descname">add_initial_language</code><span class="sig-paren">(</span><em>plural_or_not</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_initial_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_initial_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates initial sentence language.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_keyword_language">
+<code class="descname">add_keyword_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_keyword_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_keyword_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds keyword or key phrase language.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_map_filtering_language">
+<code class="descname">add_map_filtering_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_map_filtering_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_map_filtering_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds language depending on whether map filtering is turned on.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.add_nbhd_zip_language">
+<code class="descname">add_nbhd_zip_language</code><span class="sig-paren">(</span><em>final_sentence</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.add_nbhd_zip_language"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.add_nbhd_zip_language" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds neighborhood or ZIP code language.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.main">
+<code class="descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.main"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.main" title="Permalink to this definition">¶</a></dt>
+<dd><p>Runs through all sentence-building methods.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.results_language.ResultsLanguage.plural_or_not">
+<code class="descname">plural_or_not</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/results_language.html#ResultsLanguage.plural_or_not"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.results_language.ResultsLanguage.plural_or_not" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if more than one result.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.stat_analysis"></span><p>Commmon statistical analyses, like high amounts, sales per day, etc.</p>
+<dl class="class">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis">
+<em class="property">class </em><code class="descclassname">landrecords.lib.stat_analysis.</code><code class="descname">StatAnalysis</code><span class="sig-paren">(</span><em>initial_date=None</em>, <em>until_date=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis" title="Permalink to this definition">¶</a></dt>
+<dd><p>Commmon statistical analyses.</p>
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.all_records">
+<code class="descname">all_records</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.all_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.all_records" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get all rows for the given date range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.count">
+<code class="descname">count</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.count"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.count" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get number of records.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.detail_not_published">
+<code class="descname">detail_not_published</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.detail_not_published"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.detail_not_published" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rows that have unpublishable detail data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.detail_published">
+<code class="descname">detail_published</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.detail_published"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.detail_published" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rows that have publishable detail data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.highest_amount">
+<code class="descname">highest_amount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.highest_amount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.highest_amount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the highest sale amount for a given date range.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.location_not_published">
+<code class="descname">location_not_published</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.location_not_published"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.location_not_published" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rows that have unpublishable location data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.location_published">
+<code class="descname">location_published</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.location_published"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.location_published" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get rows that have publishable location data.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.stat_analysis.StatAnalysis.lowest_amount">
+<code class="descname">lowest_amount</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/stat_analysis.html#StatAnalysis.lowest_amount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.stat_analysis.StatAnalysis.lowest_amount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the lowest sale amount for a given date range.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.twitter"></span><p>Methods for working with Twitter.</p>
+<dl class="class">
+<dt id="landrecords.lib.twitter.Twitter">
+<em class="property">class </em><code class="descclassname">landrecords.lib.twitter.</code><code class="descname">Twitter</code><span class="sig-paren">(</span><em>status=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Methods for working with the Twitter API.</p>
+<dl class="method">
+<dt id="landrecords.lib.twitter.Twitter.check_for_urls">
+<code class="descname">check_for_urls</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter.check_for_urls"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter.check_for_urls" title="Permalink to this definition">¶</a></dt>
+<dd><p>Scan for URLs. Replace URL length if any found.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.twitter.Twitter.check_length">
+<code class="descname">check_length</code><span class="sig-paren">(</span><em>media=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter.check_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter.check_length" title="Permalink to this definition">¶</a></dt>
+<dd><p>Confirm that the status + attachments is &lt;= 140 chars.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.twitter.Twitter.get_attachment">
+<em class="property">static </em><code class="descname">get_attachment</code><span class="sig-paren">(</span><em>media</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter.get_attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter.get_attachment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Opens a file.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.twitter.Twitter.send_as_text">
+<code class="descname">send_as_text</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter.send_as_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter.send_as_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send plain text tweet.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="landrecords.lib.twitter.Twitter.send_with_media">
+<code class="descname">send_with_media</code><span class="sig-paren">(</span><em>media=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/twitter.html#Twitter.send_with_media"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.twitter.Twitter.send_with_media" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send tweet with media attachment.</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-landrecords.lib.utils"></span><p>Common utility functions, like converting between dates and types.</p>
+<dl class="class">
+<dt id="landrecords.lib.utils.Utils">
+<em class="property">class </em><code class="descclassname">landrecords.lib.utils.</code><code class="descname">Utils</code><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils" title="Permalink to this definition">¶</a></dt>
+<dd><p>Common utility functions.</p>
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.binary_to_english">
+<em class="property">static </em><code class="descname">binary_to_english</code><span class="sig-paren">(</span><em>bit</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.binary_to_english"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.binary_to_english" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert 0/1 to No/Yes.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.convert_amount">
+<em class="property">static </em><code class="descname">convert_amount</code><span class="sig-paren">(</span><em>amount</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.convert_amount"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.convert_amount" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert amounts to int type.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.convert_month_to_ap_style">
+<em class="property">static </em><code class="descname">convert_month_to_ap_style</code><span class="sig-paren">(</span><em>month</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.convert_month_to_ap_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.convert_month_to_ap_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert month to AP Style. Ex. January =&gt; Jan.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.english_to_binary">
+<em class="property">static </em><code class="descname">english_to_binary</code><span class="sig-paren">(</span><em>english</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.english_to_binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.english_to_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert No/Yes to 0/1.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.get_num_with_curr_sign">
+<em class="property">static </em><code class="descname">get_num_with_curr_sign</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.get_num_with_curr_sign"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.get_num_with_curr_sign" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert integer to string with commas and dollar sign.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.get_number_with_commas">
+<em class="property">static </em><code class="descname">get_number_with_commas</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.get_number_with_commas"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.get_number_with_commas" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert interger to string with commas.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.ymd_to_full_date">
+<em class="property">static </em><code class="descname">ymd_to_full_date</code><span class="sig-paren">(</span><em>value</em>, <em>no_day=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.ymd_to_full_date"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.ymd_to_full_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert yyyy-mm-dd to Day, Month Date, Year.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.ymd_to_mdy">
+<em class="property">static </em><code class="descname">ymd_to_mdy</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.ymd_to_mdy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.ymd_to_mdy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert yyyy-mm-dd to mm-dd-yyyy.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="landrecords.lib.utils.Utils.ymd_to_mdy_slashes">
+<em class="property">static </em><code class="descname">ymd_to_mdy_slashes</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/utils.html#Utils.ymd_to_mdy_slashes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.utils.Utils.ymd_to_mdy_slashes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert yyyy-mm-dd to mm/dd/yyyy.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="database.html"
+                        title="previous chapter">Database</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="scrape.html"
+                        title="next chapter">Scrape</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/misc.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+      |
+      <a href="_sources/misc.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

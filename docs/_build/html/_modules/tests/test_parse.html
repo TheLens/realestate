@@ -1,0 +1,624 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>tests.test_parse &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for tests.test_parse</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="c"># import mock</span>
+<span class="kn">from</span> <span class="nn">unittest</span> <span class="kn">import</span> <span class="n">TestCase</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.parse</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">AllPurposeParser</span><span class="p">,</span>
+    <span class="n">DetailParser</span><span class="p">,</span>
+    <span class="n">VendorParser</span><span class="p">,</span>
+    <span class="n">VendeeParser</span><span class="p">,</span>
+    <span class="n">LocationParser</span>
+<span class="p">)</span>
+
+
+<div class="viewcode-block" id="TestAllPurposeParser"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestAllPurposeParser">[docs]</a><span class="k">class</span> <span class="nc">TestAllPurposeParser</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+    <span class="s">&quot;TestAllPurposeParser&quot;</span>
+
+    <span class="n">html_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+        <span class="s">&#39;raw/2014-02-18/form-html/OPR288694480.html&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestAllPurposeParser.test_all_purpose_get_document_id_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_all_purpose_get_document_id_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Test that AllPurposeParser has document ID as self variable.&#39;&#39;&#39;</span>
+
+        <span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_id</span><span class="p">,</span> <span class="s">&quot;OPR288694480&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestAllPurposeParser.test_all_purpose_get_document_id_method"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_method">[docs]</a>    <span class="k">def</span> <span class="nf">test_all_purpose_get_document_id_method</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Test AllPurposeParser method for finding document ID.&#39;&#39;&#39;</span>
+
+        <span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_document_id</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_id</span><span class="p">,</span> <span class="s">&quot;OPR288694480&quot;</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TestDetailParser"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser">[docs]</a><span class="k">class</span> <span class="nc">TestDetailParser</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Test parser for details table.&#39;&#39;&#39;</span>
+
+    <span class="n">html_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+        <span class="s">&#39;raw/2014-02-18/form-html/OPR288694480.html&#39;</span><span class="p">)</span>
+
+    <span class="c"># todo: rows, parse_rows</span>
+
+<div class="viewcode-block" id="TestDetailParser.test_get_field_document_type_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_document_type_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_document_type_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_document_type_var&quot;</span>
+
+        <span class="n">document_type</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_type</span><span class="p">,</span> <span class="s">&quot;SALE&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_instrument_no_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_instrument_no_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_instrument_no_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_instrument_no_var&quot;</span>
+
+        <span class="n">instrument_no</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">instrument_no</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">instrument_no</span><span class="p">,</span> <span class="s">&quot;2014-06269&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_multi_seq_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_multi_seq_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_multi_seq_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_multi_seq_var&quot;</span>
+
+        <span class="n">multi_seq</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">multi_seq</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">multi_seq</span><span class="p">,</span> <span class="s">&quot;0&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_min__var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_min__var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_min__var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_min__var&quot;</span>
+
+        <span class="n">min_</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">min_</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">min_</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_cin_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_cin_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_cin_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_cin_var&quot;</span>
+
+        <span class="n">cin</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">cin</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cin</span><span class="p">,</span> <span class="s">&quot;549928&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_book_type_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_book_type_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_book_type_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_book_type_var&quot;</span>
+
+        <span class="n">book_type</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">book_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">book_type</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_book_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_book_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_book_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_book_var&quot;</span>
+
+        <span class="n">book</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">book</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">book</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_page_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_page_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_page_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_page_var&quot;</span>
+
+        <span class="n">page</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">page</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_document_date_var_none"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_document_date_var_none">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_document_date_var_none</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Test that if no document date is entered,</span>
+<span class="sd">        then a value of None/NULL is returned.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">html_no_document_date</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+            <span class="s">&#39;raw/2014-05-01/form-html/OPR291526640.html&#39;</span><span class="p">)</span>
+
+        <span class="n">document_date</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="n">html_no_document_date</span><span class="p">)</span><span class="o">.</span><span class="n">document_date</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_date</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_document_date_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_document_date_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_document_date_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_document_date_var&quot;</span>
+
+        <span class="n">document_date</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_date</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_date</span><span class="p">,</span> <span class="s">&quot;02/10/2014&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_document_recorded_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_document_recorded_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_document_recorded_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_document_recorded_var&quot;</span>
+
+        <span class="n">document_recorded</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_recorded</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">document_recorded</span><span class="p">,</span> <span class="s">&quot;02/18/2014 10:35:37 AM&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_amount_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_amount_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_amount_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_amount_var&quot;</span>
+
+        <span class="n">amount</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">amount</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">amount</span><span class="p">,</span> <span class="mi">41000</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_status_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_status_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_status_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_status_var&quot;</span>
+
+        <span class="n">status</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">status</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="s">&quot;Verified&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_prior_mortgage_doc_type_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_prior_mortgage_doc_type_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_prior_mortgage_doc_type_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_prior_mortgage_doc_type_var&quot;</span>
+
+        <span class="n">prior_mortgage_doc_type</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">prior_mortgage_doc_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">prior_mortgage_doc_type</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_prior_conveyance_doc_type_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_prior_conveyance_doc_type_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_prior_conveyance_doc_type_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_prior_conveyance_doc_type_var&quot;</span>
+
+        <span class="n">output</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">prior_conveyance_doc_type</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_cancel_status_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_cancel_status_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_cancel_status_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_cancel_status_var&quot;</span>
+
+        <span class="n">cancel_status</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">cancel_status</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cancel_status</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_remarks_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_remarks_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_remarks_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_remarks_var&quot;</span>
+
+        <span class="n">remarks</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">remarks</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">remarks</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_no_pages_in_image_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_no_pages_in_image_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_no_pages_in_image_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_no_pages_in_image_var&quot;</span>
+
+        <span class="n">no_pages_in_image</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">no_pages_in_image</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">no_pages_in_image</span><span class="p">,</span> <span class="s">&quot;8&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_get_field_image_var"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_get_field_image_var">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_image_var</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_image_var&quot;</span>
+
+        <span class="n">image</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">image</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c"># def test_form_dict(self):</span>
+    <span class="c">#     &quot;test_form_dict&quot;</span>
+
+    <span class="c">#     output = DetailParser(self.html_path).form_dict()</span>
+
+    <span class="c">#     self.assertEqual(type(output), dict)</span>
+</div>
+<div class="viewcode-block" id="TestDetailParser.test_form_dict"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestDetailParser.test_form_dict">[docs]</a>    <span class="k">def</span> <span class="nf">test_form_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;docstring&#39;&#39;&#39;</span>
+
+        <span class="n">details_dict</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s">&#39;status&#39;</span><span class="p">:</span> <span class="s">&#39;Verified&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_recorded&#39;</span><span class="p">:</span> <span class="s">&#39;02/18/2014 10:35:37 AM&#39;</span><span class="p">,</span>
+            <span class="s">&#39;prior_conveyance_doc_type&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;no_pages_in_image&#39;</span><span class="p">:</span> <span class="s">&#39;8&#39;</span><span class="p">,</span>
+            <span class="s">&#39;prior_mortgage_doc_type&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;cin&#39;</span><span class="p">:</span> <span class="s">&#39;549928&#39;</span><span class="p">,</span>
+            <span class="s">&#39;instrument_no&#39;</span><span class="p">:</span> <span class="s">&#39;2014-06269&#39;</span><span class="p">,</span>
+            <span class="s">&#39;page&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;amount&#39;</span><span class="p">:</span> <span class="mi">41000</span><span class="p">,</span>
+            <span class="s">&#39;book_type&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="s">&#39;OPR288694480&#39;</span><span class="p">,</span>
+            <span class="s">&#39;cancel_status&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;min_&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;remarks&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_type&#39;</span><span class="p">:</span> <span class="s">&#39;SALE&#39;</span><span class="p">,</span>
+            <span class="s">&#39;image&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;book&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;multi_seq&#39;</span><span class="p">:</span> <span class="s">&#39;0&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_date&#39;</span><span class="p">:</span> <span class="s">&#39;02/10/2014&#39;</span>
+        <span class="p">}</span>
+
+        <span class="n">test_details_dict</span> <span class="o">=</span> <span class="n">DetailParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_dict</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">test_details_dict</span><span class="p">,</span> <span class="n">details_dict</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TestVendorParser"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser">[docs]</a><span class="k">class</span> <span class="nc">TestVendorParser</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;TestVendorParser&#39;&#39;&#39;</span>
+
+    <span class="n">html_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+        <span class="s">&#39;raw/2014-02-18/form-html/OPR288694480.html&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_blank"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_blank">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_blank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_blank&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_blank1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_blank&#39;</span><span class="p">]</span>
+        <span class="n">vendor_blank2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_blank&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_blank1</span><span class="p">,</span> <span class="s">&quot;1&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_blank2</span><span class="p">,</span> <span class="s">&quot;2&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_p_c"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_p_c">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_p_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_p_c&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_p_c1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_p_c&#39;</span><span class="p">]</span>
+        <span class="n">vendor_p_c2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_p_c&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_p_c1</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_p_c2</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_lastname"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_lastname">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_lastname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_lastname&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_lastname1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_lastname&#39;</span><span class="p">]</span>
+        <span class="n">vendor_lastname2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_lastname&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">vendor_lastname1</span><span class="p">,</span>
+            <span class="s">&quot;NEW ORLEANS REDEVELOPMENT AUTHORITY&quot;</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+            <span class="n">vendor_lastname2</span><span class="p">,</span>
+            <span class="s">&quot;COMMUNITY IMPROVEMENT AGENCY&quot;</span>
+        <span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_firstname"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_firstname">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_firstname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_firstname&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_firstname1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_firstname&#39;</span><span class="p">]</span>
+        <span class="n">vendor_firstname2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_firstname&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_firstname1</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_firstname2</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_relator"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_relator">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_relator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_relator&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_relator1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_relator&#39;</span><span class="p">]</span>
+        <span class="n">vendor_relator2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_relator&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_relator1</span><span class="p">,</span> <span class="s">&quot;FKA&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_relator2</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_get_vendor_cancel_status"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_get_vendor_cancel_status">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendor_cancel_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendor_cancel_status&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendor_cancel_status1</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendor_cancel_status&#39;</span><span class="p">]</span>
+        <span class="n">vendor_cancel_status2</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="s">&#39;vendor_cancel_status&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_cancel_status1</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendor_cancel_status2</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendorParser.test_form_list"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendorParser.test_form_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;docstring&#39;&#39;&#39;</span>
+
+        <span class="n">vendors_list</span> <span class="o">=</span> <span class="p">[{</span>
+            <span class="s">&#39;vendor_blank&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_p_c&#39;</span><span class="p">:</span> <span class="s">&#39;C&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_relator&#39;</span><span class="p">:</span> <span class="s">&#39;FKA&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_cancel_status&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_firstname&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="s">&#39;OPR288694480&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_lastname&#39;</span><span class="p">:</span> <span class="s">&#39;NEW ORLEANS REDEVELOPMENT AUTHORITY&#39;</span>
+        <span class="p">},</span> <span class="p">{</span>
+            <span class="s">&#39;vendor_blank&#39;</span><span class="p">:</span> <span class="s">&#39;2&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_p_c&#39;</span><span class="p">:</span> <span class="s">&#39;C&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_relator&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_cancel_status&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_firstname&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="s">&#39;OPR288694480&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendor_lastname&#39;</span><span class="p">:</span> <span class="s">&#39;COMMUNITY IMPROVEMENT AGENCY&#39;</span>
+        <span class="p">}]</span>
+
+        <span class="n">test_vendors_list</span> <span class="o">=</span> <span class="n">VendorParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendors_list</span><span class="p">,</span> <span class="n">test_vendors_list</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TestVendeeParser"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser">[docs]</a><span class="k">class</span> <span class="nc">TestVendeeParser</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;TestVendeeParser&#39;&#39;&#39;</span>
+
+    <span class="n">html_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+        <span class="s">&#39;raw/2014-02-18/form-html/OPR288694480.html&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_blank"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_blank">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_blank</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_blank&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_blank</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_blank&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_blank</span><span class="p">,</span> <span class="s">&quot;1&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_p_c"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_p_c">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_p_c</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_p_c&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_p_c</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_p_c&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_p_c</span><span class="p">,</span> <span class="s">&quot;C&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_lastname"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_lastname">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_lastname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_lastname&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_lastname</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_lastname&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_lastname</span><span class="p">,</span> <span class="s">&quot;UV SOLO TRUST&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_firstname"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_firstname">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_firstname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_firstname&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_firstname</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_firstname&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_firstname</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_relator"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_relator">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_relator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_relator&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_relator</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_relator&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_relator</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_get_vendee_cancel_status"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_get_vendee_cancel_status">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_vendee_cancel_status</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_vendee_cancel_status&quot;</span>
+
+        <span class="n">l</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="n">vendee_cancel_status</span> <span class="o">=</span> <span class="n">l</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;vendee_cancel_status&#39;</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendee_cancel_status</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestVendeeParser.test_form_list"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestVendeeParser.test_form_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;docstring&#39;&#39;&#39;</span>
+
+        <span class="n">vendees_list</span> <span class="o">=</span> <span class="p">[{</span>
+            <span class="s">&#39;vendee_lastname&#39;</span><span class="p">:</span> <span class="s">&#39;UV SOLO TRUST&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendee_cancel_status&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendee_p_c&#39;</span><span class="p">:</span> <span class="s">&#39;C&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendee_firstname&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendee_relator&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;vendee_blank&#39;</span><span class="p">:</span> <span class="s">&#39;1&#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="s">&#39;OPR288694480&#39;</span>
+        <span class="p">}]</span>
+
+        <span class="n">test_vendees_list</span> <span class="o">=</span> <span class="n">VendeeParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">vendees_list</span><span class="p">,</span> <span class="n">test_vendees_list</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="TestLocationParser"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser">[docs]</a><span class="k">class</span> <span class="nc">TestLocationParser</span><span class="p">(</span><span class="n">TestCase</span><span class="p">):</span>
+
+    <span class="s">&quot;TestLocationParser&quot;</span>
+
+    <span class="n">html_path</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s">&#39;</span><span class="si">%s</span><span class="s">/&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span> <span class="o">+</span>
+        <span class="s">&#39;raw/2014-02-18/form-html/OPR288694480.html&#39;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TestLocationParser.test_get_field_subdivision"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_subdivision">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_subdivision</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_subdivision&quot;</span>
+
+        <span class="n">subdivision</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_subdivision</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">subdivision</span><span class="p">,</span> <span class="s">&quot;ARDYN PARK&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_condo"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_condo">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_condo</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_condo&quot;</span>
+
+        <span class="n">condo</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_condo</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">condo</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_district"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_district">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_district</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_district&quot;</span>
+
+        <span class="n">district</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_district</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">district</span><span class="p">,</span> <span class="s">&quot;3RD&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_square"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_square">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_square</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_square&quot;</span>
+
+        <span class="n">square</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_square</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">square</span><span class="p">,</span> <span class="s">&quot;4-A&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_street_number"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_street_number">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_street_number</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_street_number&quot;</span>
+
+        <span class="n">street_number</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_street_number</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">street_number</span><span class="p">,</span> <span class="s">&quot;7532&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_address"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_address">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_address</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_address&quot;</span>
+
+        <span class="n">address</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_address</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">address</span><span class="p">,</span> <span class="s">&quot;PRIMROSE DR&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_unit"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_unit">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_unit&quot;</span>
+
+        <span class="n">unit</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_unit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_weeks"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_weeks">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_weeks</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_weeks&quot;</span>
+
+        <span class="n">weeks</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_weeks</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">weeks</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_cancel_status_unit"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_cancel_status_unit">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_cancel_status_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_cancel_status_unit&quot;</span>
+
+        <span class="n">cancel_status_unit</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_cancel_status_unit</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cancel_status_unit</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_freeform_legal"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_freeform_legal">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_freeform_legal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_freeform_legal&quot;</span>
+
+        <span class="n">freeform_legal</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_freeform_legal</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">freeform_legal</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="c"># todo: closer look with various versions</span></div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_cancel_status_lot"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_cancel_status_lot">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_cancel_status_lot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_cancel_status_lot&quot;</span>
+
+        <span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_cancel_status_lot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cancel_status_lot</span><span class="p">,</span> <span class="s">&quot; &quot;</span><span class="p">)</span>
+
+    <span class="c"># todo: closer look with various HTML, for &quot;xx to xx&quot;</span></div>
+<div class="viewcode-block" id="TestLocationParser.test_get_field_lot"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_get_field_lot">[docs]</a>    <span class="k">def</span> <span class="nf">test_get_field_lot</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="s">&quot;test_get_field_lot&quot;</span>
+
+        <span class="n">lot</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">get_lot</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">lot</span><span class="p">,</span> <span class="s">&quot;17-A&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="TestLocationParser.test_form_list"><a class="viewcode-back" href="../../tests.html#tests.test_parse.TestLocationParser.test_form_list">[docs]</a>    <span class="k">def</span> <span class="nf">test_form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;docstring&#39;&#39;&#39;</span>
+
+        <span class="n">locations_list</span> <span class="o">=</span> <span class="p">[{</span>
+            <span class="s">&#39;square&#39;</span><span class="p">:</span> <span class="s">&#39;4-A&#39;</span><span class="p">,</span>
+            <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="s">&#39;PRIMROSE DR&#39;</span><span class="p">,</span>
+            <span class="s">&#39;condo&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;cancel_stat&#39;</span><span class="p">:</span> <span class="s">&#39; &#39;</span><span class="p">,</span>
+            <span class="s">&#39;unit&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;freeform_legal&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+            <span class="s">&#39;subdivision&#39;</span><span class="p">:</span> <span class="s">&#39;ARDYN PARK&#39;</span><span class="p">,</span>
+            <span class="s">&#39;street_number&#39;</span><span class="p">:</span> <span class="s">&#39;7532&#39;</span><span class="p">,</span>
+            <span class="s">&#39;district&#39;</span><span class="p">:</span> <span class="s">&#39;3RD&#39;</span><span class="p">,</span>
+            <span class="s">&#39;cancel_status&#39;</span><span class="p">:</span> <span class="s">&#39; &#39;</span><span class="p">,</span>
+            <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="s">&#39;OPR288694480&#39;</span><span class="p">,</span>
+            <span class="s">&#39;lot&#39;</span><span class="p">:</span> <span class="s">&#39;17-A&#39;</span><span class="p">,</span>
+            <span class="s">&#39;weeks&#39;</span><span class="p">:</span> <span class="s">&#39;&#39;</span>
+        <span class="p">}]</span>
+
+        <span class="n">test_locations_list</span> <span class="o">=</span> <span class="n">LocationParser</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">locations_list</span><span class="p">,</span> <span class="n">test_locations_list</span><span class="p">)</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

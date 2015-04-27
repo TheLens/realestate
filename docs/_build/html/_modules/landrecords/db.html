@@ -1,0 +1,718 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.db &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.db</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Defines tables in `landrecords` database using SQLAlchemy.</span>
+
+<span class="sd">The `landrecords` database consists of eight tables, four of which come from \</span>
+<span class="sd">the raw HTML data (`details`, `vendors`, `vendees` and `locations`). \</span>
+<span class="sd">`neighborhoods` comes from the city&#39;s shapefile on data.nola.gov. `dashboard` \</span>
+<span class="sd">is a private admin dashboard. `spatial_ref_sys` is part of the PostGIS \</span>
+<span class="sd">extension. The cleaned and crunched data in the original four tables feed \</span>
+<span class="sd">into the `cleaned` table, which is the only public-facing table.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Column</span><span class="p">,</span>
+    <span class="n">Integer</span><span class="p">,</span>
+    <span class="n">BigInteger</span><span class="p">,</span>
+    <span class="n">String</span><span class="p">,</span>
+    <span class="n">Numeric</span><span class="p">,</span>
+    <span class="n">Date</span><span class="p">,</span>
+    <span class="n">Float</span><span class="p">,</span>
+    <span class="n">ForeignKey</span><span class="p">,</span>
+    <span class="n">Boolean</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">geoalchemy2</span> <span class="kn">import</span> <span class="n">Geometry</span>
+
+<span class="n">Base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+
+
+<div class="viewcode-block" id="Location"><a class="viewcode-back" href="../../database.html#landrecords.db.Location">[docs]</a><span class="k">class</span> <span class="nc">Location</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `locations` table.</span>
+
+<span class="sd">    :param gid: Integer. Primary key ID</span>
+<span class="sd">    :param document_id: String. The unique ID on the Land Records \</span>
+<span class="sd">    Division&#39;s website.</span>
+<span class="sd">    :param street_number: String. Street number. Ex. &#39;123&#39;, for *123* MAIN ST.</span>
+<span class="sd">    :param address: String. The street name and type. Ex. &#39;MAIN ST&#39;, for 123 \</span>
+<span class="sd">    *MAIN ST*.</span>
+<span class="sd">    :param district: String. The municipal district.</span>
+<span class="sd">    :param square: String. The property&#39;s square (block) in the assessor&#39;s \</span>
+<span class="sd">    database.</span>
+<span class="sd">    :param lot: String. The property&#39;s lot number in the assessor&#39;s database.</span>
+<span class="sd">    :param unit: String. The individual unit(s) within a particular lot.</span>
+<span class="sd">    :param subdivision: String. The subdivision of the property.</span>
+<span class="sd">    :param condo: String. The condominium the property is a part of.</span>
+<span class="sd">    :param weeks: String. The number of weeks per year the property was sold \</span>
+<span class="sd">    for.</span>
+<span class="sd">    :param cancel_status_lot: String. The cancel status of the lot (first in \</span>
+<span class="sd">    locations table).</span>
+<span class="sd">    :param cancel_status_unit: String. The cancel status of the unit (second \</span>
+<span class="sd">    in locations table).</span>
+<span class="sd">    :param freeform_legal: String. Last field in locations table.</span>
+<span class="sd">    :param latitude: Float. Not part of raw data. Determined via geocoding.</span>
+<span class="sd">    :param longitude: Float. Not part of raw data. Determined via geocoding.</span>
+<span class="sd">    :param rating: String. Not part of raw data. Determined via geocoding.</span>
+<span class="sd">    :param zip_code: String. Not part of raw data. Determined via geocoding.</span>
+<span class="sd">    :param neighborhood: String. Not part of raw data. Determined via PostGIS \</span>
+<span class="sd">    query between lat/lng and the city&#39;s neighborhood shapefile.</span>
+<span class="sd">    :param location_publish: Boolean. True allows to plot on map, False does \</span>
+<span class="sd">    not plot on map. True/False determined by checks in publish.py.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;locations&#39;</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;details.document_id&quot;</span><span class="p">,</span> <span class="n">ondelete</span><span class="o">=</span><span class="s">&quot;CASCADE&quot;</span><span class="p">),</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">)</span>
+    <span class="n">street_number</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">district</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">square</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">lot</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">unit</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">subdivision</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">condo</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">weeks</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">cancel_status_unit</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">freeform_legal</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">rating</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">zip_code</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">neighborhood</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">location_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">gid</span><span class="p">,</span>
+                 <span class="n">subdivision</span><span class="p">,</span>
+                 <span class="n">condo</span><span class="p">,</span>
+                 <span class="n">district</span><span class="p">,</span>
+                 <span class="n">square</span><span class="p">,</span>
+                 <span class="n">lot</span><span class="p">,</span>
+                 <span class="n">cancel_status_lot</span><span class="p">,</span>
+                 <span class="n">street_number</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">,</span>
+                 <span class="n">unit</span><span class="p">,</span>
+                 <span class="n">weeks</span><span class="p">,</span>
+                 <span class="n">cancel_status_unit</span><span class="p">,</span>
+                 <span class="n">freeform_legal</span><span class="p">,</span>
+                 <span class="n">document_id</span><span class="p">,</span>
+                 <span class="n">latitude</span><span class="p">,</span>
+                 <span class="n">longitude</span><span class="p">,</span>
+                 <span class="n">rating</span><span class="p">,</span>
+                 <span class="n">zip_code</span><span class="p">,</span>
+                 <span class="n">neighborhood</span><span class="p">,</span>
+                 <span class="n">location_publish</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">subdivision</span> <span class="o">=</span> <span class="n">subdivision</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">condo</span> <span class="o">=</span> <span class="n">condo</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">district</span> <span class="o">=</span> <span class="n">district</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">square</span> <span class="o">=</span> <span class="n">square</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lot</span> <span class="o">=</span> <span class="n">lot</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="n">cancel_status_lot</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">street_number</span> <span class="o">=</span> <span class="n">street_number</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unit</span> <span class="o">=</span> <span class="n">unit</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">weeks</span> <span class="o">=</span> <span class="n">weeks</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status_unit</span> <span class="o">=</span> <span class="n">cancel_status_unit</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">freeform_legal</span> <span class="o">=</span> <span class="n">freeform_legal</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">document_id</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">latitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longitude</span> <span class="o">=</span> <span class="n">longitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">rating</span> <span class="o">=</span> <span class="n">rating</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zip_code</span> <span class="o">=</span> <span class="n">zip_code</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighborhood</span> <span class="o">=</span> <span class="n">neighborhood</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location_publish</span> <span class="o">=</span> <span class="n">location_publish</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">representation</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s">&quot;&lt;Location(&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;gid=&#39;{0}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;subdivision=&#39;{1}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;condo=&#39;{2}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;district=&#39;{3}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;square=&#39;{4}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;lot=&#39;{5}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;cancel_status_lot=&#39;{6}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;street_number=&#39;{7}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;address=&#39;{8}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;unit=&#39;{9}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;weeks=&#39;{10}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;cancel_status_unit=&#39;{11}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;freeform_legal=&#39;{12}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;document_id=&#39;{13}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;latitude=&#39;{15}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;longitude=&#39;{16}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;rating=&#39;{17}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;zip_code=&#39;{18}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;neighborhood=&#39;{19}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;location_publish=&#39;{20}&#39;, &quot;</span> <span class="o">+</span>
+            <span class="s">&quot;)&gt;&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">subdivision</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">condo</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">district</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">square</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lot</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status_lot</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">street_number</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">unit</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">weeks</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status_unit</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">freeform_legal</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">latitude</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">longitude</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">rating</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">zip_code</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">neighborhood</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">location_publish</span>
+        <span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">representation</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">string</span> <span class="o">=</span> <span class="s">&quot;Location table&quot;</span>
+
+        <span class="k">return</span> <span class="n">string</span>
+
+</div>
+<div class="viewcode-block" id="Cleaned"><a class="viewcode-back" href="../../database.html#landrecords.db.Cleaned">[docs]</a><span class="k">class</span> <span class="nc">Cleaned</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `cleaned` table.</span>
+
+<span class="sd">    :param instrument_no: String. Primary key ID.</span>
+<span class="sd">    :param amount: BigInteger. The sale amount.</span>
+<span class="sd">    :param document_date: Date. The date the property was sold.</span>
+<span class="sd">    :param document_recorded: Date. The date the property sale was recorded.</span>
+<span class="sd">    :param address: String. The full address of the property, \</span>
+<span class="sd">    including the street number and the address. Ex. 123 Main St.</span>
+<span class="sd">    :param location_info: String. All of the extra location information, such \</span>
+<span class="sd">    as the lot, unit, condo, etc.</span>
+<span class="sd">    :param sellers: String. The person, people or companies that sold the \</span>
+<span class="sd">    property, AKA the &quot;vendors.&quot;</span>
+<span class="sd">    :param buyers: String. The person, people or companies that bought the \</span>
+<span class="sd">    property, AKA the &quot;vendees.&quot;</span>
+<span class="sd">    :param latitude: Float. Determined from geocoding.</span>
+<span class="sd">    :param longitude: Float. Determined from geocoding.</span>
+<span class="sd">    :param rating: String. Determined from geocoding.</span>
+<span class="sd">    :param zip_code: String. Determined from geocoding.</span>
+<span class="sd">    :param neighborhood: String. Determined via PostGIS query between lat/lng \</span>
+<span class="sd">    and the city&#39;s neighborhood shapefile.</span>
+<span class="sd">    :param detail_publish: Boolean. True allows to publish at all, False does \</span>
+<span class="sd">    not publish in table or on map. True/False determined by checks in \</span>
+<span class="sd">    publish.py.</span>
+<span class="sd">    :param location_publish: Boolean. True allows to plot on map, False does \</span>
+<span class="sd">    not plot on map. True/False determined by checks in publish.py.</span>
+<span class="sd">    :param assessor_publish: Boolean. True allows link to assessor&#39;s website, \</span>
+<span class="sd">    False does not. True/False determined by checks in check_assessor.py.</span>
+<span class="sd">    :param permanent_flag: Boolean. True denotes permanent status, False \</span>
+<span class="sd">    denotes temporary status. True/False (permanent/temporary) is determined \</span>
+<span class="sd">    by the permanent range found during scraping.</span>
+<span class="sd">    :param geom: Geometry (Point). A spatial index for spatial queries.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;cleaned&#39;</span>
+
+    <span class="n">instrument_no</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">BigInteger</span><span class="p">)</span>
+    <span class="n">document_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_recorded</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="n">index</span><span class="o">=</span><span class="bp">True</span>
+    <span class="p">)</span>
+    <span class="n">location_info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">sellers</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">buyers</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">zip_code</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">detail_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">location_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">assessor_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">permanent_flag</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">neighborhood</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">geom</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Geometry</span><span class="p">(</span>
+        <span class="n">geometry_type</span><span class="o">=</span><span class="s">&#39;POINT&#39;</span><span class="p">,</span>
+        <span class="n">srid</span><span class="o">=</span><span class="mi">4326</span><span class="p">,</span>
+        <span class="n">spatial_index</span><span class="o">=</span><span class="bp">True</span>
+    <span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">geom</span><span class="p">,</span>
+                 <span class="n">amount</span><span class="p">,</span>
+                 <span class="n">document_date</span><span class="p">,</span>
+                 <span class="n">document_recorded</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">,</span>
+                 <span class="n">location_info</span><span class="p">,</span>
+                 <span class="n">sellers</span><span class="p">,</span>
+                 <span class="n">buyers</span><span class="p">,</span>
+                 <span class="n">instrument_no</span><span class="p">,</span>
+                 <span class="n">latitude</span><span class="p">,</span>
+                 <span class="n">longitude</span><span class="p">,</span>
+                 <span class="n">zip_code</span><span class="p">,</span>
+                 <span class="n">detail_publish</span><span class="p">,</span>
+                 <span class="n">location_publish</span><span class="p">,</span>
+                 <span class="n">assessor_publish</span><span class="p">,</span>
+                 <span class="n">permanent_flag</span><span class="p">,</span>
+                 <span class="n">neighborhood</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geom</span> <span class="o">=</span> <span class="n">geom</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amount</span> <span class="o">=</span> <span class="n">amount</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span> <span class="o">=</span> <span class="n">document_date</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">=</span> <span class="n">document_recorded</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location</span> <span class="o">=</span> <span class="n">address</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location_info</span> <span class="o">=</span> <span class="n">location_info</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sellers</span> <span class="o">=</span> <span class="n">sellers</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buyers</span> <span class="o">=</span> <span class="n">buyers</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span> <span class="o">=</span> <span class="n">instrument_no</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">latitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longitude</span> <span class="o">=</span> <span class="n">longitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zip_code</span> <span class="o">=</span> <span class="n">zip_code</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detail_publish</span> <span class="o">=</span> <span class="n">detail_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location_publish</span> <span class="o">=</span> <span class="n">location_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assessor_publish</span> <span class="o">=</span> <span class="n">assessor_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permanent_flag</span> <span class="o">=</span> <span class="n">permanent_flag</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighborhood</span> <span class="o">=</span> <span class="n">neighborhood</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            &lt;Cleaned(amount=&#39;</span><span class="si">%s</span><span class="s">&#39;, document_date=&#39;</span><span class="si">%s</span><span class="s">&#39;, address=&#39;</span><span class="si">%s</span><span class="s">&#39;,</span>
+<span class="s">            sellers=&#39;</span><span class="si">%s</span><span class="s">&#39;, buyers=&#39;</span><span class="si">%s</span><span class="s">&#39;, instrument_no=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">sellers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buyers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Dashboard"><a class="viewcode-back" href="../../database.html#landrecords.db.Dashboard">[docs]</a><span class="k">class</span> <span class="nc">Dashboard</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Dashboard table, only for private admin use.&quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;dashboard&#39;</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">BigInteger</span><span class="p">)</span>
+    <span class="n">document_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_recorded</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">address</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">location_info</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">sellers</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">buyers</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">instrument_no</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="c"># ForeignKey(&quot;cleaned.instrument_no&quot;),</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">)</span>
+    <span class="n">latitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">longitude</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Float</span><span class="p">)</span>
+    <span class="n">zip_code</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">detail_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">location_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">neighborhood</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">copied_to_cleaned</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">gid</span><span class="p">,</span>
+                 <span class="n">amount</span><span class="p">,</span>
+                 <span class="n">document_date</span><span class="p">,</span>
+                 <span class="n">document_recorded</span><span class="p">,</span>
+                 <span class="n">address</span><span class="p">,</span>
+                 <span class="n">location_info</span><span class="p">,</span>
+                 <span class="n">sellers</span><span class="p">,</span>
+                 <span class="n">buyers</span><span class="p">,</span>
+                 <span class="n">instrument_no</span><span class="p">,</span>
+                 <span class="n">latitude</span><span class="p">,</span>
+                 <span class="n">longitude</span><span class="p">,</span>
+                 <span class="n">zip_code</span><span class="p">,</span>
+                 <span class="n">detail_publish</span><span class="p">,</span>
+                 <span class="n">location_publish</span><span class="p">,</span>
+                 <span class="n">neighborhood</span><span class="p">,</span>
+                 <span class="n">fixed</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amount</span> <span class="o">=</span> <span class="n">amount</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span> <span class="o">=</span> <span class="n">document_date</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">=</span> <span class="n">document_recorded</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">address</span> <span class="o">=</span> <span class="n">address</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location_info</span> <span class="o">=</span> <span class="n">location_info</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sellers</span> <span class="o">=</span> <span class="n">sellers</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">buyers</span> <span class="o">=</span> <span class="n">buyers</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span> <span class="o">=</span> <span class="n">instrument_no</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">latitude</span> <span class="o">=</span> <span class="n">latitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">longitude</span> <span class="o">=</span> <span class="n">longitude</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">zip_code</span> <span class="o">=</span> <span class="n">zip_code</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detail_publish</span> <span class="o">=</span> <span class="n">detail_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">location_publish</span> <span class="o">=</span> <span class="n">location_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neighborhood</span> <span class="o">=</span> <span class="n">neighborhood</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">fixed</span> <span class="o">=</span> <span class="n">fixed</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            &lt;Dashboard(gid=&#39;</span><span class="si">%s</span><span class="s">&#39;, fixed=&#39;</span><span class="si">%s</span><span class="s">&#39;, amount=&#39;</span><span class="si">%s</span><span class="s">&#39;,</span>
+<span class="s">            document_date=&#39;</span><span class="si">%s</span><span class="s">&#39;, address=&#39;</span><span class="si">%s</span><span class="s">&#39;, sellers=&#39;</span><span class="si">%s</span><span class="s">&#39;, buyers=&#39;</span><span class="si">%s</span><span class="s">&#39;,</span>
+<span class="s">            instrument_no=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">fixed</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amount</span><span class="p">,</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">address</span><span class="p">,</span>
+                   <span class="bp">self</span><span class="o">.</span><span class="n">sellers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">buyers</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Detail"><a class="viewcode-back" href="../../database.html#landrecords.db.Detail">[docs]</a><span class="k">class</span> <span class="nc">Detail</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `details` table.</span>
+
+<span class="sd">    :param document_id: String. Primary key ID.</span>
+<span class="sd">    :param document_type: String. The type of document on the Land Records \</span>
+<span class="sd">    Division&#39;s website. Ex. Sale, marriage certificate, lien, etc.</span>
+<span class="sd">    :param instrument_no: String. The unique identifier in the Land Records \</span>
+<span class="sd">    Division&#39;s records.</span>
+<span class="sd">    :param multi_seq: String. Not used.</span>
+<span class="sd">    :param min_: String. Not used. Uses &quot;min_&quot; instead of &quot;min&quot; because &quot;min&quot; \</span>
+<span class="sd">    is a reserved word in Python.</span>
+<span class="sd">    :param cin: String. Not used.</span>
+<span class="sd">    :param book_type: String. Not used.</span>
+<span class="sd">    :param page: String. Not used.</span>
+<span class="sd">    :param document_date: Date. The date when the sale was made.</span>
+<span class="sd">    :param document_recorded: Date. The date when the sale was recorded.</span>
+<span class="sd">    :param amount: BigInteger. The sale amount.</span>
+<span class="sd">    :param status: String. The status of the indexing process. Ex. Verified, \</span>
+<span class="sd">    Entered. Refers to the status of the permanent-temporary process.</span>
+<span class="sd">    :param prior_mortgage_doc_type: String. Not used.</span>
+<span class="sd">    :param prior_conveyance_doc_type: String. Not used.</span>
+<span class="sd">    :param cancel_status: String. Not used.</span>
+<span class="sd">    :param remarks: String. Not used.</span>
+<span class="sd">    :param no_pages_in_image: String. The number of images. Not used.</span>
+<span class="sd">    :param image: String. A link to the image. Not used.</span>
+<span class="sd">    :param detail_publish: Boolean. True means this sale is okay to publish, \</span>
+<span class="sd">    False means it is not okay to publish. True/False is determined by checks \</span>
+<span class="sd">    in publish.py.</span>
+<span class="sd">    :param permanent_flag: Boolean. True means this sale&#39;s information is \</span>
+<span class="sd">    permanent, False means it is still temporary. True/False is determined by \</span>
+<span class="sd">    checks during scraping process.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;details&#39;</span>
+
+    <span class="n">document_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">instrument_no</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">multi_seq</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">min_</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># min is python reserved word</span>
+    <span class="n">cin</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">book_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">book</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">page</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_date</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">document_recorded</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Date</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">amount</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">BigInteger</span><span class="p">)</span>
+    <span class="n">status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">prior_mortgage_doc_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>  <span class="c"># todo: fix sp</span>
+    <span class="n">prior_conveyance_doc_type</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">cancel_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">remarks</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">no_pages_in_image</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">detail_publish</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">permanent_flag</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Boolean</span><span class="p">,</span> <span class="n">nullable</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">document_id</span><span class="p">,</span>
+                 <span class="n">document_type</span><span class="p">,</span>
+                 <span class="n">instrument_no</span><span class="p">,</span>
+                 <span class="n">multi_seq</span><span class="p">,</span>
+                 <span class="n">min_</span><span class="p">,</span>
+                 <span class="n">cin</span><span class="p">,</span>
+                 <span class="n">book_type</span><span class="p">,</span>
+                 <span class="n">book</span><span class="p">,</span>
+                 <span class="n">page</span><span class="p">,</span>
+                 <span class="n">document_date</span><span class="p">,</span>
+                 <span class="n">document_recorded</span><span class="p">,</span>
+                 <span class="n">amount</span><span class="p">,</span>
+                 <span class="n">status</span><span class="p">,</span>
+                 <span class="n">prior_mortgage_doc_type</span><span class="p">,</span>
+                 <span class="n">prior_conveyance_doc_type</span><span class="p">,</span>
+                 <span class="n">cancel_status</span><span class="p">,</span>
+                 <span class="n">remarks</span><span class="p">,</span>
+                 <span class="n">no_pages_in_image</span><span class="p">,</span>
+                 <span class="n">image</span><span class="p">,</span>
+                 <span class="n">detail_publish</span><span class="p">,</span>
+                 <span class="n">permanent_flag</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">document_id</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_type</span> <span class="o">=</span> <span class="n">document_type</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span> <span class="o">=</span> <span class="n">instrument_no</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multi_seq</span> <span class="o">=</span> <span class="n">multi_seq</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_</span> <span class="o">=</span> <span class="n">min_</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cin</span> <span class="o">=</span> <span class="n">cin</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">book_type</span> <span class="o">=</span> <span class="n">book_type</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">book</span> <span class="o">=</span> <span class="n">book</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="n">page</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span> <span class="o">=</span> <span class="n">document_date</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">=</span> <span class="n">document_recorded</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amount</span> <span class="o">=</span> <span class="n">amount</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">status</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_mortgage_doc_type</span> <span class="o">=</span> <span class="n">prior_mortgage_doc_type</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_conveyance_doc_type</span> <span class="o">=</span> <span class="n">prior_conveyance_doc_type</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status</span> <span class="o">=</span> <span class="n">cancel_status</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remarks</span> <span class="o">=</span> <span class="n">remarks</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_pages_in_image</span> <span class="o">=</span> <span class="n">no_pages_in_image</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">detail_publish</span> <span class="o">=</span> <span class="n">detail_publish</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">permanent_flag</span> <span class="o">=</span> <span class="n">permanent_flag</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Detail(id=&#39;</span><span class="si">%s</span><span class="s">&#39;, amount=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amount</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Vendor"><a class="viewcode-back" href="../../database.html#landrecords.db.Vendor">[docs]</a><span class="k">class</span> <span class="nc">Vendor</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `vendors` table.</span>
+
+<span class="sd">    :param gid: Integer. Primary key ID.</span>
+<span class="sd">    :param document_id: String. The unique identifier on the Land Records \</span>
+<span class="sd">    Division&#39;s website.</span>
+<span class="sd">    :param vendor_blank: String. Not used.</span>
+<span class="sd">    :param vendor_p_c: String. Not used.</span>
+<span class="sd">    :param vendor_lastname: String. The last name of the vendor.</span>
+<span class="sd">    :param vendor_firstname: String. The first name of the vendor.</span>
+<span class="sd">    :param vendor_relator: String. Can&#39;t remember right now.</span>
+<span class="sd">    :param vendor_cancel_status: String. Not used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;vendors&#39;</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">vendor_blank</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendor_p_c</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendor_lastname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendor_firstname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendor_relator</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendor_cancel_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">document_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;details.document_id&quot;</span><span class="p">,</span> <span class="n">ondelete</span><span class="o">=</span><span class="s">&quot;CASCADE&quot;</span><span class="p">),</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">gid</span><span class="p">,</span>
+                 <span class="n">document_id</span><span class="p">,</span>
+                 <span class="n">vendor_blank</span><span class="p">,</span>
+                 <span class="n">vendor_p_c</span><span class="p">,</span>
+                 <span class="n">vendor_lastname</span><span class="p">,</span>
+                 <span class="n">vendor_firstname</span><span class="p">,</span>
+                 <span class="n">vendor_relator</span><span class="p">,</span>
+                 <span class="n">vendor_cancel_status</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">document_id</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_blank</span> <span class="o">=</span> <span class="n">vendor_blank</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_p_c</span> <span class="o">=</span> <span class="n">vendor_p_c</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_lastname</span> <span class="o">=</span> <span class="n">vendor_lastname</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_firstname</span> <span class="o">=</span> <span class="n">vendor_firstname</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_relator</span> <span class="o">=</span> <span class="n">vendor_relator</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendor_cancel_status</span> <span class="o">=</span> <span class="n">vendor_cancel_status</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            &lt;Vendor(gid=&#39;</span><span class="si">%s</span><span class="s">&#39;, vendor_lastname=&#39;</span><span class="si">%s</span><span class="s">&#39;,</span>
+<span class="s">            vendor_firstname=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vendor_lastname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vendor_firstname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Vendee"><a class="viewcode-back" href="../../database.html#landrecords.db.Vendee">[docs]</a><span class="k">class</span> <span class="nc">Vendee</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `vendees` table.</span>
+
+<span class="sd">    :param gid: Integer. Primary key ID.</span>
+<span class="sd">    :param document_id: String. The unique identifier on the Land Records \</span>
+<span class="sd">    Division&#39;s website.</span>
+<span class="sd">    :param vendee_blank: String. Not used.</span>
+<span class="sd">    :param vendee_p_c: String. Not used.</span>
+<span class="sd">    :param vendee_lastname: String. The last name of the vendee.</span>
+<span class="sd">    :param vendee_firstname: String. The first name of the vendee.</span>
+<span class="sd">    :param vendee_relator: String. Can&#39;t remember right now.</span>
+<span class="sd">    :param vendee_cancel_status: String. Not used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;vendees&#39;</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">vendee_blank</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendee_p_c</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendee_lastname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendee_firstname</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendee_relator</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">vendee_cancel_status</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">document_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span>
+        <span class="n">String</span><span class="p">,</span>
+        <span class="n">ForeignKey</span><span class="p">(</span><span class="s">&quot;details.document_id&quot;</span><span class="p">,</span> <span class="n">ondelete</span><span class="o">=</span><span class="s">&quot;CASCADE&quot;</span><span class="p">),</span>
+        <span class="n">nullable</span><span class="o">=</span><span class="bp">False</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">gid</span><span class="p">,</span>
+                 <span class="n">document_id</span><span class="p">,</span>
+                 <span class="n">vendee_blank</span><span class="p">,</span>
+                 <span class="n">vendee_p_c</span><span class="p">,</span>
+                 <span class="n">vendee_lastname</span><span class="p">,</span>
+                 <span class="n">vendee_firstname</span><span class="p">,</span>
+                 <span class="n">vendee_relator</span><span class="p">,</span>
+                 <span class="n">vendee_cancel_status</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">document_id</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_blank</span> <span class="o">=</span> <span class="n">vendee_blank</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_p_c</span> <span class="o">=</span> <span class="n">vendee_p_c</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_lastname</span> <span class="o">=</span> <span class="n">vendee_lastname</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_firstname</span> <span class="o">=</span> <span class="n">vendee_firstname</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_relator</span> <span class="o">=</span> <span class="n">vendee_relator</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">vendee_cancel_status</span> <span class="o">=</span> <span class="n">vendee_cancel_status</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            &lt;Vendee(gid=&#39;</span><span class="si">%s</span><span class="s">&#39;, vendee_lastname=&#39;</span><span class="si">%s</span><span class="s">&#39;,</span>
+<span class="s">            vendee_firstname=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gid</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vendee_lastname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vendee_firstname</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Neighborhood"><a class="viewcode-back" href="../../database.html#landrecords.db.Neighborhood">[docs]</a><span class="k">class</span> <span class="nc">Neighborhood</span><span class="p">(</span><span class="n">Base</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fields for the `neighborhoods` table.</span>
+
+<span class="sd">    :param gid: Integer. Primary key ID.</span>
+<span class="sd">    :param objectid: Integer. Not sure</span>
+<span class="sd">    :param gnocdc_lab: String. Not sure.</span>
+<span class="sd">    :param lup_lab: String. Not sure.</span>
+<span class="sd">    :param neigh_id: String. Not sure.</span>
+<span class="sd">    :param shape_leng: Numeric. The (perimeter?) of the neighborhood (units?).</span>
+<span class="sd">    :param shape_area: Numeric. The area of the neighborhood (units?).</span>
+<span class="sd">    :param geom: Geometry(Multipolygon). The PostGIS geometry of the \</span>
+<span class="sd">    neighborhood.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s">&#39;neighborhoods&#39;</span>
+
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">objectid</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Integer</span><span class="p">)</span>
+    <span class="n">gnocdc_lab</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">lup_lab</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">neigh_id</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">String</span><span class="p">)</span>
+    <span class="n">shape_leng</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Numeric</span><span class="p">)</span>
+    <span class="n">shape_area</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Numeric</span><span class="p">)</span>
+    <span class="n">geom</span> <span class="o">=</span> <span class="n">Column</span><span class="p">(</span><span class="n">Geometry</span><span class="p">(</span><span class="s">&#39;MULTIPOLYGON&#39;</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">gid</span><span class="p">,</span>
+                 <span class="n">objectid</span><span class="p">,</span>
+                 <span class="n">gnocdc_lab</span><span class="p">,</span>
+                 <span class="n">lup_lab</span><span class="p">,</span>
+                 <span class="n">neigh_id</span><span class="p">,</span>
+                 <span class="n">shape_leng</span><span class="p">,</span>
+                 <span class="n">shape_area</span><span class="p">,</span>
+                 <span class="n">geom</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gid</span> <span class="o">=</span> <span class="n">gid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">objectid</span> <span class="o">=</span> <span class="n">objectid</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gnocdc_lab</span> <span class="o">=</span> <span class="n">gnocdc_lab</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lup_lab</span> <span class="o">=</span> <span class="n">lup_lab</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">neigh_id</span> <span class="o">=</span> <span class="n">neigh_id</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_leng</span> <span class="o">=</span> <span class="n">shape_leng</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shape_area</span> <span class="o">=</span> <span class="n">shape_area</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">geom</span> <span class="o">=</span> <span class="n">geom</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s">&quot;&lt;Neighborhood(gnocdc_lab=&#39;</span><span class="si">%s</span><span class="s">&#39;)&gt;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gnocdc_lab</span><span class="p">)</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

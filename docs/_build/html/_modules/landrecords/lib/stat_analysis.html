@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.stat_analysis &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.stat_analysis</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;Commmon statistical analyses, like high amounts, sales per day, etc.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="c"># from landrecords import log</span>
+
+
+<div class="viewcode-block" id="StatAnalysis"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis">[docs]</a><span class="k">class</span> <span class="nc">StatAnalysis</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Commmon statistical analyses.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_date</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">until_date</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and establish connection to database.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="s">&#39;cleaned&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StatAnalysis.count"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.count">[docs]</a>    <span class="k">def</span> <span class="nf">count</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get number of records.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT COUNT(*)</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39; AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span>
+            <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.detail_not_published"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.detail_not_published">[docs]</a>    <span class="k">def</span> <span class="nf">detail_not_published</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get rows that have unpublishable detail data.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT COUNT(*)</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE detail_publish = False</span>
+<span class="s">            AND document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span>
+            <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.detail_published"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.detail_published">[docs]</a>    <span class="k">def</span> <span class="nf">detail_published</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get rows that have publishable detail data.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT COUNT(*)</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE detail_publish IS True</span>
+<span class="s">            AND document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span>
+            <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.location_not_published"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.location_not_published">[docs]</a>    <span class="k">def</span> <span class="nf">location_not_published</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get rows that have unpublishable location data.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT COUNT(*)</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE location_publish IS False</span>
+<span class="s">            AND document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span>
+            <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.location_published"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.location_published">[docs]</a>    <span class="k">def</span> <span class="nf">location_published</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get rows that have publishable location data.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT COUNT(*)</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE location_publish IS True</span>
+<span class="s">            AND document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">count</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">count</span>
+            <span class="k">return</span> <span class="n">count</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.highest_amount"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.highest_amount">[docs]</a>    <span class="k">def</span> <span class="nf">highest_amount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find the highest sale amount for a given date range.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT amount</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            ORDER BY amount DESC</span>
+<span class="s">            LIMIT 1;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">high_amount</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">amount</span>
+            <span class="k">return</span> <span class="n">high_amount</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.lowest_amount"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.lowest_amount">[docs]</a>    <span class="k">def</span> <span class="nf">lowest_amount</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find the lowest sale amount for a given date range.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT amount</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            ORDER BY amount ASC</span>
+<span class="s">            LIMIT 1;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">low_amount</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">amount</span>
+            <span class="k">return</span> <span class="n">low_amount</span>
+</div>
+<div class="viewcode-block" id="StatAnalysis.all_records"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.stat_analysis.StatAnalysis.all_records">[docs]</a>    <span class="k">def</span> <span class="nf">all_records</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get all rows for the given date range.&#39;&#39;&#39;</span>
+
+        <span class="n">sql</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">            SELECT amount,</span>
+<span class="s">                   document_date,</span>
+<span class="s">                   document_recorded,</span>
+<span class="s">                   address,</span>
+<span class="s">                   location_info,</span>
+<span class="s">                   sellers,</span>
+<span class="s">                   buyers,</span>
+<span class="s">                   instrument_no,</span>
+<span class="s">                   latitude,</span>
+<span class="s">                   longitude,</span>
+<span class="s">                   zip_code,</span>
+<span class="s">                   detail_publish,</span>
+<span class="s">                   permanent_flag,</span>
+<span class="s">                   location_publish,</span>
+<span class="s">                   neighborhood</span>
+<span class="s">            FROM </span><span class="si">%s</span><span class="s"></span>
+<span class="s">            WHERE document_recorded &gt;= &#39;</span><span class="si">%s</span><span class="s">&#39;</span>
+<span class="s">            AND document_recorded &lt;= &#39;</span><span class="si">%s</span><span class="s">&#39;;</span>
+<span class="s">            &quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">sql</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">result</span><span class="p">:</span>
+            <span class="n">row</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+            <span class="n">rows</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.build &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.build</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Receives sale HTML, hands off to parse.py, which returns structured data.</span>
+<span class="sd">This then commits the returned structured data.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">insert</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">db</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib</span> <span class="kn">import</span> <span class="n">parse</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+
+
+<div class="viewcode-block" id="Build"><a class="viewcode-back" href="../../../build.html#landrecords.lib.build.Build">[docs]</a><span class="k">class</span> <span class="nc">Build</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Take structured data and enter into database.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">initial_date</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">until_date</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Create self variables for date range and establish connections to</span>
+<span class="sd">        the database.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+        <span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="n">engine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sn</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="n">engine</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;self.initial_date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;self.until_date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+<div class="viewcode-block" id="Build.build_all"><a class="viewcode-back" href="../../../build.html#landrecords.lib.build.Build.build_all">[docs]</a>    <span class="k">def</span> <span class="nf">build_all</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Runs through all of the building methods.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Build all&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;Building...&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Detail&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Adding to details table for:&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">dict_parse</span><span class="p">(</span><span class="s">&#39;DetailParser&#39;</span><span class="p">,</span> <span class="s">&#39;Detail&#39;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Vendor&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Adding to vendors table for:&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_parse</span><span class="p">(</span><span class="s">&#39;VendorParser&#39;</span><span class="p">,</span> <span class="s">&#39;Vendor&#39;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Vendee&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Adding to vendees table for:&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_parse</span><span class="p">(</span><span class="s">&#39;VendeeParser&#39;</span><span class="p">,</span> <span class="s">&#39;Vendee&#39;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Location&#39;</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Adding to locations table for:&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list_parse</span><span class="p">(</span><span class="s">&#39;LocationParser&#39;</span><span class="p">,</span> <span class="s">&#39;Location&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Build.dict_parse"><a class="viewcode-back" href="../../../build.html#landrecords.lib.build.Build.dict_parse">[docs]</a>    <span class="k">def</span> <span class="nf">dict_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Parses data structured in a dict, which is how `details` returns.&#39;&#39;&#39;</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">initial_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+        <span class="n">until_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">initial_datetime</span> <span class="o">!=</span> <span class="p">(</span><span class="n">until_datetime</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">current_date</span> <span class="o">=</span> <span class="n">initial_datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">initial_datetime</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">until_datetime</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Current date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">current_date</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">current_date</span>
+
+            <span class="n">glob_string</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">/form-html/*.html&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">current_date</span><span class="p">)</span>
+
+            <span class="c"># Allows for variable calls to a class.</span>
+            <span class="c"># Ex module.Class().method -&gt; parse.parser_name(f).list_output</span>
+            <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">glob_string</span><span class="p">)):</span>
+                <span class="c"># log.debug(&#39;filepath: %s&#39;, filepath)</span>
+                <span class="n">dict_output</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parse</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">)(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">form_dict</span><span class="p">()</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">begin_nested</span><span class="p">():</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">))</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">dict_output</span><span class="p">)</span>
+                        <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                        <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+            <span class="n">initial_datetime</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Build.list_parse"><a class="viewcode-back" href="../../../build.html#landrecords.lib.build.Build.list_parse">[docs]</a>    <span class="k">def</span> <span class="nf">list_parse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">,</span> <span class="n">table</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Parses data structured as a list of dicts,</span>
+<span class="sd">        which is how `locations`, `vendees` and `vendors` returns.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">initial_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+        <span class="n">until_datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">,</span> <span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+
+        <span class="k">while</span> <span class="n">initial_datetime</span> <span class="o">!=</span> <span class="p">(</span><span class="n">until_datetime</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">current_date</span> <span class="o">=</span> <span class="n">initial_datetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Current date: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">current_date</span><span class="p">)</span>
+            <span class="k">print</span> <span class="n">current_date</span>
+
+            <span class="n">glob_string</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">/form-html/*.html&#39;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">current_date</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">filepath</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">glob_string</span><span class="p">)):</span>
+                <span class="n">list_output</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">parse</span><span class="p">,</span> <span class="n">parser_name</span><span class="p">)(</span><span class="n">filepath</span><span class="p">)</span><span class="o">.</span><span class="n">form_list</span><span class="p">()</span>
+
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="k">with</span> <span class="n">session</span><span class="o">.</span><span class="n">begin_nested</span><span class="p">():</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="n">insert</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">table</span><span class="p">))</span>
+
+                        <span class="c"># Because might have multiple rows:</span>
+                        <span class="k">for</span> <span class="n">output</span> <span class="ow">in</span> <span class="n">list_output</span><span class="p">:</span>
+                            <span class="n">vals</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">values</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+                            <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">vals</span><span class="p">)</span>
+                            <span class="n">session</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+                <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+                    <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">rollback</span><span class="p">()</span>
+
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+
+            <span class="n">initial_datetime</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

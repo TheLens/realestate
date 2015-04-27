@@ -1,0 +1,645 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.parse &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.parse</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This contains all of the logic for parsing the different pages for each sale</span>
+<span class="sd">and makes use of the [Beautiful Soup]</span>
+<span class="sd">(http://www.crummy.com/software/BeautifulSoup/bs4/doc/) library. Returns</span>
+<span class="sd">either a dict of list of dicts.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+
+<span class="c"># from landrecords import log</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.utils</span> <span class="kn">import</span> <span class="n">Utils</span>
+
+
+<div class="viewcode-block" id="AllPurposeParser"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.AllPurposeParser">[docs]</a><span class="k">class</span> <span class="nc">AllPurposeParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Parsing that is not specific to any table.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Receives path to HTML file.</span>
+
+<span class="sd">        :param html_path: A path to a sale file. Ex. &#39;/path/OPR123456789.html&#39;</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_document_id</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="AllPurposeParser.get_document_id"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.AllPurposeParser.get_document_id">[docs]</a>    <span class="k">def</span> <span class="nf">get_document_id</span><span class="p">(</span><span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a sale&#39;s document ID based on the file name.</span>
+
+<span class="sd">        :param html_path: A path to a sale file. Ex. &#39;/path/OPR123456789.html&#39;</span>
+<span class="sd">        :type html_path: string</span>
+<span class="sd">        :returns: A string containing the document ID. Ex. &#39;OPR123456789&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">doc_id</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s">r&quot;(\w+)\.html&quot;</span><span class="p">,</span> <span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">doc_id</span>
+
+</div></div>
+<div class="viewcode-block" id="DetailParser"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.DetailParser">[docs]</a><span class="k">class</span> <span class="nc">DetailParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Parses the details section of the HTML.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Create self variables for each detail field.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rows</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">instrument_no</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">multi_seq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cin</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">book_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">book</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">page</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_recorded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">9</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">amount</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">convert_amount</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">10</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">11</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_mortgage_doc_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">12</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">prior_conveyance_doc_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">13</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cancel_status</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">14</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">remarks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">15</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">no_pages_in_image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="mi">17</span><span class="p">)</span>
+
+<div class="viewcode-block" id="DetailParser.get_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.DetailParser.get_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return rows for details table HTML.</span>
+
+<span class="sd">        :param html_path: A path to a sale file. Ex. &#39;/path/OPR123456789.html&#39;</span>
+<span class="sd">        :type html_path: string</span>
+<span class="sd">        :returns: A something containing something.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">html_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">html_path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+
+        <span class="n">soup</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+        <span class="n">html_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="DetailParser.parse_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.DetailParser.parse_rows">[docs]</a>    <span class="k">def</span> <span class="nf">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find rows in details table HTML.</span>
+
+<span class="sd">        :param soup: A BeautifulSoup object.</span>
+<span class="sd">        :type soup: something</span>
+<span class="sd">        :returns: something.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;table&#39;</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s">&quot;ctl00_cphNoMargin_f_oprTab_tmpl0_documentInfoList&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;tr&#39;</span><span class="p">)</span>
+
+        <span class="c"># log.debug(&#39;# or rows: %d&#39;, len(rows))</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="DetailParser.get_field"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.DetailParser.get_field">[docs]</a>    <span class="k">def</span> <span class="nf">get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Extract the value in a given row&#39;s key-value pair.</span>
+
+<span class="sd">        :param row_id: The row ID in the HTML, specifying the field. Ex. &#39;0&#39;</span>
+<span class="sd">        :type row_id: string</span>
+<span class="sd">        :returns: A string containing the field in the row. Ex. &#39;SALE&#39;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="c"># log.debug(row_id)</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">row_id</span><span class="p">]</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;td&#39;</span><span class="p">)</span>
+        <span class="n">field</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>  <span class="c"># 0 is key, 1 is value</span>
+
+        <span class="c"># log.debug(field)</span>
+
+        <span class="c"># prekey = cells[0]</span>
+        <span class="c"># log.debug(prekey)</span>
+
+        <span class="n">key</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+
+        <span class="c"># log.debug(&#39;key: %s&#39;, key)</span>
+
+        <span class="n">cond</span> <span class="o">=</span> <span class="p">(</span><span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;Document Date:&#39;</span> <span class="ow">or</span>
+                <span class="n">key</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;Date Recorded:&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">field</span> <span class="o">==</span> <span class="s">&quot;None&quot;</span> <span class="ow">or</span> <span class="n">field</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">or</span> <span class="n">field</span> <span class="o">==</span> <span class="s">&quot;NONE&quot;</span><span class="p">:</span>
+            <span class="c"># log.debug(&#39;LOOK&#39;)</span>
+            <span class="c"># log.debug(&#39;Key: %s&#39;, key)</span>
+            <span class="n">field</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+            <span class="k">if</span> <span class="n">cond</span><span class="p">:</span>
+                <span class="c"># log.debug(&#39;LOOK 2.0!&#39;)  # todo: remove</span>
+                <span class="c"># log.debug(&#39;Key 2.0: %s&#39;, key)</span>
+                <span class="n">field</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># log.debug(field)</span>
+
+        <span class="k">return</span> <span class="n">field</span>
+</div>
+<div class="viewcode-block" id="DetailParser.form_dict"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.DetailParser.form_dict">[docs]</a>    <span class="k">def</span> <span class="nf">form_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return dict of this sale&#39;s detail table.</span>
+
+<span class="sd">        :param self: The self variable, which contains the necessary fields.</span>
+<span class="sd">        :type row_id: instance</span>
+<span class="sd">        :returns: A dict containg all of the details values.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">dict_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span>
+
+        <span class="k">del</span> <span class="n">dict_output</span><span class="p">[</span><span class="s">&#39;rows&#39;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">dict_output</span>
+
+</div></div>
+<div class="viewcode-block" id="VendorParser"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendorParser">[docs]</a><span class="k">class</span> <span class="nc">VendorParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Parses the vendors section of the HTML.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Establish self variables.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rows</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_id</span>
+
+<div class="viewcode-block" id="VendorParser.get_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendorParser.get_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return rows for vendors.&#39;&#39;&#39;</span>
+
+        <span class="n">html_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">html_path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+
+        <span class="n">soup</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+        <span class="n">html_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="VendorParser.parse_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendorParser.parse_rows">[docs]</a>    <span class="k">def</span> <span class="nf">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find rows for vendors HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;table&#39;</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s">&quot;ctl00_cphNoMargin_f_oprTab_tmpl0_DataList11&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;tr&#39;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="VendorParser.form_list"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendorParser.form_list">[docs]</a>    <span class="k">def</span> <span class="nf">form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Form list of dicts for vendors HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">list_output</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dict_output</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">&#39;vendor_blank&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="s">&#39;vendor_p_c&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="s">&#39;vendor_lastname&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="s">&#39;vendor_firstname&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                    <span class="s">&#39;vendor_relator&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                    <span class="s">&#39;vendor_cancel_status&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                    <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span>
+                <span class="p">}</span>
+                <span class="n">list_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_output</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">list_output</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="VendorParser.get_field"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendorParser.get_field">[docs]</a>    <span class="k">def</span> <span class="nf">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cell_id</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Make corrections to dict values.&#39;&#39;&#39;</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">cells</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&quot;None&quot;</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&quot;NONE&quot;</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cell</span>
+
+</div></div>
+<div class="viewcode-block" id="VendeeParser"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendeeParser">[docs]</a><span class="k">class</span> <span class="nc">VendeeParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Parses the vendees section of the HTML.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Establish self variables.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rows</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_id</span>
+
+<div class="viewcode-block" id="VendeeParser.get_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendeeParser.get_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return rows for vendees.&#39;&#39;&#39;</span>
+
+        <span class="n">html_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">html_path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+
+        <span class="n">soup</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+        <span class="n">html_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="VendeeParser.parse_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendeeParser.parse_rows">[docs]</a>    <span class="k">def</span> <span class="nf">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find rows for vendees.&#39;&#39;&#39;</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;table&#39;</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s">&quot;ctl00_cphNoMargin_f_oprTab_tmpl0_Datalist1&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;tr&#39;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="VendeeParser.form_list"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendeeParser.form_list">[docs]</a>    <span class="k">def</span> <span class="nf">form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Form list of dicts for vendees HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">list_output</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">row</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">dict_output</span> <span class="o">=</span> <span class="p">{</span>
+                    <span class="s">&#39;vendee_blank&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                    <span class="s">&#39;vendee_p_c&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+                    <span class="s">&#39;vendee_lastname&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+                    <span class="s">&#39;vendee_firstname&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span>
+                    <span class="s">&#39;vendee_relator&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
+                    <span class="s">&#39;vendee_cancel_status&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+                    <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span>
+                <span class="p">}</span>
+                <span class="n">list_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_output</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">list_output</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="VendeeParser.get_field"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.VendeeParser.get_field">[docs]</a>    <span class="k">def</span> <span class="nf">get_field</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cell_id</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Make corrections to dict values.&#39;&#39;&#39;</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)</span>
+        <span class="n">cell</span> <span class="o">=</span> <span class="n">cells</span><span class="p">[</span><span class="n">cell_id</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cell</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&quot;None&quot;</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">or</span> <span class="n">cell</span> <span class="o">==</span> <span class="s">&quot;NONE&quot;</span><span class="p">:</span>
+            <span class="n">cell</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">cell</span>
+
+</div></div>
+<div class="viewcode-block" id="LocationParser"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser">[docs]</a><span class="k">class</span> <span class="nc">LocationParser</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Parses the locations section of the HTML.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Establish self variables.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_rows</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span> <span class="o">=</span> <span class="n">AllPurposeParser</span><span class="p">(</span><span class="n">html_path</span><span class="p">)</span><span class="o">.</span><span class="n">document_id</span>
+
+<div class="viewcode-block" id="LocationParser.get_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_rows">[docs]</a>    <span class="k">def</span> <span class="nf">get_rows</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">html_path</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Return rows for locations.&#39;&#39;&#39;</span>
+
+        <span class="n">html_file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">html_path</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="n">html_file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">)</span>
+
+        <span class="n">soup</span><span class="o">.</span><span class="n">decompose</span><span class="p">()</span>
+        <span class="n">html_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LocationParser.parse_rows"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.parse_rows">[docs]</a>    <span class="k">def</span> <span class="nf">parse_rows</span><span class="p">(</span><span class="n">soup</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find rows for locations.&#39;&#39;&#39;</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find</span><span class="p">(</span>
+            <span class="s">&#39;table&#39;</span><span class="p">,</span>
+            <span class="nb">id</span><span class="o">=</span><span class="s">&quot;ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals&quot;</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;tr&#39;</span><span class="p">)</span>
+
+        <span class="c"># log.debug(&#39;rows:&#39;)</span>
+        <span class="c"># log.debug(rows)</span>
+
+        <span class="k">return</span> <span class="n">rows</span>
+</div>
+<div class="viewcode-block" id="LocationParser.form_list"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.form_list">[docs]</a>    <span class="k">def</span> <span class="nf">form_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Form list of dicts for locations HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">list_output</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Find number of mini tables:</span>
+        <span class="c"># 9 rows per table. A total of 9 rows if one table, but a total of</span>
+        <span class="c"># 19 rows if two, 29 if three, etc.</span>
+        <span class="c"># (Because of border row that only appears once multiple tables</span>
+        <span class="n">number_of_tables</span> <span class="o">=</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">)</span> <span class="o">-</span> <span class="mi">9</span><span class="p">)</span> <span class="o">/</span> <span class="mi">10</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+        <span class="k">for</span> <span class="n">table_no</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">number_of_tables</span><span class="p">):</span>
+            <span class="n">dict_output</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s">&#39;subdivision&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_subdivision</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;condo&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_condo</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;district&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_district</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;square&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_square</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;lot&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_lot</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;cancel_status_lot&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cancel_status_lot</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;street_number&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_street_number</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;address&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_address</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;unit&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_unit</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;weeks&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_weeks</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;cancel_status_unit&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_cancel_status_unit</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;freeform_legal&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_freeform_legal</span><span class="p">(</span><span class="n">table_no</span><span class="p">),</span>
+                <span class="s">&#39;document_id&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">document_id</span>
+            <span class="p">}</span>
+            <span class="c"># log.debug(&#39;dict_output:&#39;)</span>
+            <span class="c"># log.debug(dict_output)</span>
+            <span class="n">list_output</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dict_output</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">list_output</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="LocationParser.convert_to_string"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.convert_to_string">[docs]</a>    <span class="k">def</span> <span class="nf">convert_to_string</span><span class="p">(</span><span class="n">lot</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Make corrections to dict values.&#39;&#39;&#39;</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">lot</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">lot</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">lot</span><span class="o">.</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lot</span> <span class="o">==</span> <span class="s">&quot;None&quot;</span> <span class="ow">or</span> <span class="n">lot</span> <span class="o">==</span> <span class="s">&#39;&#39;</span> <span class="ow">or</span> <span class="n">lot</span> <span class="o">==</span> <span class="s">&quot;NONE&quot;</span><span class="p">:</span>
+            <span class="n">lot</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">lot</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_field"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_field">[docs]</a>    <span class="k">def</span> <span class="nf">get_field</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get the field value for a given table&#39;s row and cell indeces.&#39;&#39;&#39;</span>
+
+        <span class="n">overall_index</span> <span class="o">=</span> <span class="n">table_no</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">row_index</span>
+
+        <span class="c"># log.debug(&#39;overall_index:&#39;)</span>
+        <span class="c"># log.debug(overall_index)</span>
+
+        <span class="n">field</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">overall_index</span><span class="p">]</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)[</span><span class="n">cell_index</span><span class="p">]</span>
+
+        <span class="c"># log.debug(&#39;field:&#39;)</span>
+        <span class="c"># log.debug(field)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_string</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_subdivision"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_subdivision">[docs]</a>    <span class="k">def</span> <span class="nf">get_subdivision</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the subdivision field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">subdivision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">subdivision</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_condo"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_condo">[docs]</a>    <span class="k">def</span> <span class="nf">get_condo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the condo field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">condo</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">condo</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_district"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_district">[docs]</a>    <span class="k">def</span> <span class="nf">get_district</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the district field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">district</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">district</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_square"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_square">[docs]</a>    <span class="k">def</span> <span class="nf">get_square</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the square field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">square</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">square</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_street_number"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_street_number">[docs]</a>    <span class="k">def</span> <span class="nf">get_street_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the street number field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">street_number</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">street_number</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_address"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_address">[docs]</a>    <span class="k">def</span> <span class="nf">get_address</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the address field value.&#39;&#39;&#39;</span>
+
+        <span class="c"># log.debug(&#39;get_address:&#39;)</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">5</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">address</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="c"># log.debug(address)</span>
+
+        <span class="k">return</span> <span class="n">address</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_unit"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_unit">[docs]</a>    <span class="k">def</span> <span class="nf">get_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the unit field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">unit</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_weeks"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_weeks">[docs]</a>    <span class="k">def</span> <span class="nf">get_weeks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the weeks field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">3</span>
+
+        <span class="n">weeks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">weeks</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_cancel_status_unit"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_cancel_status_unit">[docs]</a>    <span class="k">def</span> <span class="nf">get_cancel_status_unit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the cancel stat field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">6</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">5</span>
+
+        <span class="n">cancel_status_unit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">cancel_status_unit</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_freeform_legal"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_freeform_legal">[docs]</a>    <span class="k">def</span> <span class="nf">get_freeform_legal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the freeform legal field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">8</span>
+        <span class="n">cell_index</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="n">freeform_legal</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field</span><span class="p">(</span><span class="n">row_index</span><span class="p">,</span> <span class="n">cell_index</span><span class="p">,</span> <span class="n">table_no</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">freeform_legal</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_cancel_status_lot"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_cancel_status_lot">[docs]</a>    <span class="k">def</span> <span class="nf">get_cancel_status_lot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the cancel status field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">overall_index</span> <span class="o">=</span> <span class="n">table_no</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">row_index</span>
+
+        <span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">overall_index</span><span class="p">]</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>  <span class="c"># There are Lot from and Lot to fields</span>
+            <span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_string</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">9</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">cancel_status_lot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_string</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">cancel_status_lot</span>
+</div>
+<div class="viewcode-block" id="LocationParser.get_lot"><a class="viewcode-back" href="../../../build.html#landrecords.lib.parse.LocationParser.get_lot">[docs]</a>    <span class="k">def</span> <span class="nf">get_lot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table_no</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Returns the lot field value.&#39;&#39;&#39;</span>
+
+        <span class="n">row_index</span> <span class="o">=</span> <span class="mi">3</span>
+        <span class="n">overall_index</span> <span class="o">=</span> <span class="n">table_no</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">row_index</span>
+
+        <span class="n">lot</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="n">cells</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">rows</span><span class="p">[</span><span class="n">overall_index</span><span class="p">]</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;span&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cells</span><span class="p">)</span> <span class="o">==</span> <span class="mi">10</span><span class="p">:</span>  <span class="c"># There are Lot from and Lot to fields</span>
+            <span class="n">frm</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_string</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+            <span class="n">to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_to_string</span><span class="p">(</span><span class="n">cells</span><span class="p">[</span><span class="mi">7</span><span class="p">])</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">frm</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lot</span> <span class="o">=</span> <span class="n">to</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">frm</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lot</span> <span class="o">=</span> <span class="n">frm</span>
+            <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">frm</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">to</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">lot</span> <span class="o">=</span> <span class="n">frm</span> <span class="o">+</span> <span class="s">&quot; to &quot;</span> <span class="o">+</span> <span class="n">to</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">lot</span> <span class="o">=</span> <span class="s">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">lot</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># from landrecords.config import Config</span>
+    <span class="c"># html_path = (</span>
+    <span class="c">#     &#39;%s/&#39; % Config().DATA_DIR +</span>
+    <span class="c">#     &#39;raw/2014-02-18/form-html/OPR288694480.html&#39;)</span>
+    <span class="c"># print LocationParser(html_path).form_list()</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

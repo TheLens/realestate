@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.get_dates &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.get_dates</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;Gets date range for initialize script.&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.orm</span> <span class="kn">import</span> <span class="n">sessionmaker</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.ext.declarative</span> <span class="kn">import</span> <span class="n">declarative_base</span>
+
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords.db</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Detail</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+
+
+<div class="viewcode-block" id="GetDates"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.get_dates.GetDates">[docs]</a><span class="k">class</span> <span class="nc">GetDates</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Gets date range for initialize script.&#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and establish connection to database.&#39;&#39;&#39;</span>
+
+        <span class="n">base</span> <span class="o">=</span> <span class="n">declarative_base</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SERVER_ENGINE</span><span class="p">)</span>
+        <span class="n">base</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sn</span> <span class="o">=</span> <span class="n">sessionmaker</span><span class="p">(</span><span class="n">bind</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span>
+
+<div class="viewcode-block" id="GetDates.get_date_range"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.get_dates.GetDates.get_date_range">[docs]</a>    <span class="k">def</span> <span class="nf">get_date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Checks which dates have not been entered into the database yet.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="n">existing_until_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_existing_until_date</span><span class="p">()</span>
+
+        <span class="c"># log.debug(type(existing_until_date))</span>
+        <span class="c"># log.debug(existing_until_date)</span>
+
+        <span class="c"># Check if all dates already added</span>
+        <span class="n">yesterday_date</span> <span class="o">=</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">YESTERDAY_DATE</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">existing_until_date</span> <span class="o">==</span> <span class="n">yesterday_date</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;All dates already added to database.&quot;</span><span class="p">)</span>
+
+        <span class="n">initial_date</span> <span class="o">=</span> <span class="n">existing_until_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">until_date</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">YESTERDAY_DATE</span>
+
+        <span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">return_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;initial_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="n">return_dict</span><span class="p">[</span><span class="s">&#39;until_date&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="k">return</span> <span class="n">return_dict</span>
+</div>
+<div class="viewcode-block" id="GetDates.get_existing_until_date"><a class="viewcode-back" href="../../../misc.html#landrecords.lib.get_dates.GetDates.get_existing_until_date">[docs]</a>    <span class="k">def</span> <span class="nf">get_existing_until_date</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;docstring&#39;&#39;&#39;</span>
+
+        <span class="n">session</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sn</span><span class="p">()</span>
+
+        <span class="n">query_until_date</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">query</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span>
+            <span class="n">Detail</span><span class="o">.</span><span class="n">document_recorded</span><span class="o">.</span><span class="n">desc</span><span class="p">()</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="c"># Check if any records at all</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">query_until_date</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c"># Make it so initialized date range will start from beginning.</span>
+            <span class="n">until_date</span> <span class="o">=</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">OPENING_DATE</span> <span class="o">-</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c"># log.debug(until_date)</span>
+            <span class="c"># log.debug(type(until_date))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">query_until_date</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">query_until_date</span><span class="p">:</span>
+                <span class="c"># todo: will this fail w/o .one()?</span>
+                <span class="n">until_date</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">document_recorded</span>
+
+            <span class="c"># log.debug(until_date)</span>
+            <span class="c"># log.debug(type(until_date))</span>
+
+        <span class="c"># log.debug(until_date)</span>
+
+        <span class="n">session</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">until_date</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tests &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="index.html" />
+    <link rel="prev" title="Scrape" href="scrape.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="scrape.html" title="Scrape"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">Land records 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="tests">
+<span id="id1"></span><h1>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h1>
+<p>Tests for the Land Records module.</p>
+<div class="section" id="module-tests.test_parse">
+<span id="parsing"></span><h2>Parsing<a class="headerlink" href="#module-tests.test_parse" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="tests.test_parse.TestAllPurposeParser">
+<em class="property">class </em><code class="descclassname">tests.test_parse.</code><code class="descname">TestAllPurposeParser</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestAllPurposeParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestAllPurposeParser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_method">
+<code class="descname">test_all_purpose_get_document_id_method</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestAllPurposeParser.test_all_purpose_get_document_id_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_method" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test AllPurposeParser method for finding document ID.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_var">
+<code class="descname">test_all_purpose_get_document_id_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestAllPurposeParser.test_all_purpose_get_document_id_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestAllPurposeParser.test_all_purpose_get_document_id_var" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test that AllPurposeParser has document ID as self variable.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tests.test_parse.TestDetailParser">
+<em class="property">class </em><code class="descclassname">tests.test_parse.</code><code class="descname">TestDetailParser</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test parser for details table.</p>
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_form_dict">
+<code class="descname">test_form_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_form_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_form_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_amount_var">
+<code class="descname">test_get_field_amount_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_amount_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_amount_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_book_type_var">
+<code class="descname">test_get_field_book_type_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_book_type_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_book_type_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_book_var">
+<code class="descname">test_get_field_book_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_book_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_book_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_cancel_status_var">
+<code class="descname">test_get_field_cancel_status_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_cancel_status_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_cancel_status_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_cin_var">
+<code class="descname">test_get_field_cin_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_cin_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_cin_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_document_date_var">
+<code class="descname">test_get_field_document_date_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_document_date_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_document_date_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_document_date_var_none">
+<code class="descname">test_get_field_document_date_var_none</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_document_date_var_none"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_document_date_var_none" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test that if no document date is entered,
+then a value of None/NULL is returned.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_document_recorded_var">
+<code class="descname">test_get_field_document_recorded_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_document_recorded_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_document_recorded_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_document_type_var">
+<code class="descname">test_get_field_document_type_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_document_type_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_document_type_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_image_var">
+<code class="descname">test_get_field_image_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_image_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_image_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_instrument_no_var">
+<code class="descname">test_get_field_instrument_no_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_instrument_no_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_instrument_no_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_min__var">
+<code class="descname">test_get_field_min__var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_min__var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_min__var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_multi_seq_var">
+<code class="descname">test_get_field_multi_seq_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_multi_seq_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_multi_seq_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_no_pages_in_image_var">
+<code class="descname">test_get_field_no_pages_in_image_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_no_pages_in_image_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_no_pages_in_image_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_page_var">
+<code class="descname">test_get_field_page_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_page_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_page_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_prior_conveyance_doc_type_var">
+<code class="descname">test_get_field_prior_conveyance_doc_type_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_prior_conveyance_doc_type_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_prior_conveyance_doc_type_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_prior_mortgage_doc_type_var">
+<code class="descname">test_get_field_prior_mortgage_doc_type_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_prior_mortgage_doc_type_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_prior_mortgage_doc_type_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_remarks_var">
+<code class="descname">test_get_field_remarks_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_remarks_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_remarks_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestDetailParser.test_get_field_status_var">
+<code class="descname">test_get_field_status_var</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestDetailParser.test_get_field_status_var"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestDetailParser.test_get_field_status_var" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tests.test_parse.TestLocationParser">
+<em class="property">class </em><code class="descclassname">tests.test_parse.</code><code class="descname">TestLocationParser</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_form_list">
+<code class="descname">test_form_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_form_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_form_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_address">
+<code class="descname">test_get_field_address</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_address"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_cancel_status_lot">
+<code class="descname">test_get_field_cancel_status_lot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_cancel_status_lot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_cancel_status_lot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_cancel_status_unit">
+<code class="descname">test_get_field_cancel_status_unit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_cancel_status_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_cancel_status_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_condo">
+<code class="descname">test_get_field_condo</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_condo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_condo" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_district">
+<code class="descname">test_get_field_district</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_district"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_district" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_freeform_legal">
+<code class="descname">test_get_field_freeform_legal</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_freeform_legal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_freeform_legal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_lot">
+<code class="descname">test_get_field_lot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_lot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_lot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_square">
+<code class="descname">test_get_field_square</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_square"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_square" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_street_number">
+<code class="descname">test_get_field_street_number</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_street_number"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_street_number" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_subdivision">
+<code class="descname">test_get_field_subdivision</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_subdivision"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_subdivision" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_unit">
+<code class="descname">test_get_field_unit</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_unit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_unit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestLocationParser.test_get_field_weeks">
+<code class="descname">test_get_field_weeks</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestLocationParser.test_get_field_weeks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestLocationParser.test_get_field_weeks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tests.test_parse.TestVendeeParser">
+<em class="property">class </em><code class="descclassname">tests.test_parse.</code><code class="descname">TestVendeeParser</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_form_list">
+<code class="descname">test_form_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_form_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_form_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_blank">
+<code class="descname">test_get_vendee_blank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_blank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_blank" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_cancel_status">
+<code class="descname">test_get_vendee_cancel_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_cancel_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_cancel_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_firstname">
+<code class="descname">test_get_vendee_firstname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_firstname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_firstname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_lastname">
+<code class="descname">test_get_vendee_lastname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_lastname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_lastname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_p_c">
+<code class="descname">test_get_vendee_p_c</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_p_c"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_p_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendeeParser.test_get_vendee_relator">
+<code class="descname">test_get_vendee_relator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendeeParser.test_get_vendee_relator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendeeParser.test_get_vendee_relator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="tests.test_parse.TestVendorParser">
+<em class="property">class </em><code class="descclassname">tests.test_parse.</code><code class="descname">TestVendorParser</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_form_list">
+<code class="descname">test_form_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_form_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_form_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>docstring</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_blank">
+<code class="descname">test_get_vendor_blank</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_blank"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_blank" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_cancel_status">
+<code class="descname">test_get_vendor_cancel_status</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_cancel_status"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_cancel_status" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_firstname">
+<code class="descname">test_get_vendor_firstname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_firstname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_firstname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_lastname">
+<code class="descname">test_get_vendor_lastname</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_lastname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_lastname" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_p_c">
+<code class="descname">test_get_vendor_p_c</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_p_c"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_p_c" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="tests.test_parse.TestVendorParser.test_get_vendor_relator">
+<code class="descname">test_get_vendor_relator</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_parse.html#TestVendorParser.test_get_vendor_relator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_parse.TestVendorParser.test_get_vendor_relator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-tests.test_pep8">
+<span id="pep8"></span><h2>PEP8<a class="headerlink" href="#module-tests.test_pep8" title="Permalink to this headline">¶</a></h2>
+<p>Tests that all Python files in project meet PEP8 style.</p>
+<dl class="class">
+<dt id="tests.test_pep8.TestPep8">
+<em class="property">class </em><code class="descclassname">tests.test_pep8.</code><code class="descname">TestPep8</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_pep8.html#TestPep8"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_pep8.TestPep8" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test that all Python files conform to PEP8 standards.</p>
+<dl class="method">
+<dt id="tests.test_pep8.TestPep8.test_pep8">
+<code class="descname">test_pep8</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_pep8.html#TestPep8.test_pep8"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_pep8.TestPep8.test_pep8" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test that all Python files conform to PEP8 standards.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="tests.test_pep8.ignore">
+<code class="descclassname">tests.test_pep8.</code><code class="descname">ignore</code><span class="sig-paren">(</span><em>directory</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/tests/test_pep8.html#ignore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#tests.test_pep8.ignore" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check if this directory should be ignored.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-tests.test_pylint">
+<span id="pylint"></span><h2>PyLint<a class="headerlink" href="#module-tests.test_pylint" title="Permalink to this headline">¶</a></h2>
+<p>Tests that all Python files in project pass pylint tests.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Tests</a><ul>
+<li><a class="reference internal" href="#module-tests.test_parse">Parsing</a></li>
+<li><a class="reference internal" href="#module-tests.test_pep8">PEP8</a></li>
+<li><a class="reference internal" href="#module-tests.test_pylint">PyLint</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="scrape.html"
+                        title="previous chapter">Scrape</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/tests.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+      |
+      <a href="_sources/tests.txt"
+          rel="nofollow">Page source</a></li>
+    </div>
+
+    
+
+    
+  </body>
+</html>

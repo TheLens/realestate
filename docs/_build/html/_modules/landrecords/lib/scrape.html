@@ -1,0 +1,560 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>landrecords.lib.scrape &mdash; Land records 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="Land records 0.1 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">Land records 0.1 documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for landrecords.lib.scrape</h1><div class="highlight"><pre>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Scrape the Land Records Division. Give it the date range you want and it will</span>
+<span class="sd">download the HTML in /data/raw.</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">import</span> <span class="nn">glob</span>
+<span class="kn">from</span> <span class="nn">bs4</span> <span class="kn">import</span> <span class="n">BeautifulSoup</span>
+<span class="kn">from</span> <span class="nn">selenium</span> <span class="kn">import</span> <span class="n">webdriver</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">date</span><span class="p">,</span> <span class="n">timedelta</span>
+<span class="kn">from</span> <span class="nn">landrecords.config</span> <span class="kn">import</span> <span class="n">Config</span>
+<span class="kn">from</span> <span class="nn">landrecords.lib.mail</span> <span class="kn">import</span> <span class="n">Mail</span>
+<span class="kn">from</span> <span class="nn">landrecords</span> <span class="kn">import</span> <span class="n">log</span>
+
+
+<div class="viewcode-block" id="Scrape"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape">[docs]</a><span class="k">class</span> <span class="nc">Scrape</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+    <span class="sd">&#39;&#39;&#39;Navigate and scrape the Land Records Division.&#39;&#39;&#39;</span>
+
+    <span class="c"># todo: write function with rewrite = False that ignores any</span>
+    <span class="c"># sales previously scraped.</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+                 <span class="n">initial_date</span><span class="o">=</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">YESTERDAY_DATE</span><span class="p">,</span>
+                 <span class="n">until_date</span><span class="o">=</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">YESTERDAY_DATE</span><span class="p">,</span>
+                 <span class="n">rewrite</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Initialize self variables and PhantomJS browser.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span> <span class="o">=</span> <span class="n">initial_date</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">=</span> <span class="n">until_date</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span> <span class="o">=</span> <span class="n">webdriver</span><span class="o">.</span><span class="n">PhantomJS</span><span class="p">(</span>
+            <span class="n">executable_path</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/phantomjs&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">SCRIPTS_DIR</span><span class="p">,</span>
+            <span class="n">service_log_path</span><span class="o">=</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">/landrecords.log&#39;</span> <span class="o">%</span> <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">LOG_DIR</span><span class="p">,</span>
+            <span class="n">port</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c"># self.driver = webdriver.Firefox(timeout=60)</span>
+
+    <span class="c"># Login page</span>
+<div class="viewcode-block" id="Scrape.load_homepage"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.load_homepage">[docs]</a>    <span class="k">def</span> <span class="nf">load_homepage</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load homepage.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Load homepage&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;http://onlinerecords.orleanscivilclerk.com/&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.find_login_link"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.find_login_link">[docs]</a>    <span class="k">def</span> <span class="nf">find_login_link</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Find and click on login link.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find login link&#39;</span><span class="p">)</span>
+        <span class="n">login_link_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s">&quot;Header1_lnkLogin&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Click login link&#39;</span><span class="p">)</span>
+        <span class="n">login_link_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.enter_username"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.enter_username">[docs]</a>    <span class="k">def</span> <span class="nf">enter_username</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Type in username.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find username field&#39;</span><span class="p">)</span>
+        <span class="n">unsername_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s">&quot;Header1_txtLogonName&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Enter username&#39;</span><span class="p">)</span>
+        <span class="n">unsername_elem</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">LRD_USERNAME</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.enter_password"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.enter_password">[docs]</a>    <span class="k">def</span> <span class="nf">enter_password</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Type in password.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find password field&#39;</span><span class="p">)</span>
+        <span class="n">password_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s">&quot;Header1_txtPassword&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Enter password&#39;</span><span class="p">)</span>
+        <span class="n">password_elem</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">LRD_PASSWORD</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Return&#39;</span><span class="p">)</span>
+        <span class="n">password_elem</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>  <span class="c"># To trigger search function</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">title</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.login"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.login">[docs]</a>    <span class="k">def</span> <span class="nf">login</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load homepage, find login, enter credentials.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_homepage</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">find_login_link</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enter_username</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enter_password</span><span class="p">()</span>
+
+    <span class="c"># Navigate search page</span></div>
+<div class="viewcode-block" id="Scrape.load_search_page"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.load_search_page">[docs]</a>    <span class="k">def</span> <span class="nf">load_search_page</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Load search page.&#39;&#39;&#39;</span>
+
+        <span class="c"># might not have loaded for server scrape:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">&quot;http://onlinerecords.orleanscivilclerk.com/RealEstate/&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;SearchEntry.aspx&quot;</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.find_permanent_date_range"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.find_permanent_date_range">[docs]</a>    <span class="k">def</span> <span class="nf">find_permanent_date_range</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Parse search page for permanent date range.&#39;&#39;&#39;</span>
+
+        <span class="c"># wasn&#39;t found in server scraper error:</span>
+        <span class="n">date_range_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;cphNoMargin_lblSearchSummary&quot;</span><span class="p">)</span>
+
+        <span class="n">date_range</span> <span class="o">=</span> <span class="n">date_range_elem</span><span class="o">.</span><span class="n">text</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">date_range</span><span class="p">)</span>
+
+        <span class="n">first_date</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">r&quot;Permanent\ Index From ([0-9/]*) to ([0-9/]*)&quot;</span><span class="p">,</span>
+                              <span class="n">date_range</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>  <span class="c"># 02/18/2014</span>
+        <span class="n">first_date</span> <span class="o">=</span> <span class="n">first_date</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">first_date</span><span class="p">)</span>
+
+        <span class="n">second_date</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">r&quot;Permanent\ Index From ([0-9/]*) to ([0-9/]*)&quot;</span><span class="p">,</span>
+                               <span class="n">date_range</span><span class="p">)</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>  <span class="c"># 02/25/2015</span>
+        <span class="n">second_date</span> <span class="o">=</span> <span class="n">second_date</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">second_date</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span>
+</div>
+<div class="viewcode-block" id="Scrape.get_date_range_html"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.get_date_range_html">[docs]</a>    <span class="k">def</span> <span class="nf">get_date_range_html</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Get search page HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">date_range_html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">page_source</span>
+
+        <span class="k">return</span> <span class="n">date_range_html</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Scrape.delete_permanent_date_range_when_scraped_file"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.delete_permanent_date_range_when_scraped_file">[docs]</a>    <span class="k">def</span> <span class="nf">delete_permanent_date_range_when_scraped_file</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Delete old permanent-date-range-when-scraped*.html.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Delete old permanent-date-range-when-scraped*.html&#39;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">)</span> <span class="o">+</span>
+                                   <span class="s">&quot;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span> <span class="o">+</span>
+                                   <span class="s">&quot;permanent-date-range-when-scraped*.html&quot;</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Scrape.save_permanent_date_range_when_scraped_file"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.save_permanent_date_range_when_scraped_file">[docs]</a>    <span class="k">def</span> <span class="nf">save_permanent_date_range_when_scraped_file</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span>
+                                                    <span class="n">date_range_html</span><span class="p">,</span>
+                                                    <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Save new permanent-date-range-when-scraped*.html.&quot;&quot;&quot;</span>
+
+        <span class="c"># Save permanent date range for this individual sale.</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Save new permanent-date-range-when-scraped*.html file&#39;</span><span class="p">)</span>
+        <span class="n">individual_html_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+            <span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/permanent-date-range-when-scraped_</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span>
+                <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span>
+            <span class="p">),</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">individual_html_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">date_range_html</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">individual_html_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Scrape.delete_permanent_date_range_file"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.delete_permanent_date_range_file">[docs]</a>    <span class="k">def</span> <span class="nf">delete_permanent_date_range_file</span><span class="p">():</span>
+        <span class="sd">&#39;&#39;&#39;Delete old most-recent-permanent-date-range/*.html.&#39;&#39;&#39;</span>
+
+        <span class="c"># Delete old file first</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&#39;Delete old most-recent-permanent-date-range/*.html file&#39;</span><span class="p">)</span>
+
+        <span class="n">file_string</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/most-recent-permanent-date-range/*.html&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">file_path</span> <span class="ow">in</span> <span class="n">glob</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="n">file_string</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Scrape.save_permanent_date_range_file"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.save_permanent_date_range_file">[docs]</a>    <span class="k">def</span> <span class="nf">save_permanent_date_range_file</span><span class="p">(</span><span class="n">date_range_html</span><span class="p">,</span>
+                                       <span class="n">first_date</span><span class="p">,</span>
+                                       <span class="n">second_date</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Save new most-recent-permanent-date-range/*.html.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Save new most-recent-permanent-date-range/*.html file&#39;</span><span class="p">)</span>
+        <span class="n">overall_html_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">)</span> <span class="o">+</span>
+                                <span class="s">&quot;most-recent-permanent-date-range/&quot;</span> <span class="o">+</span>
+                                <span class="s">&quot;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span><span class="p">),</span>
+                                <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">overall_html_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">date_range_html</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">overall_html_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.navigate_search_page"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.navigate_search_page">[docs]</a>    <span class="k">def</span> <span class="nf">navigate_search_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Navigate search page to find permanent date range</span>
+<span class="sd">           and update local date range files..&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">load_search_page</span><span class="p">()</span>
+        <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">find_permanent_date_range</span><span class="p">()</span>
+        <span class="n">date_range_html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_date_range_html</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_permanent_date_range_when_scraped_file</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_permanent_date_range_when_scraped_file</span><span class="p">(</span>
+            <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">date_range_html</span><span class="p">,</span> <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">delete_permanent_date_range_file</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">save_permanent_date_range_file</span><span class="p">(</span>
+            <span class="n">date_range_html</span><span class="p">,</span> <span class="n">first_date</span><span class="p">,</span> <span class="n">second_date</span><span class="p">)</span>
+
+    <span class="c"># Search parameters</span></div>
+<div class="viewcode-block" id="Scrape.click_advanced_tab"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.click_advanced_tab">[docs]</a>    <span class="k">def</span> <span class="nf">click_advanced_tab</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Click on the advanced tab.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;search_parameters&#39;</span><span class="p">)</span>
+
+        <span class="c"># Advanced tab</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find advanced tab&#39;</span><span class="p">)</span>
+        <span class="n">advanced_tab_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;x:2130005445.2:mkr:ti1&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Click on advanced tab&#39;</span><span class="p">)</span>
+        <span class="n">advanced_tab_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.enter_date_filed_from"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.enter_date_filed_from">[docs]</a>    <span class="k">def</span> <span class="nf">enter_date_filed_from</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_date</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Enter &quot;date from&quot;.&#39;&#39;&#39;</span>
+
+        <span class="n">date_file_from_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;x:2002578730.0:mkr:3&quot;</span><span class="p">)</span>
+        <span class="n">date_file_from_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">date_file_from_elem</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">search_date</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.enter_date_filed_to"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.enter_date_filed_to">[docs]</a>    <span class="k">def</span> <span class="nf">enter_date_filed_to</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_date</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Enter &quot;date to&quot;.&#39;&#39;&#39;</span>
+
+        <span class="n">date_file_to_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;x:625521537.0:mkr:3&quot;</span><span class="p">)</span>
+        <span class="n">date_file_to_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">date_file_to_elem</span><span class="o">.</span><span class="n">send_keys</span><span class="p">(</span><span class="n">search_date</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.select_document_type"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.select_document_type">[docs]</a>    <span class="k">def</span> <span class="nf">select_document_type</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Select SALE document type in dropdown.&#39;&#39;&#39;</span>
+
+        <span class="n">document_type_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;cphNoMargin_f_dclDocType_291&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Select SALE document type&#39;</span><span class="p">)</span>
+        <span class="n">document_type_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Scrape.click_search_button"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.click_search_button">[docs]</a>    <span class="k">def</span> <span class="nf">click_search_button</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Click on the search button.&#39;&#39;&#39;</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find search button&#39;</span><span class="p">)</span>
+        <span class="n">search_button_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;cphNoMargin_SearchButtons2_btnSearch__2&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Click search button&#39;</span><span class="p">)</span>
+        <span class="n">search_button_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.search_parameters"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.search_parameters">[docs]</a>    <span class="k">def</span> <span class="nf">search_parameters</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">search_date</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Enter search parameters.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">click_advanced_tab</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enter_date_filed_from</span><span class="p">(</span><span class="n">search_date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enter_date_filed_to</span><span class="p">(</span><span class="n">search_date</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">select_document_type</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">click_search_button</span><span class="p">()</span>
+
+    <span class="c"># Parse results</span></div>
+<div class="viewcode-block" id="Scrape.parse_results"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.parse_results">[docs]</a>    <span class="k">def</span> <span class="nf">parse_results</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Parse initial result page for total number of sales.&#39;&#39;&#39;</span>
+
+        <span class="c"># Find current page number</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find item_list_elem&#39;</span><span class="p">)</span>
+            <span class="n">item_list_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+                <span class="s">&quot;cphNoMargin_cphNoMargin_OptionsBar1_ItemList&quot;</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find option&#39;</span><span class="p">)</span>
+            <span class="n">options</span> <span class="o">=</span> <span class="n">item_list_elem</span><span class="o">.</span><span class="n">find_elements_by_tag_name</span><span class="p">(</span><span class="s">&quot;option&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+            <span class="c"># Save table page</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;No sales for this day&#39;</span><span class="p">)</span>
+            <span class="n">html_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/page-html/page1.html&quot;</span>
+                            <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">),</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+            <span class="n">html_out</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">page_source</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+            <span class="n">html_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="k">return</span>
+
+        <span class="n">total_pages</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">options</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">get_attribute</span><span class="p">(</span><span class="s">&#39;value&#39;</span><span class="p">))</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s"> pages to parse for </span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+                  <span class="n">total_pages</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_pages</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Page: </span><span class="si">%d</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_page</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.parse_page"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.parse_page">[docs]</a>    <span class="k">def</span> <span class="nf">parse_page</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Parse results page for sale document IDs.&#39;&#39;&#39;</span>
+
+        <span class="c"># Save table page</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Parse results page table HTML&#39;</span><span class="p">)</span>
+        <span class="n">html_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/page-html/page</span><span class="si">%d</span><span class="s">.html&quot;</span>
+                        <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">html_out</span><span class="o">.</span><span class="n">write</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">page_source</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">html_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="n">bs_file</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/page-html/page</span><span class="si">%d</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">bs_file</span><span class="p">))</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find all object IDs&#39;</span><span class="p">)</span>
+
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;td&#39;</span><span class="p">,</span> <span class="n">class_</span><span class="o">=</span><span class="s">&quot;igede12b9e&quot;</span><span class="p">)</span>  <span class="c"># List of Object IDs</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;There are </span><span class="si">%d</span><span class="s"> rows for this page&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+                <span class="s">&#39;Analyzing overall row </span><span class="si">%d</span><span class="s"> for </span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span>
+                <span class="p">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="mi">20</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_sale</span><span class="p">(</span><span class="n">j</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&#39;Go to http://onlinerecords.orleanscivilclerk.com/&#39;</span> <span class="o">+</span>
+            <span class="s">&#39;RealEstate/SearchResults.aspx&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">&quot;http://onlinerecords.orleanscivilclerk.com/RealEstate/&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;SearchResults.aspx&quot;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find next page button&#39;</span><span class="p">)</span>
+        <span class="n">next_button_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span>
+            <span class="s">&quot;OptionsBar1_imgNext&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Click next page button&#39;</span><span class="p">)</span>
+        <span class="n">next_button_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.parse_sale"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.parse_sale">[docs]</a>    <span class="k">def</span> <span class="nf">parse_sale</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Parse single sale page and save HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">document_id</span> <span class="o">=</span> <span class="n">rows</span><span class="p">[</span><span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+            <span class="s">&#39;Saving HTML for </span><span class="si">%s</span><span class="s"> on </span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">document_id</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+
+        <span class="n">single_sale_url</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s">&quot;http://onlinerecords.orleanscivilclerk.com/&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;RealEstate/SearchResults.aspx?&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;global_id=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">document_id</span><span class="p">)</span> <span class="o">+</span>
+            <span class="s">&quot;&amp;type=dtl&quot;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Sale URL: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">single_sale_url</span><span class="p">)</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Loading </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">single_sale_url</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">single_sale_url</span><span class="p">)</span>
+            <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="n">html</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">page_source</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Save this sale HTML&#39;</span><span class="p">)</span>
+
+        <span class="n">html_file</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="s">&quot;</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span> <span class="o">+</span> \
+                    <span class="s">&quot;form-html/</span><span class="si">%s</span><span class="s">.html&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">document_id</span><span class="p">)</span>
+
+        <span class="n">html_out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">html_file</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span>
+        <span class="n">html_out</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">html</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">))</span>
+        <span class="n">html_out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_if_error</span><span class="p">(</span><span class="n">html_file</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+            <span class="c"># todo: better way to track:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Deleting error page: </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">html_file</span><span class="p">)</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">html_file</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="k">return</span>
+
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mf">0.2</span><span class="p">)</span>
+</div>
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Scrape.check_if_error"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.check_if_error">[docs]</a>    <span class="k">def</span> <span class="nf">check_if_error</span><span class="p">(</span><span class="n">html</span><span class="p">):</span>
+        <span class="s">&#39;Checks if the download single sale HTML is an error page&#39;</span>
+
+        <span class="n">soup</span> <span class="o">=</span> <span class="n">BeautifulSoup</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">html</span><span class="p">))</span>
+
+        <span class="n">title</span> <span class="o">=</span> <span class="n">soup</span><span class="o">.</span><span class="n">find_all</span><span class="p">(</span><span class="s">&#39;title&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">string</span>
+
+        <span class="k">if</span> <span class="n">title</span> <span class="o">==</span> <span class="s">&#39;Error&#39;</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&#39;Error page was downloaded&#39;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="bp">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+    <span class="c"># Logout</span></div>
+<div class="viewcode-block" id="Scrape.logout"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.logout">[docs]</a>    <span class="k">def</span> <span class="nf">logout</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;Logout of site.&#39;&#39;&#39;</span>
+
+        <span class="c"># No matter which page you&#39;re on, you can go back here and logout.</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+            <span class="s">&#39;Load http://onlinerecords.orleanscivilclerk.com/&#39;</span> <span class="o">+</span>
+            <span class="s">&#39;RealEstate/SearchEntry.aspx&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+            <span class="s">&quot;http://onlinerecords.orleanscivilclerk.com/RealEstate/&quot;</span> <span class="o">+</span>
+            <span class="s">&quot;SearchEntry.aspx&quot;</span><span class="p">)</span>
+
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Find logout button&#39;</span><span class="p">)</span>
+        <span class="n">logout_elem</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">find_element_by_id</span><span class="p">(</span><span class="s">&quot;Header1_lnkLogout&quot;</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Click logout button&#39;</span><span class="p">)</span>
+        <span class="n">logout_elem</span><span class="o">.</span><span class="n">click</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="Scrape.cycle_through_dates"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.cycle_through_dates">[docs]</a>    <span class="k">def</span> <span class="nf">cycle_through_dates</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;For each date in range specified, fill out search,</span>
+<span class="sd">           parse results and save the HTML.&#39;&#39;&#39;</span>
+
+        <span class="n">current_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_date</span>
+
+        <span class="c"># Must search each date one at a time because there is a limit of</span>
+        <span class="c"># 300 results per search.</span>
+        <span class="k">while</span> <span class="n">current_date</span> <span class="o">!=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span> <span class="o">+</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)):</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">current_date</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">until_date</span><span class="p">)</span>
+
+            <span class="n">year</span> <span class="o">=</span> <span class="n">current_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y&#39;</span><span class="p">)</span>  <span class="c"># &quot;2014&quot;</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="n">current_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m&#39;</span><span class="p">)</span>  <span class="c"># &quot;09&quot;</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">current_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">)</span>  <span class="c"># &quot;09&quot;</span>
+
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">year</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">month</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">day</span><span class="p">)</span>
+
+            <span class="c"># Check if folder for this day exists. If not, then make one.</span>
+            <span class="n">pagedir</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/page-html&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">pagedir</span><span class="p">)</span>
+
+            <span class="n">formdir</span> <span class="o">=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/raw/</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">-</span><span class="si">%s</span><span class="s">/form-html&quot;</span> <span class="o">%</span> <span class="p">(</span>
+                <span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">DATA_DIR</span><span class="p">,</span> <span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">formdir</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pagedir</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Making </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">pagedir</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">pagedir</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">formdir</span><span class="p">):</span>
+                <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Making </span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">formdir</span><span class="p">)</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">formdir</span><span class="p">)</span>
+
+            <span class="n">search_date</span> <span class="o">=</span> <span class="n">month</span> <span class="o">+</span> <span class="n">day</span> <span class="o">+</span> <span class="n">year</span>
+
+            <span class="c"># The meat of this loop</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">navigate_search_page</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">search_parameters</span><span class="p">(</span><span class="n">search_date</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">parse_results</span><span class="p">(</span><span class="n">year</span><span class="p">,</span> <span class="n">month</span><span class="p">,</span> <span class="n">day</span><span class="p">)</span>
+
+            <span class="n">current_date</span> <span class="o">+=</span> <span class="n">timedelta</span><span class="p">(</span><span class="n">days</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">current_date</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scrape.main"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape.main">[docs]</a>    <span class="k">def</span> <span class="nf">main</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;The main scrape method.&#39;&#39;&#39;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">login</span><span class="p">()</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">cycle_through_dates</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">error</span><span class="p">:</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">error</span><span class="p">,</span> <span class="n">exc_info</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+            <span class="n">Mail</span><span class="p">(</span>
+                <span class="n">subject</span><span class="o">=</span><span class="s">&quot;Error running Land Record&#39;s scrape.py script&quot;</span><span class="p">,</span>
+                <span class="n">body</span><span class="o">=</span><span class="s">&#39;Check scrape.log for more details.&#39;</span><span class="p">,</span>
+                <span class="n">frm</span><span class="o">=</span><span class="s">&#39;tthoren@thelensnola.org&#39;</span><span class="p">,</span>
+                <span class="n">to</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;tthoren@thelensnola.org&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">send_as_text</span><span class="p">()</span>
+        <span class="k">finally</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logout</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">driver</span><span class="o">.</span><span class="n">quit</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;Done!&#39;</span><span class="p">)</span>
+</div></div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">Scrape</span><span class="p">(</span>
+        <span class="n">initial_date</span><span class="o">=</span><span class="n">date</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">13</span><span class="p">),</span>
+        <span class="n">until_date</span><span class="o">=</span><span class="n">Config</span><span class="p">()</span><span class="o">.</span><span class="n">YESTERDAY_DATE</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2015, Thomas Thoren.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
