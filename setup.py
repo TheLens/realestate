@@ -15,7 +15,7 @@ setup(
         'tests',
     ),
     package_data={
-        "landrecords": [
+        "": [
             "README.md",
             "requirements.txt",
             "logs/landrecords.log",
@@ -34,7 +34,7 @@ setup(
     description=(
         "A package for scraping and publishing New Orleans land " +
         "records."),
-    long_description=read('README'),
+    long_description=read('README.md'),
     keywords="The Lens land records",
     url='http://vault.thelensnola.org/realestate/',
     author='Thomas Thoren',
