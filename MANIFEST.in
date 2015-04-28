@@ -1,4 +1,11 @@
 include logs/landrecords.log
 include requirements.txt
 include README.md
-include scripts/*
+include scripts/backup.sh
+include scripts/delete_db.py
+include scripts/initialize.py
+include scripts/main.sh
+include scripts/make_db.py
+include scripts/screen.js
+include scripts/screen.py
+include scripts/tserver.py
