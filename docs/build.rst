@@ -34,9 +34,3 @@ Publish
 
 .. automodule:: landrecords.lib.publish
     :members:
-
-Check temporary status
-----------------------
-
-.. automodule:: landrecords.lib.check_temp_status
-    :members:
