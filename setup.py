@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 import os
+import sys
 from setuptools import setup
+
+APP_DIR = os.path.normpath(os.path.dirname(__file__))
+sys.path.insert(0, APP_DIR)
 
 
 def read(fname):
@@ -11,14 +15,7 @@ setup(
     version='0.0.1',
     packages=(
         'landrecords',
-        'landrecords.app',
-        'landrecords.db',
-        'landrecords.models',
-        'landrecords.views',
-        'landrecords.lib.build',
-        'landrecords.lib.clean',
-        'landrecords.lib.parse',
-        'landrecords.lib.publish',
+        'landrecords.lib',
         'tests',
     ),
     data_files=[
