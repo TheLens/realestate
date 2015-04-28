@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
 from setuptools import setup
 
-APP_DIR = os.path.normpath(os.path.dirname(__file__))
-sys.path.insert(0, APP_DIR)
+# APP_DIR = os.path.normpath(os.path.dirname(__file__))
+# sys.path.insert(0, APP_DIR)
 
 
 def read(fname):
