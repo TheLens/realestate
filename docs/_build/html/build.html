@@ -1,60 +1,120 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Build &mdash; Land records 0.1 documentation</title>
-    
-    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.1',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Land records 0.1 documentation" href="index.html" />
-    <link rel="next" title="Database" href="database.html" />
-    <link rel="prev" title="New Orleans Land Records" href="index.html" />
-   
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9">
+  <title>Build &mdash; Land records 0.1 documentation</title>
+  
 
-  </head>
-  <body role="document">
-    <div class="related" role="navigation" aria-label="related navigation">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="database.html" title="Database"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="New Orleans Land Records"
-             accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">Land records 0.1 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+  
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body" role="main">
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700,400italic,700italic|Roboto+Slab:400,700|Inconsolata:400,700&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="Land records 0.1 documentation" href="index.html"/>
+        <link rel="next" title="Database" href="database.html"/>
+        <link rel="prev" title="New Orleans Land Records" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        
+          <a href="index.html" class="fa fa-home"> Land records</a>
+        
+        
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+          
+          
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Build</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-landrecords.lib.parse">Parse</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id2">Build</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-landrecords.lib.geocode">Geocode</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-landrecords.lib.clean">Clean</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-landrecords.lib.publish">Publish</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="database.html">Database</a></li>
+<li class="toctree-l1"><a class="reference internal" href="misc.html">Misc.</a></li>
+<li class="toctree-l1"><a class="reference internal" href="scrape.html">Scrape</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tests.html">Tests</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#module-tests.test_parse">Parsing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#module-tests.test_pep8">PEP8</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tests.html#module-tests.test_pylint">PyLint</a></li>
+</ul>
+</li>
+</ul>
+
+          
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Land records</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Build</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/build.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document">
             
   <div class="section" id="build">
 <span id="id1"></span><h1>Build<a class="headerlink" href="#build" title="Permalink to this headline">¶</a></h1>
@@ -408,7 +468,7 @@ against the <code class="docutils literal"><span class="pre">INSERT</span></code
 <p>Geocoding and spatial queries.</p>
 <dl class="class">
 <dt id="landrecords.lib.geocode.Geocode">
-<em class="property">class </em><code class="descclassname">landrecords.lib.geocode.</code><code class="descname">Geocode</code><a class="reference internal" href="_modules/landrecords/lib/geocode.html#Geocode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.geocode.Geocode" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">landrecords.lib.geocode.</code><code class="descname">Geocode</code><span class="sig-paren">(</span><em>initial_date=None</em>, <em>until_date=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/geocode.html#Geocode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.geocode.Geocode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Geocode class that needs no input.</p>
 <dl class="method">
 <dt id="landrecords.lib.geocode.Geocode.geocode">
@@ -980,163 +1040,72 @@ Then set to 0 if something questionable is found.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-landrecords.lib.check_temp_status">
-<span id="check-temporary-status"></span><h2>Check temporary status<a class="headerlink" href="#module-landrecords.lib.check_temp_status" title="Permalink to this headline">¶</a></h2>
-<p>Check on the temporary/permanent status of sales. Sales are first recorded on
-the Land Records Division site as temporary. This checks for changes in the
-permanent date range and whether a &#8220;temporary&#8221; sale is now &#8220;permanent.&#8221;</p>
-<dl class="class">
-<dt id="landrecords.lib.check_temp_status.CheckTemp">
-<em class="property">class </em><code class="descclassname">landrecords.lib.check_temp_status.</code><code class="descname">CheckTemp</code><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check on the temporary/permanent status of sales.</p>
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.check_permanent_status_of_new_sales">
-<code class="descname">check_permanent_status_of_new_sales</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.check_permanent_status_of_new_sales"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.check_permanent_status_of_new_sales" title="Permalink to this definition">¶</a></dt>
-<dd><p>Examine first-time sales and assign True or False for permanent_flag.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.check_permanent_status_of_temp_sales">
-<code class="descname">check_permanent_status_of_temp_sales</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.check_permanent_status_of_temp_sales"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.check_permanent_status_of_temp_sales" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compare latest permanent date range to the range of sales in our
-database that are labeled &#8220;temporary.&#8221; If any of those temporary sales
-now fall within the permanent range, re-scrape and re-initialize.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.delete_existing_records">
-<code class="descname">delete_existing_records</code><span class="sig-paren">(</span><em>early_date</em>, <em>late_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.delete_existing_records"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.delete_existing_records" title="Permalink to this definition">¶</a></dt>
-<dd><p>Delete existing records for this date. Order matters</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.earliest_date_no_flag">
-<code class="descname">earliest_date_no_flag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.earliest_date_no_flag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.earliest_date_no_flag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the earliest date_recorded without permanent_flag set.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.earliest_date_temp_flag">
-<code class="descname">earliest_date_temp_flag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.earliest_date_temp_flag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.earliest_date_temp_flag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find earliest date with permanent_flag = False.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.find_early_perm_date_when_scraped">
-<em class="property">static </em><code class="descname">find_early_perm_date_when_scraped</code><span class="sig-paren">(</span><em>current_iteration_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.find_early_perm_date_when_scraped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.find_early_perm_date_when_scraped" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the earliest date_recorded with permanent_flag.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.find_late_perm_date_when_scraped">
-<em class="property">static </em><code class="descname">find_late_perm_date_when_scraped</code><span class="sig-paren">(</span><em>current_iteration_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.find_late_perm_date_when_scraped"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.find_late_perm_date_when_scraped" title="Permalink to this definition">¶</a></dt>
-<dd><p>docstring</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.find_newly_permanent_date_range">
-<em class="property">static </em><code class="descname">find_newly_permanent_date_range</code><span class="sig-paren">(</span><em>start_temp_datetime</em>, <em>end_permanent_datetime</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.find_newly_permanent_date_range"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.find_newly_permanent_date_range" title="Permalink to this definition">¶</a></dt>
-<dd><p>docstring</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.latest_date_no_flag">
-<code class="descname">latest_date_no_flag</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.latest_date_no_flag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.latest_date_no_flag" title="Permalink to this definition">¶</a></dt>
-<dd><p>Finds the latest date_recorded without permanent_flag set.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.latest_permanent_datetime">
-<em class="property">static </em><code class="descname">latest_permanent_datetime</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.latest_permanent_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.latest_permanent_datetime" title="Permalink to this definition">¶</a></dt>
-<dd><p>docstring</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.rebuild_days">
-<em class="property">static </em><code class="descname">rebuild_days</code><span class="sig-paren">(</span><em>early_date</em>, <em>late_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.rebuild_days"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.rebuild_days" title="Permalink to this definition">¶</a></dt>
-<dd><p>Scrapes and initializes dates.</p>
-</dd></dl>
-
-<dl class="staticmethod">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.scrape_days">
-<em class="property">static </em><code class="descname">scrape_days</code><span class="sig-paren">(</span><em>early_date</em>, <em>late_date</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.scrape_days"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.scrape_days" title="Permalink to this definition">¶</a></dt>
-<dd><p>docstring</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="landrecords.lib.check_temp_status.CheckTemp.update_this_dates_permanent_flag">
-<code class="descname">update_this_dates_permanent_flag</code><span class="sig-paren">(</span><em>current_datetime</em>, <em>early_permanent_datetime</em>, <em>late_permanent_datetime</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/check_temp_status.html#CheckTemp.update_this_dates_permanent_flag"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.check_temp_status.CheckTemp.update_this_dates_permanent_flag" title="Permalink to this definition">¶</a></dt>
-<dd><p>docstring</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
 </div>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">Build</a><ul>
-<li><a class="reference internal" href="#module-landrecords.lib.parse">Parse</a></li>
-<li><a class="reference internal" href="#id2">Build</a></li>
-<li><a class="reference internal" href="#module-landrecords.lib.geocode">Geocode</a></li>
-<li><a class="reference internal" href="#module-landrecords.lib.clean">Clean</a></li>
-<li><a class="reference internal" href="#module-landrecords.lib.publish">Publish</a></li>
-<li><a class="reference internal" href="#module-landrecords.lib.check_temp_status">Check temporary status</a></li>
-</ul>
-</li>
-</ul>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="database.html" class="btn btn-neutral float-right" title="Database">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="New Orleans Land Records"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">New Orleans Land Records</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="database.html"
-                        title="next chapter">Database</a></p>
-  <div role="note" aria-label="source link">
-    <h3>This Page</h3>
-    <ul class="this-page-menu">
-      <li><a href="_sources/build.txt"
-            rel="nofollow">Show Source</a></li>
-    </ul>
-   </div>
-<div id="searchbox" style="display: none" role="search">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, Thomas Thoren.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+  
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="footer">
-      &copy;2015, Thomas Thoren.
-      
-      |
-      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.1</a>
-      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.3</a>
-      
-      |
-      <a href="_sources/build.txt"
-          rel="nofollow">Page source</a></li>
-    </div>
 
-    
+    </section>
 
-    
-  </body>
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>
