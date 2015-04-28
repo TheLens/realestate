@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
-
+import os
 from setuptools import setup
 
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
     name='land-records',
@@ -9,15 +12,29 @@ setup(
     packages=(
         'landrecords',
         'landrecords.lib',
-        'logs',
         'tests',
     ),
+    package_data={
+        "landrecords": [
+            "README.md",
+            "requirements.txt",
+            "logs/landrecords.log",
+            "scripts/backup.sh",
+            "delete_db.py",
+            "initialize.py",
+            "main.sh",
+            "make_db.py",
+            "screen.js",
+            "screen.py",
+            "tserver.py"
+        ]
+    },
     include_package_data=True,
     license='MIT',
     description=(
         "A package for scraping and publishing New Orleans land " +
         "records."),
-    long_description="",
+    long_description=read('README'),
     keywords="The Lens land records",
     url='http://vault.thelensnola.org/realestate/',
     author='Thomas Thoren',
