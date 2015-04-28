@@ -9,6 +9,7 @@ setup(
     packages=(
         'landrecords',
         'landrecords.lib',
+        'logs',
         'tests',
     ),
     include_package_data=True,
