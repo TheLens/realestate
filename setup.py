@@ -11,7 +11,14 @@ setup(
     version='0.0.1',
     packages=(
         'landrecords',
-        'landrecords.lib',
+        'landrecords.app',
+        'landrecords.db',
+        'landrecords.models',
+        'landrecords.views',
+        'landrecords.lib.build',
+        'landrecords.lib.clean',
+        'landrecords.lib.parse',
+        'landrecords.lib.publish',
         'tests',
     ),
     data_files=[
