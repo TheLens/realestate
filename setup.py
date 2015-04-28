@@ -14,21 +14,19 @@ setup(
         'landrecords.lib',
         'tests',
     ),
-    data_files={
-        "": [
-            ("", ["README.md", "requirements.txt"]),
-            ("logs", ["landrecords.log"]),
-            ("scripts", [
-                "backup.sh",
-                "delete_db.py",
-                "initialize.py",
-                "main.sh",
-                "make_db.py",
-                "screen.js",
-                "screen.py",
-                "tserver.py"])
-        ]
-    },
+    data_files=[
+        (".", ["README.md", "requirements.txt"]),
+        ("logs", ["logs/landrecords.log"]),
+        ("scripts", [
+            "scripts/backup.sh",
+            "scripts/delete_db.py",
+            "scripts/initialize.py",
+            "scripts/main.sh",
+            "scripts/make_db.py",
+            "scripts/screen.js",
+            "scripts/screen.py",
+            "scripts/tserver.py"])
+    ],
     include_package_data=True,
     license='MIT',
     description=(

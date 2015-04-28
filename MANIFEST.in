@@ -1,4 +1,4 @@
-include logs/*
+include logs/landrecords.log
 include requirements.txt
 include README.md
 include scripts/*
