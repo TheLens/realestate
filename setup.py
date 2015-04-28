@@ -14,6 +14,21 @@ setup(
         'landrecords.lib',
         'tests',
     ),
+    package_data={
+        "": [
+            "README.md",
+            "requirements.txt",
+            "logs/landrecords.log",
+            "scripts/backup.sh",
+            "scripts/delete_db.py",
+            "scripts/initialize.py",
+            "scripts/main.sh",
+            "scripts/make_db.py",
+            "scripts/screen.js",
+            "scripts/screen.py",
+            "scripts/tserver.py"
+        ]
+    },
     include_package_data=True,
     license='MIT',
     description=(
