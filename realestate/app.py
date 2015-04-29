@@ -35,7 +35,11 @@ def home():
 
     data = Models().get_home()
 
+    log.debug(data)
+
     view = Views().get_home(data)
+
+    log.debug(view)
 
     return view
 
@@ -223,7 +227,7 @@ def page_not_found(error):
 
 if __name__ == '__main__':
     app.run(
-        # host = "0.0.0.0",
+        # port=PORT,
         use_reloader=RELOADER,
         debug=DEBUG
     )
