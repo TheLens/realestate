@@ -4,7 +4,9 @@ python:
 install:
 - pip install -r requirements.txt
 script:
-- nosetests tests/test*.py
+- coverage run tests/test*.py --doctest-modules --pep8 coveralls -v --cov coveralls --cov-report term-missing
 before_install:
 - openssl aes-256-cbc -K $encrypted_7e1cf468a927_key -iv $encrypted_7e1cf468a927_iv
   -in landrecords/config.py.enc -out landrecords/config.py -d
+after_success:
+  - coveralls
