@@ -49,7 +49,7 @@ class Models(object):
         log.debug(en)
 
         try:
-            engine = create_engine(en)
+            engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
             log.debug(engine)
         except Exception, error:
             log.debug(error, exc_info=True)
