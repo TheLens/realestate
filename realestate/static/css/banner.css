@@ -68,18 +68,22 @@
 }
 
 
-@media screen and (max-width: 600px) {  
-    .banner .banner-social-facebook,
+@media screen and (max-width: 725px) {  
+    /*.banner .banner-social-facebook,
     .banner .banner-social-twitter {
         font-size: 20px;
         margin-top: 7px;
+    }*/
+    .banner .banner-sponsor {
+        display: none;
     }
 }
 
 /* To match page title resizing with logo resizing in lens.js */
-@media screen and (max-width: 500px) {
+@media screen and (max-width: 600px) {
     .banner .banner-title {
-        font-size: 16px;
-        margin: 8px 12px 0 6px;
+        /*font-size: 16px;
+        margin: 8px 12px 0 6px;*/
+        display: none;
     }
 }

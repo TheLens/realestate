@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+  <head>
+      {% include 'head.html' %}    
+  </head>
+  <body>
+    {% include 'banner.html' %}
+
+    <div class="row">
+        <div class="small-12 columns">
+            <h4 class="subheader" id="page-title">Property sales dashboard</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="small-12 columns">{{ num_results }} results found (reverse chronological order)...</div>
+    </div>
+
+    {% for newrow in newrows %}
+    <div class="row" id="dashboard-block" class="dashboard-block">
+      <div class="small-12 medium-6 columns" id="index-info">
+        <div class="row">
+          <div class="small-12 columns" style="margin: 15px 0;">
+            <div class="dashboard-row">
+              <strong>Instrument #:</strong> <span id="instrument_no_{{loop.index}}">{{ newrow.instrument_no }}</span>
+            </div>
+            <div class="dashboard-row">
+              <label>Publish data?</label> <input type="search" id="detail_publish_{{loop.index}}" value="{{ newrow.detail_publish }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Publish location?</label> <input type="search" id="location_publish_{{loop.index}}" value="{{ newrow.location_publish }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Address:</label> <input type="search" id="address_{{loop.index}}" value="{{ newrow.address }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Location info:</label> <input type="search" id="location_info_{{loop.index}}" value="{{ newrow.location_info }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Latitude:</label> <input type="search" id="latitude_{{loop.index}}" value="{{ newrow.latitude }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Longitude:</label> <input type="search" id="longitude_{{loop.index}}" value="{{ newrow.longitude }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Sale date:</label> <input type="search" id="document_date_{{loop.index}}" value="{{ newrow.document_date }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Date recorded:</label> <input type="search" id="document_recorded_{{loop.index}}" value="{{ newrow.document_recorded }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Amount:</label> <input type="search" class="currency" id="amount_{{loop.index}}" value="{{ newrow.amount }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Sellers:</label> <input type="search" id="sellers_{{loop.index}}" value="{{ newrow.sellers }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Buyers:</label> <input type="search" id="buyers_{{loop.index}}" value="{{ newrow.buyers }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Zip:</label> <input type="search" id="zip_code_{{loop.index}}" value="{{ newrow.zip_code }}">
+            </div>
+            <div class="dashboard-row">
+              <label>Neighborhood:</label> <input type="search" id="neighborhood_{{loop.index}}" value="{{ newrow.neighborhood }}">
+            </div>
+            <button id="{{loop.index}}" class="button searchButton">Update sale</button>
+          </div>
+        </div>
+      </div>
+      <div class="small-12 medium-6 columns" id="map-info">
+        <div>Current sale location:</div>
+        <div id="map_{{loop.index}}" class="map"></div>
+      </div>
+    </div>
+    {% endfor %}
+    <div id="preview" class="preview">
+      Are you sure you want to update sale #<span id="preview_instrument_no"></span>?
+      <button class="button searchButtonTrue">Yes</button>
+      <button class="button closeDiv">No</button>
+    </div>
+
+    <script type="text/javascript">
+      if ({{ js_app_routing|tojson }} !== 'None') {
+          var js_app_routing = {{ js_app_routing|tojson }};
+          //console.log('js_app_routing:', js_app_routing);
+      }
+    </script>
+    {% include 'js.html' %}
+    <script type="text/javascript" src="https://s3-us-west-2.amazonaws.com/elections.thelensnola.org/resources/topojson.v1.min.js"></script>
+    <!-- <script type="text/javascript" src={{ neighborhoodstopo }}></script>
+    <script type="text/javascript" src={{ squarestopo }}></script> -->
+    <script type="text/javascript" src={{ js }}></script>
+    <script type="text/javascript" src={{ dashboardjs }}></script>
+    <script type="text/javascript">
+      if (typeof {{ number_of_indexes }} !== 'undefined') {
+        if (typeof {{ jsrows|tojson }} !== 'undefined') {
+          //console.log('indexes');
+          //Populate search parameters
+          initialFunction({{ number_of_indexes }}, {{ jsrows|tojson }});
+        }
+      }
+    </script>
+  </body>
+</html>

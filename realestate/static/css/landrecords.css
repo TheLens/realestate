@@ -22,6 +22,9 @@ Property sales styles
 
  ************/
 
+/** {
+    border: 1px solid red;
+}*/
 body {
     width: 100%;
     margin: 0 auto;
@@ -219,10 +222,7 @@ input[type=radio].leaflet-control-layers-selector {
 .tailend {
     background-color: #A8A299;
     height: 1px;
-    margin: 3% 15px 0;
-}
-.lens-about {
-    padding-top: 15px;
+    margin: 3% 15px 15px;
 }
 .lens-about p {
     font-size: 14px;
@@ -234,10 +234,15 @@ input[type=radio].leaflet-control-layers-selector {
     padding-bottom: 1%;
     font-family: "news-gothic-std", Helvetica, Arial, sans-serif;
 }
-.credit {
+.credit,
+.lens-about,
+.footer-sponsor-logo-wrapper {
     margin: 10px 0;
     font-size: 14px;
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
+}
+.footer-sponsor-image {
+    width: 40%;
 }
 
 
@@ -497,6 +502,9 @@ input[type=radio].leaflet-control-layers-selector {
         padding-left: 0;
         padding-right: 0;
     }
+    .footer-sponsor-image {
+        width: 60%;
+    }
 }
 
 
@@ -506,7 +514,7 @@ input[type=radio].leaflet-control-layers-selector {
 
  ***************/
 
-@media screen and (min-width: 641px) and (max-width: 1024px) {
+@media screen and (min-width: 601px) and (max-width: 1024px) {
     .page-title {
         font-size: 36px;
         line-height: 36px;
