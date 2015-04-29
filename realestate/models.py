@@ -45,7 +45,7 @@ class Models(object):
         base = declarative_base()
         log.debug('4')
 
-        en = os.environ.get('SERVER_ENGINE')
+        en = os.environ.get('REAL_ESTATE_SERVER_ENGINE')
         log.debug(en)
 
         engine = create_engine(en)

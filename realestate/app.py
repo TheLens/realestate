@@ -130,8 +130,8 @@ def check_auth(username, password):
     :returns: bool. True if username and password are correct, False otherwise.
     """
 
-    return (username == os.environ.get('DASHBOARD_USERNAME') and
-            password == os.environ.get('DASHBOARD_PASSWORD'))
+    return (username == os.environ.get('REAL_ESTATE_DASHBOARD_USERNAME') and
+            password == os.environ.get('REAL_ESTATE_DASHBOARD_PASSWORD'))
 
 
 def authenticate():
