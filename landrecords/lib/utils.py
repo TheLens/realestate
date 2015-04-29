@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
-'''Common utility functions, like converting between dates and types.'''
+'''
+A collection of usefull utility functions, such as converting date formats
+and converting integer dollar amounts to string currency formats.
+'''
 
 import re
 from datetime import datetime
-
-# from landrecords import log
 
 
 class Utils(object):

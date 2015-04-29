@@ -408,7 +408,7 @@ class Detail(Base):
     document_recorded = Column(Date, nullable=True)
     amount = Column(BigInteger)
     status = Column(String, nullable=True)
-    prior_mortgage_doc_type = Column(String, nullable=True)  # todo: fix sp
+    prior_mortgage_doc_type = Column(String, nullable=True)
     prior_conveyance_doc_type = Column(String, nullable=True)
     cancel_status = Column(String, nullable=True)
     remarks = Column(String, nullable=True)

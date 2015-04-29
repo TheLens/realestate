@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
 
-'''Create database and make tables.'''
+"""
+Create database and make tables.
+Creates the database if not yet created, creates tables, imports geographic
+data and creates spatial indexes. It makes use of `db.py`.
+"""
 
+import os
 import psycopg2
 from sqlalchemy import create_engine
 from subprocess import call, Popen, PIPE
 
-from landrecords import log
-from landrecords.config import Config
+from landrecords import log, DATABASE_NAME, GEO_DIR
 from landrecords import db
 
 
@@ -25,12 +29,15 @@ class MakeDB(object):
 
     @staticmethod
     def create_db():
-        '''Create database if it doesn\'t already exist.'''
+        """
+        Create database if it doesn\'t already exist.
+        """
 
         log.debug('create_db')
 
         try:
-            conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+            conn = psycopg2.connect(
+                "%s" % (os.environ.get('SERVER_CONNECTION')))
             cur = conn.cursor()
             sql = "SELECT 1;"
             cur.execute(sql)
@@ -38,10 +45,11 @@ class MakeDB(object):
             log.exception(error, exc_info=True)
             call([
                 'createdb',
-                '%s' % Config().DATABASE_NAME
+                '%s' % DATABASE_NAME
             ])
 
-            conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+            conn = psycopg2.connect(
+                "%s" % (os.environ.get('SERVER_CONNECTION')))
             cur = conn.cursor()
             cur.execute("CREATE EXTENSION POSTGIS;")
 
@@ -56,7 +64,7 @@ class MakeDB(object):
         log.debug('create_tables')
 
         engine = create_engine(
-            Config().SERVER_ENGINE
+            os.environ.get('SERVER_ENGINE')
         )
         db.Base.metadata.create_all(engine)
 
@@ -66,7 +74,7 @@ class MakeDB(object):
 
         log.debug('import_neighorhoods')
 
-        conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+        conn = psycopg2.connect("%s" % (os.environ.get('SERVER_CONNECTION')))
         cur = conn.cursor()
 
         p1 = Popen(
@@ -74,7 +82,7 @@ class MakeDB(object):
                 'shp2pgsql',
                 '-I',
                 '-a',  # appends data to existing table. don't create.
-                '{0}/neighborhoods/shapefile'.format(Config().GEO_DIR) +
+                '{0}/neighborhoods/shapefile'.format(GEO_DIR) +
                 '/Neighborhood_Statistical_Areas',
                 'neighborhoods'
             ],
@@ -85,7 +93,7 @@ class MakeDB(object):
             [
                 'psql',
                 '-d',
-                '%s' % Config().DATABASE_NAME
+                '%s' % DATABASE_NAME
             ],
             stdin=p1.stdout,
             stdout=PIPE
@@ -113,7 +121,7 @@ class MakeDB(object):
 
         log.debug('spatial_index_on_cleaned_geom')
 
-        conn = psycopg2.connect("%s" % (Config().SERVER_CONNECTION))
+        conn = psycopg2.connect("%s" % (os.environ.get('SERVER_CONNECTION')))
         cur = conn.cursor()
 
         sql = """

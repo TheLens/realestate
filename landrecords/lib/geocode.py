@@ -1,18 +1,25 @@
 # -*- coding: utf-8 -*-
 
-'''
-Geocoding and spatial queries.
-Geocode street addresses and find which neighborhood they are in.
-'''
+"""
+Uses the Google Geocoding API (we used to use the PostGIS Geocoder) to
+geocode addresses, resulting in ZIP codes, latitude, longitude and an
+accuracy rating. A rating of "ROOFTOP" or "RANGE_INTERPOLATED" is good enough
+for publication.
 
+This also includes a method that uses PostGIS to find the neighborhood in
+which each sale occurred, working with a neighborhood shapefile available
+from [data.nola.gov](http://data.nola.gov).
+"""
+
+import os
 import psycopg2
 import googlemaps
 from sqlalchemy import create_engine, func, cast, Float, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
 from landrecords.db import (
+    Detail,
     Location,
     Neighborhood
 )
@@ -23,16 +30,19 @@ class Geocode(object):
 
     '''Geocode class that needs no input.'''
 
-    def __init__(self):
+    def __init__(self, initial_date=None, until_date=None):
         '''Generates connections to PostgreSQL and SQLAlchemy.'''
 
-        self.gmaps = googlemaps.Client(key=Config().GOOGLE_API_KEY)
+        self.initial_date = initial_date
+        self.until_date = until_date
 
-        self.conn = psycopg2.connect(Config().SERVER_CONNECTION)
+        self.gmaps = googlemaps.Client(key=os.environ.get('GOOGLE_API_KEY'))
+
+        self.conn = psycopg2.connect(os.environ.get('SERVER_CONNECTION'))
         self.cursor = self.conn.cursor()
 
         base = declarative_base()
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
@@ -100,8 +110,14 @@ class Geocode(object):
             Location.document_id,
             Location.street_number,
             Location.address
+        ).join(
+            Detail
         ).filter(
             Location.rating.is_(None)
+        ).filter(
+            Detail.document_recorded >= '%s' % self.initial_date
+        ).filter(
+            Detail.document_recorded <= '%s' % self.until_date
         ).all()
 
         log.debug('Rows with rating is NULL: %d', len(query))
@@ -111,9 +127,16 @@ class Geocode(object):
         return query
 
     def process_google_results(self, result):
-        '''Process the returned geocoding results.'''
+        '''
+        Returns a dict of the returned geocoding results.
 
-        # log.debug(result)
+        :param result: The returned results from Google.
+        :type result: JSON
+        :returns: A dict with rating, latitude, longitude and ZIP code.
+        :rtype: dict
+        '''
+
+        log.debug('process_google_results')
 
         dict_output = {}
 
@@ -137,7 +160,8 @@ class Geocode(object):
 
     def geocode(self):
         '''
-        Uses Google Geocoding API for locations with rating/lat/lng of NULL.
+        Updates latitude, longitude, rating and zip_code fields in the
+        locations table using the Google Geocoding API.
         '''
 
         session = self.sn()
@@ -151,11 +175,9 @@ class Geocode(object):
             full_address = row.street_number + ' ' + row.address + \
                 ', New Orleans, LA'
 
-            try:
-                geocode_result = self.gmaps.geocode(full_address)
-                dict_output = self.process_google_results(geocode_result)
-            except Exception, error:
-                log.exception(error, exc_info=True)
+            # Let it fail on any errors so API doesn't continue to get hit.
+            geocode_result = self.gmaps.geocode(full_address)
+            dict_output = self.process_google_results(geocode_result)
 
             try:
                 with session.begin_nested():
@@ -177,4 +199,12 @@ class Geocode(object):
         log.debug('Done geocoding')
 
 if __name__ == '__main__':
+    try:
+        Geocode(
+            initial_date='2014-02-18',
+            until_date='2014-05-08'
+        ).get_rows_with_null_rating()
+    except Exception, error:
+        log.exception(error, exc_info=True)
+
     pass

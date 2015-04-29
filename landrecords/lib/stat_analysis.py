@@ -2,24 +2,22 @@
 
 '''Commmon statistical analyses, like high amounts, sales per day, etc.'''
 
+import os
 from sqlalchemy import create_engine
-
-from landrecords.config import Config
-# from landrecords import log
 
 
 class StatAnalysis(object):
 
     '''Commmon statistical analyses.'''
 
-    def __init__(self, begin_date, end_date):
+    def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
 
         self.table = 'cleaned'
-        self.begin_date = begin_date
-        self.end_date = end_date
+        self.initial_date = initial_date
+        self.until_date = until_date
 
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
 
     def count(self):
         '''Get number of records.'''
@@ -28,7 +26,7 @@ class StatAnalysis(object):
             SELECT COUNT(*)
             FROM %s
             WHERE document_recorded >= '%s' AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
 
@@ -45,7 +43,7 @@ class StatAnalysis(object):
             WHERE detail_publish = False
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
         for row in result:
@@ -61,7 +59,7 @@ class StatAnalysis(object):
             WHERE detail_publish IS True
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
         for row in result:
@@ -77,7 +75,7 @@ class StatAnalysis(object):
             WHERE location_publish IS False
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
         for row in result:
@@ -93,7 +91,7 @@ class StatAnalysis(object):
             WHERE location_publish IS True
             AND document_recorded >= '%s'
             AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
         for row in result:
@@ -110,7 +108,7 @@ class StatAnalysis(object):
             AND document_recorded <= '%s'
             ORDER BY amount DESC
             LIMIT 1;
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
 
@@ -128,7 +126,7 @@ class StatAnalysis(object):
             AND document_recorded <= '%s'
             ORDER BY amount ASC
             LIMIT 1;
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
 
@@ -158,7 +156,7 @@ class StatAnalysis(object):
             FROM %s
             WHERE document_recorded >= '%s'
             AND document_recorded <= '%s';
-            """ % (self.table, self.begin_date, self.end_date)
+            """ % (self.table, self.initial_date, self.until_date)
 
         result = self.engine.execute(sql)
 

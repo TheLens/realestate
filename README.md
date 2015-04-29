@@ -48,3 +48,41 @@ This will scrape, build, geocode, clean and publish the previous day's sales.
 `python landrecords/lib/scrape.py`
 
 `python scripts/initialize.py`
+
+#### Environment variables
+
+Create two environment variables, and do so both locally and on the server:
+
+```bash
+export SERVER_ENGINE='postgresql://myuser:mypass@localhost/landrecords'
+
+export SERVER_CONNECTION='dbname=landrecords user=myuser password=mypass'
+
+export LRD_USERNAME='myuser'
+
+export LRD_PASSWORD='mypass'
+
+export GOOGLE_API_KEY='mykey'
+
+# Twitter
+
+export APP_KEY='myappkey' # Customer Key
+
+export APP_SECRET='myappsecret' # Customer secret
+
+export OAUTH_TOKEN='myoauthtoken'
+
+export OAUTH_TOKEN_SECRET='myoauthtokensecret'
+
+# Dashboard
+
+export DASHBOARD_USERNAME='myuser'
+
+export DASHBOARD_PASSWORD='mypass'
+
+# Gmail
+
+export GMAIL_USERNAME='myemail'
+
+export GMAIL_PASSWORD='mypass'
+```

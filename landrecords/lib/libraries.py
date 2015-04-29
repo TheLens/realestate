@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''A collection of items.'''
+'''
+A collection of useful data, such as abbreviations, acronyms, neighborhood
+names and noteworthy names (needs more work).
+'''
 
 
 class Library(object):

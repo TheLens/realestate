@@ -118,7 +118,7 @@
   <h1>Source code for landrecords.models</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 
-<span class="sd">&#39;&#39;&#39;The models.&#39;&#39;&#39;</span>
+<span class="sd">&#39;&#39;&#39;Gets the data.&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">urllib</span>
@@ -454,8 +454,8 @@
             <span class="n">row</span><span class="o">.</span><span class="n">amount</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">get_num_with_curr_sign</span><span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">amount</span><span class="p">)</span>
             <span class="n">row</span><span class="o">.</span><span class="n">document_date</span> <span class="o">=</span> <span class="n">Utils</span><span class="p">()</span><span class="o">.</span><span class="n">ymd_to_full_date</span><span class="p">(</span>
                 <span class="p">(</span><span class="n">row</span><span class="o">.</span><span class="n">document_date</span><span class="p">)</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">),</span> <span class="n">no_day</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-            <span class="n">address</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">address</span>
-            <span class="n">location_info</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">location_info</span>
+            <span class="c"># address = row.address</span>
+            <span class="c"># location_info = row.location_info</span>
             <span class="n">data</span><span class="p">[</span><span class="s">&#39;assessor_publish&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">row</span><span class="o">.</span><span class="n">assessor_publish</span>
 
         <span class="c"># newrows = query</span>
@@ -785,7 +785,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Thomas Thoren.
+        &copy; Copyright 2015, The Lens.
     </p>
   </div>
 

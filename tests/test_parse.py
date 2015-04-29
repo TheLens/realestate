@@ -3,7 +3,6 @@
 # import mock
 from unittest import TestCase
 
-from landrecords.config import Config
 from landrecords.lib.parse import (
     AllPurposeParser,
     DetailParser,
@@ -11,13 +10,14 @@ from landrecords.lib.parse import (
     VendeeParser,
     LocationParser
 )
+from landrecords import DATA_DIR
 
 
 class TestAllPurposeParser(TestCase):
     "TestAllPurposeParser"
 
     html_path = (
-        '%s/' % Config().DATA_DIR +
+        '%s/' % DATA_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_all_purpose_get_document_id_var(self):
@@ -41,7 +41,7 @@ class TestDetailParser(TestCase):
     '''Test parser for details table.'''
 
     html_path = (
-        '%s/' % Config().DATA_DIR +
+        '%s/' % DATA_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     # todo: rows, parse_rows
@@ -109,7 +109,7 @@ class TestDetailParser(TestCase):
         '''
 
         html_no_document_date = (
-            '%s/' % Config().DATA_DIR +
+            '%s/' % DATA_DIR +
             'raw/2014-05-01/form-html/OPR291526640.html')
 
         document_date = DetailParser(html_no_document_date).document_date
@@ -230,7 +230,7 @@ class TestVendorParser(TestCase):
     '''TestVendorParser'''
 
     html_path = (
-        '%s/' % Config().DATA_DIR +
+        '%s/' % DATA_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_vendor_blank(self):
@@ -336,7 +336,7 @@ class TestVendeeParser(TestCase):
     '''TestVendeeParser'''
 
     html_path = (
-        '%s/' % Config().DATA_DIR +
+        '%s/' % DATA_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_vendee_blank(self):
@@ -416,7 +416,7 @@ class TestLocationParser(TestCase):
     "TestLocationParser"
 
     html_path = (
-        '%s/' % Config().DATA_DIR +
+        '%s/' % DATA_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_field_subdivision(self):
@@ -476,12 +476,13 @@ class TestLocationParser(TestCase):
 
         self.assertEqual(weeks, "")
 
-    def test_get_field_cancel_stat(self):
-        "test_get_field_cancel_stat"
+    def test_get_field_cancel_status_unit(self):
+        "test_get_field_cancel_status_unit"
 
-        cancel_stat = LocationParser(self.html_path).get_cancel_stat(0)
+        cancel_status_unit = LocationParser(
+            self.html_path).get_cancel_status_unit(0)
 
-        self.assertEqual(cancel_stat, " ")
+        self.assertEqual(cancel_status_unit, " ")
 
     def test_get_field_freeform_legal(self):
         "test_get_field_freeform_legal"
@@ -492,13 +493,13 @@ class TestLocationParser(TestCase):
         self.assertEqual(freeform_legal, "")
 
     # todo: closer look with various versions
-    def test_get_field_cancel_status(self):
-        "test_get_field_cancel_status"
+    def test_get_field_cancel_status_lot(self):
+        "test_get_field_cancel_status_lot"
 
-        cancel_status = LocationParser(
-            self.html_path).get_cancel_status(0)
+        cancel_status_lot = LocationParser(
+            self.html_path).get_cancel_status_lot(0)
 
-        self.assertEqual(cancel_status, " ")
+        self.assertEqual(cancel_status_lot, " ")
 
     # todo: closer look with various HTML, for "xx to xx"
     def test_get_field_lot(self):
@@ -515,13 +516,13 @@ class TestLocationParser(TestCase):
             'square': '4-A',
             'address': 'PRIMROSE DR',
             'condo': '',
-            'cancel_stat': ' ',
+            'cancel_status_unit': ' ',
             'unit': '',
             'freeform_legal': '',
             'subdivision': 'ARDYN PARK',
             'street_number': '7532',
             'district': '3RD',
-            'cancel_status': ' ',
+            'cancel_status_lot': ' ',
             'document_id': 'OPR288694480',
             'lot': '17-A',
             'weeks': ''

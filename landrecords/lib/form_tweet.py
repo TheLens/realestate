@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
-'''Runs logic to find what to tweet and forms language for tweet.'''
+'''
+Does analysis and uses results to craft language of the tweet. Also takes
+screenshot of that particular sale's map using `screen.js` (PhantomJS).
+'''
 
 # todo: run this separate from 3 a.m. scrape/initialize/etc cron job.
 # run this on a cron at same time we want to tweet.
 
 import sys
-
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -14,8 +17,7 @@ from datetime import timedelta
 from subprocess import call
 
 from landrecords.db import Cleaned
-from landrecords.config import Config
-from landrecords import log
+from landrecords import log, TODAY_DATE, SCRIPTS_DIR, PICTURES_DIR
 from landrecords.lib.twitter import Twitter
 
 
@@ -27,7 +29,7 @@ class AutoTweet(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        engine = create_engine(Config().SERVER_ENGINE)
+        engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 
@@ -42,18 +44,18 @@ class AutoTweet(object):
         document_recorded_late = ''
         time_period = ''
 
-        if Config().TODAY_DATE.strftime('%A') == 'Sunday':
+        if TODAY_DATE.strftime('%A') == 'Sunday':
             sys.exit()
             return
-        elif Config().TODAY_DATE.strftime('%A') == 'Monday':
+        elif TODAY_DATE.strftime('%A') == 'Monday':
             document_recorded_early = (
-                Config().TODAY_DATE - timedelta(days=7)
+                TODAY_DATE - timedelta(days=7)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             document_recorded_late = (
-                Config().TODAY_DATE - timedelta(days=3)
+                TODAY_DATE - timedelta(days=3)
             ).strftime(
                 '%Y-%m-%d'
             )
@@ -61,19 +63,19 @@ class AutoTweet(object):
             time_period = 'last week'
         else:
             document_recorded_early = (
-                Config().TODAY_DATE - timedelta(days=1)
+                TODAY_DATE - timedelta(days=1)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             document_recorded_late = (
-                Config().TODAY_DATE - timedelta(days=1)
+                TODAY_DATE - timedelta(days=1)
             ).strftime(
                 '%Y-%m-%d'
             )
 
             time_period = (
-                Config().TODAY_DATE - timedelta(days=1)
+                TODAY_DATE - timedelta(days=1)
             ).strftime('%A')
 
         return_dict = {}
@@ -174,7 +176,7 @@ class AutoTweet(object):
         '''Form filename for map screenshot.'''
 
         name = '%s-%s-high-amount.png' % (
-            Config().TODAY_DATE, instrument_no)
+            TODAY_DATE, instrument_no)
 
         return name
 
@@ -185,17 +187,17 @@ class AutoTweet(object):
         log.debug('get_image')
         log.debug('url: %s', url)
 
-        call(['%s/phantomjs' % Config().SCRIPTS_DIR,
-              '%s/screen.js' % Config().SCRIPTS_DIR,
+        call(['%s/phantomjs' % SCRIPTS_DIR,
+              '%s/screen.js' % SCRIPTS_DIR,
               url,
-              '%s/tweets/%s' % (Config().PICTURES_DIR, name)])
+              '%s/tweets/%s' % (PICTURES_DIR, name)])
 
     def open_image(self, url, name):
         '''Get file path to screenshot.'''
 
         self.get_image(url, name)
 
-        filename = '%s/tweets/%s' % (Config().PICTURES_DIR, name)
+        filename = '%s/tweets/%s' % (PICTURES_DIR, name)
 
         return filename
 

@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
 
 '''
-Accesses scrapd HTML and hands off to parse.py.
-This receives parsed, structured data and inputs to database.
+Receives sale HTML, hands off to parse.py, which returns structured data.
+This then commits the returned structured data.
 '''
 
+import os
 import glob
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine, insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
 from landrecords import db
 from landrecords.lib import parse
-from landrecords import log
+from landrecords import log, DATA_DIR
 
 
 class Build(object):
@@ -28,7 +28,7 @@ class Build(object):
         '''
 
         base = declarative_base()
-        engine = create_engine(Config().SERVER_ENGINE)
+        engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 
@@ -78,7 +78,7 @@ class Build(object):
             print current_date
 
             glob_string = '%s/raw/%s/form-html/*.html' % (
-                Config().DATA_DIR, current_date)
+                DATA_DIR, current_date)
 
             # Allows for variable calls to a class.
             # Ex module.Class().method -> parse.parser_name(f).list_output
@@ -121,7 +121,7 @@ class Build(object):
             print current_date
 
             glob_string = '%s/raw/%s/form-html/*.html' % (
-                Config().DATA_DIR, current_date)
+                DATA_DIR, current_date)
 
             for filepath in sorted(glob.glob(glob_string)):
                 list_output = getattr(parse, parser_name)(filepath).form_list()

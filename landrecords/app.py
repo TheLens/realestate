@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-'''docstring'''
+'''The controller that routes requests and returns responses.'''
 
-# from __future__ import absolute_import
-
+import os
 import urllib
 # from flask.ext.cache import Cache
 from flask import (
@@ -14,20 +13,23 @@ from flask import (
 )
 from functools import wraps
 
-from landrecords.config import Config
-from landrecords import log
+from landrecords import (
+    log, APP_ROUTING, DEBUG, RELOADER
+)
 from landrecords.models import Models
 from landrecords.views import Views
 
 app = Flask(__name__)
 
-# cache = Cache(app, Config().={'CACHE_TYPE': 'simple'})
+# cache = Cache(app, ={'CACHE_TYPE': 'simple'})
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/" % (Config().APP_ROUTING), methods=['GET'])
+@app.route("%s/" % (APP_ROUTING), methods=['GET'])
 def home():
-    '''docstring'''
+    '''
+    Receives a GET call for the homepage (/) and returns the view.
+    '''
 
     log.debug('home')
 
@@ -39,9 +41,16 @@ def home():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/input" % (Config().APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/input" % (APP_ROUTING), methods=['POST'])
 def searchbar_input():
-    '''docstring'''
+    '''
+    Receives a ___ call from the autocomplete dropdown and returns a dict
+    of suggestions.
+
+    :param query: The search bar input.
+    :type query: string
+    :returns: A dict of matching suggestions.
+    '''
 
     term = request.args.get('q')
 
@@ -51,10 +60,18 @@ def searchbar_input():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/search/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
-@app.route("%s/search" % (Config().APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/search/" % (APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/search" % (APP_ROUTING), methods=['GET', 'POST'])
 def search():
-    '''docstring'''
+    '''
+    Receives a request (GET or POST) for the /search page and returns a view
+    of some or all of the /search page, depending on whether GET or POST.
+
+    todo:
+    :param request: Incoming data
+    :type request: dict?
+    :returns: View of search page.
+    '''
 
     if request.method == 'GET':
         log.debug('search GET')
@@ -76,9 +93,15 @@ def search():
 
 
 # @cache.memoize(timeout=5000)
-@app.route("%s/sale/<instrument_no>" % (Config().APP_ROUTING), methods=['GET'])
+@app.route("%s/sale/<instrument_no>" % (APP_ROUTING), methods=['GET'])
 def sale(instrument_no=None):
-    '''docstring'''
+    """
+    Receives a GET request for a particular sale's individual page.
+
+    :param instrument_no: The sale's instrument number, determined via the URL.
+    :type instrument_no: string
+    :returns: The sale's page or an error page if no sale found.
+    """
 
     log.debug('sale')
 
@@ -93,14 +116,24 @@ def sale(instrument_no=None):
 
 
 def check_auth(username, password):
-    '''Checks if given username and password match correct credentials'''
+    """
+    Checks if given username and password match correct credentials.
 
-    return (username == Config().DASHBOARD_USERNAME and
-            password == Config().DASHBOARD_PASSWORD)
+    :param username: The entered username.
+    :type username: string
+    :param password: The entered password.
+    :type password: string
+    :returns: bool. True if username and password are correct, False otherwise.
+    """
+
+    return (username == os.environ.get('DASHBOARD_USERNAME') and
+            password == os.environ.get('DASHBOARD_PASSWORD'))
 
 
 def authenticate():
-    '''Return error message'''
+    """
+    Return error message.
+    """
 
     return Response(
         'Could not verify your access level for that URL.\n'
@@ -111,7 +144,9 @@ def authenticate():
 
 
 def requires_auth(f):
-    '''Authorization process'''
+    """
+    Authorization process.
+    """
 
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -129,10 +164,12 @@ def requires_auth(f):
 
 # todo
 # @cache.memoize(timeout=5000)
-@app.route("%s/dashboard/" % (Config().APP_ROUTING), methods=['GET', 'POST'])
+@app.route("%s/dashboard/" % (APP_ROUTING), methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
-    '''Dashboard'''
+    """
+    The admin dashboard page for making adjustments to the database.
+    """
 
     if request.method == 'GET':
         log.debug('GET dashboard')
@@ -155,7 +192,7 @@ def dashboard():
         # return view
 
 
-@app.route("%s/webhook" % (Config().APP_ROUTING), methods=['POST'])
+@app.route("%s/webhook" % (APP_ROUTING), methods=['POST'])
 def webhook():
     '''Run Webhook class to keep server and S3 in sync'''
 
@@ -169,7 +206,13 @@ def webhook():
 # @cache.memoize(timeout=5000)
 @app.errorhandler(404)
 def page_not_found(error):
-    '''Return error page'''
+    """
+    Returns an error page.
+
+    :param error: The error message(?).
+    :type error: not sure
+    :returns: The view.
+    """
 
     log.debug(error)
 
@@ -181,6 +224,6 @@ def page_not_found(error):
 if __name__ == '__main__':
     app.run(
         # host = "0.0.0.0",
-        use_reloader=Config().RELOADER,
-        debug=Config().DEBUG
+        use_reloader=RELOADER,
+        debug=DEBUG
     )

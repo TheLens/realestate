@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 '''
-Calls on other classes to build, geocode, clean and
-publish records to the cleaned table.
+Calls on other classes to build, geocode, clean and publish records to the
+cleaned table. Can receive a date range or determine the dates on its own.
 '''
 
-from landrecords.config import Config
 from landrecords.lib.build import Build
 from landrecords.lib.clean import Clean
 from landrecords.lib.geocode import Geocode
@@ -14,7 +13,7 @@ from landrecords.lib.mail import Mail
 from landrecords.lib.publish import Publish
 # from landrecords.lib.check_temp_status import CheckTemp
 from landrecords.lib.email_template import EmailTemplate
-from landrecords import log
+from landrecords import log, LOG_DIR
 
 
 class Initialize(object):
@@ -40,44 +39,43 @@ class Initialize(object):
         log.debug('self.initial_date: %s', self.initial_date)
         log.debug('self.until_date: %s', self.until_date)
 
-        try:
-            Build(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).build_all()
+        # try:
+        #     Build(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).build_all()
 
-            # Clean().prep_locations_for_geocoding()
-        except Exception, error:
-            log.exception(error, exc_info=True)
+        # except Exception, error:
+        #     log.exception(error, exc_info=True)
 
-        try:
-            Geocode().geocode()  # Geocoding takes over an hour
-            Geocode().update_locations_with_neighborhoods()
-        except Exception, error:
-            log.exception(error, exc_info=True)
-
-        try:
-            Publish(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).main()
-        except Exception, error:
-            log.exception(error, exc_info=True)
-
-        try:
-            Clean(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).main()
-        except Exception, error:
-            log.exception(error, exc_info=True)
-
-        # dashboard_sync.DashboardSync()  # todo
-
-        Clean(
+        Geocode(
             initial_date=self.initial_date,
             until_date=self.until_date
-        ).update_cleaned_geom()
+        ).geocode()  # Geocoding takes over an hour
+        # Geocode().update_locations_with_neighborhoods()
+
+        # try:
+        #     Publish(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).main()
+        # except Exception, error:
+        #     log.exception(error, exc_info=True)
+
+        # try:
+        #     Clean(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).main()
+        # except Exception, error:
+        #     log.exception(error, exc_info=True)
+
+        # # dashboard_sync.DashboardSync()  # todo
+
+        # Clean(
+        #     initial_date=self.initial_date,
+        #     until_date=self.until_date
+        # ).update_cleaned_geom()
 
         # CheckTemp(
         #     initial_date=self.initial_date,
@@ -110,10 +108,14 @@ if __name__ == '__main__':
     try:
         # Default is to build and clean anything that needs it.
         # Specify custom date range in 'YYYY-mm-dd' string format
-        # or use variables such as Config().OPENING_DAY.
+        # or use variables such as OPENING_DAY, YESTERDAY_DAY.
         Initialize(
-            initial_date=Config().OPENING_DAY,
-            until_date=Config().OPENING_DAY
+            # select count(*) from locations join details on
+            # locations.document_id = details.document_id where
+            # details.document_recorded >= '2014-02-25' and
+            # details.document_recorded <= '2014-05-15';  # 2455 records
+            initial_date='2014-02-26',
+            until_date='2014-05-15'
         )
     except Exception, error:
         log.exception(error, exc_info=True)
@@ -123,5 +125,5 @@ if __name__ == '__main__':
             frm='tthoren@thelensnola.org',
             to=['tthoren@thelensnola.org']
         ).send_with_attachment(
-            files=['%s/landrecords.log' % Config().LOG_DIR]
+            files=['%s/landrecords.log' % LOG_DIR]
         )

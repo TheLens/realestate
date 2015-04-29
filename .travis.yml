@@ -1,12 +1,25 @@
 language: python
+sudo: false
 python:
 - '2.7'
 install:
 - pip install -r requirements.txt
 script:
 - coverage run tests/test*.py --doctest-modules --pep8 coveralls -v --cov coveralls --cov-report term-missing
-before_install:
-- openssl aes-256-cbc -K $encrypted_7e1cf468a927_key -iv $encrypted_7e1cf468a927_iv
-  -in landrecords/config.py.enc -out landrecords/config.py -d
 after_success:
-  - coveralls
+- coveralls
+env:
+  matrix:
+  - secure: Pj8MY8fBmAJlR1/mozQOvSZLHuWVgupvx7ohDPhE0qpLIIRntyqA73tdSo2DaOeWfzMFp0AaQhG+pu4a/bey9UpZCLj8DBffSNFs/SRlEAL0bnlzS6xObXSNiIrtibsqlrikY2BRnk6m4aJeSqgKTusriN/H+xjaqNa5BzvrKjY=
+  - secure: qsVCH2tc46n6JcYoFSkcfveX0HzCXS+lqXKEDZIAWdMUZ/aYCFMomm9EDeNPqIreo+QRNuCeimlHTR/832FK/Myy6BnazexXJ5SMDlAhOW/57/VTt0p70P9Q04gphdCLYIXP1R1PWoVGfdaP3n/knZ7fNFLN9RtQ5OZox6Lk+0w=
+  - secure: EFiMSkJa/h/w5E8/XAWcNigxdpTE9Sckd8idDpgfrhhkP2phN+j+lLS6zvQtO2TXnnggtx9VAzxx8SQyoDHlsi49Tm082PRnBnbM7JITiSRqOxUZEr0azLX7aPCprJSGItSIe8AS3RhAAU+dhIZa0eilEA1rr1QQaHENIr3zUug=
+  - secure: kPM5ihCaUwgQXd2vrok1H1uLq9j4bAHUQqRLbP+Cla49lsR96CgcjcfKpwb2Z4tpe3SUWNz1FJFF/0BAKhyxodGvCWq/L0ikpeiRuQLU2OUUqEl4HUXmomegnvjaJFw0dpFOyVHrjPLNEMvFTp6O9n7cvv21ze9eKM2xq5xVvxQ=
+  - secure: tbwsrKfw0K+Z/0NjSXGj8FMddWXSRVnlciv1mAQtIduQth6z5sFpsEpBC425crHG/e6+fCzwOqPFb1PSGFrG+M52MEpSPiQU0RsJa9YWNzAkO5bX/uzt8GVxnqQ8kdc/9pYQ5rO8UeeAm1pTcmZWlUgmN6+C3eisZfiqOCVgIS4=
+  - secure: BlXYieypiXBKGWrJTgM13sRbokW4/66RbxgX5YDd0GovIavJgQ5gEJq/whCoSk29MJz956MT33HjiXVJWo3FTVxJ4+QA+sUMaOTYNdbMke/7XpdKkxwmcJmuRloLjq/hLDJfSngPN8svvXo337zA7eQwB0Qw3LKz/VimO12JbT8=
+  - secure: AKF3yKOfDY8+Uy/Yb1Gfddz5U69xr/GLnAAWPRptuSQbKzlIr5qyBaoqyi0G2vpwZRymLeF24QU33mAoYiEx2pI7uTitquS1mVaqeougS/F3EG9ViO7JOial6sLoEGlBIfcbuLzyxKWHR/WvFyFwPu+pshX5tROfYMIW9KfP3Go=
+  - secure: c93sUFHJbxF8U5ZAfpcYXB28jeileumAfjgE/7H2ViBy1JdL2PT+6zAQLaYzCmAovqkbTK2jGbzrKMw2+/mFah40f+i00o7SnyBJy8ZEHBQT5xE4pFNaiqeV8QkMDt73XAmsF+pW3vTJzD2tnXIjITdEpLW0UNt9ipL4Qxga+5s=
+  - secure: dgYEr8095C+DFLAKIEgR+Lth6n7jHfAlHFQgEzkWyshYAwsqdRjuwRF3I5CpZBVJcELl2oZsKEvcMyPeF4GNLntcwNyWvPfzqp8h1tRWDm6sZAAonCjjL8MuID11aCqiZP/ham24DZUXIkzrOlY6Iw+SlPNoIw/XWN5xz+hmEFY=
+  - secure: YIxJ30QQZOazeJylM756lKZ54hs/k9m4NrOWQKozSK0XAfUiDekieOfc2UIQzg38qfz0EC/FuyUdSpVmEO5FgkyZj7REoHtjUrdyYUduUygGpaauUD1dc7ovmTmcPhDfk9MAs9iYJpwEqzn8RNxIX8qCZSycEhCwgoiLbFzE3cc=
+  - secure: RIPURd6ajqTwrk8xXmCc+gd4XKyPZcHPAH7tR8n9PRtZGVomkyWSMrWMrKUlvZjzVIW+55KWXPzBfxBVM3qIU+TYiBjFcS+vLkNm6pgBUj6HF7Fnh8xfzMKLTG9OmOLQ+vkmDOnGtHG3iGwinuMWUdhia3527KlWwoo2mPlEWFk=
+  - secure: B0aKnzR+cPL5SCWvON8rTc97YTIabYPxBUSBcsd25UxVmlKzNe8lZLYKOtRKDIs1pR/sJZr3qHNRfkj7t2nszhxF1bujl1cSiDLIA6trkmJmKpO9mQwu526vyVlMLCkn5Hoz5LFOiRm3Xgaiea+huulPMVQsEoT2ZwZ47ELqwvg=
+  - secure: cOTPCM91tsbpKJzA1y16UR/B4Ud1a+bzRNU/BqejPXDbhbj8fH8MzZpw6T8i6MJMB4Sv50XdnR3I7KoCmVVsyBexTO5e+1l0CoFhwYTIpGyrQeMACNEimT6WDVQ0sdUnPRNPGwvDWtGOvJcVdtZB/sBzmQuFnkRr+He8fSW7WVI=

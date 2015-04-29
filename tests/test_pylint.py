@@ -8,7 +8,7 @@ from unittest import TestCase
 import os
 import fnmatch
 from subprocess import call
-from landrecords.config import Config
+from landrecords import PROJECT_DIR
 
 # ignore stuff in virtualenvs or version control directories
 ignore_patterns = ('scripts', 'tests', 'misc')
@@ -34,7 +34,7 @@ class TestPylint(TestCase):
 
         # Find all .py files
         files_list = []
-        for root, dirnames, filenames in os.walk('%s' % Config().PROJECT_DIR):
+        for root, dirnames, filenames in os.walk('%s' % PROJECT_DIR):
             if ignore(root):
                 continue
 
@@ -49,8 +49,3 @@ class TestPylint(TestCase):
                 # --disable=invalid-name,
                 f
             ])
-
-        # errors = pep8style.check_files(files_list).total_errors
-
-        # self.assertEqual(errors, 0,
-        #                  'Found %s PEP8 errors (and warnings).' % errors)

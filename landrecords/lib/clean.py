@@ -1,13 +1,19 @@
 # -*- coding: utf-8 -*-
 
-'''JOIN the four individual tables, clean and commit to cleaned.'''
+"""
+Has two classes: `Join` and `Clean`.
+`Join` joins each of the four sale tables (details, vendors, vendees and
+locations) on their document ID and commits each sale to the `cleaned` table.
 
+`Clean` has methods to check for errors, mistakes and style issues. It
+utilizes `libraries.py`, a collection of items to check for.
+"""
+
+import os
 import re
 from sqlalchemy import create_engine, insert, func, cast, Text, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
-from landrecords.config import Config
 from landrecords.db import (
     Cleaned,
     Detail,
@@ -16,7 +22,7 @@ from landrecords.db import (
     Vendor
 )
 from landrecords.lib.libraries import Library
-from landrecords import log
+from landrecords import log, USER
 
 
 class Join(object):
@@ -30,12 +36,12 @@ class Join(object):
         self.until_date = until_date
 
         base = declarative_base()
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
     def get_details(self):
-        '''Gathers relevant details fields for cleaned.'''
+        '''Returns SQL query of details table for given date range.'''
 
         session = self.sn()
 
@@ -54,7 +60,7 @@ class Join(object):
         return subquery
 
     def get_vendees(self):
-        '''Gathers relevant vendees fields for cleaned.'''
+        '''Returns SQL query of vendees table for given date range.'''
 
         log.debug('get_vendees')
 
@@ -78,7 +84,7 @@ class Join(object):
         return subquery
 
     def get_vendors(self):
-        '''Gathers relevant vendors fields for cleaned.'''
+        '''Returns SQL query of vendors table for given date range.'''
 
         log.debug('get_vendors')
 
@@ -102,7 +108,7 @@ class Join(object):
         return subquery
 
     def get_locations(self):
-        '''Gathers relevant locations fields for cleaned.'''
+        '''Returns SQL query of locations table for given date range.'''
 
         log.debug('get_locations')
 
@@ -216,7 +222,7 @@ class Join(object):
         for normal use). So instead, this hack will temporary do that job.
         '''
 
-        if Config().USER == 'thomasthoren':
+        if USER == 'thomasthoren':
             sql = """SELECT
                 document_id,
                 -- mode(zip_code) AS zip_code,
@@ -281,7 +287,7 @@ class Clean(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
@@ -631,6 +637,7 @@ class Clean(object):
         session = self.sn()
 
         for count, row in enumerate(rows):
+            log.debug(count)
             try:
                 with session.begin_nested():
                     i = insert(Cleaned)
@@ -673,10 +680,8 @@ class Clean(object):
         log.debug('len(rows): %d', len(rows))
 
         prepped_rows = self.prep_rows(rows)
-        # log.debug(len(prepped_rows))
 
         clean_rows = self.clean_rows(prepped_rows)
-        # log.debug(len(clean_rows))
 
         self.commit_rows(clean_rows)
 

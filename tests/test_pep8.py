@@ -6,6 +6,7 @@ from unittest import TestCase
 import pep8
 import os
 import fnmatch
+from landrecords import PROJECT_DIR
 
 # ignore stuff in virtualenvs or version control directories
 ignore_patterns = ('backup', 'data', 'logs', 'misc')
@@ -32,7 +33,7 @@ class TestPep8(TestCase):
         # Find all .py files
         files_list = []
         for root, dirnames, filenames in os.walk(
-            '/Users/thomasthoren/projects/land-records/repo'
+            '%s' % PROJECT_DIR
         ):
             if ignore(root):
                 continue

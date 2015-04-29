@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
-'''Methods for working with Twitter.'''
+'''
+Methods for working with Twitter.
+Takes message and attachment, forms tweet and sends tweet using Twython.
+Performs checks on number of characters before sending to prevent an
+#embarrassing moment.
+'''
 
 import re
+import os
 from twython import Twython
-
-from landrecords.config import Config
-# from landrecords import log
 
 
 class Twitter(object):
@@ -17,10 +20,10 @@ class Twitter(object):
         '''Make connection to Twitter API.'''
 
         self.status = status
-        self.twitter = Twython(Config().APP_KEY,
-                               Config().APP_SECRET,
-                               Config().OAUTH_TOKEN,
-                               Config().OAUTH_TOKEN_SECRET)
+        self.twitter = Twython(os.environ.get('APP_KEY'),
+                               os.environ.get('APP_SECRET'),
+                               os.environ.get('OAUTH_TOKEN'),
+                               os.environ.get('OAUTH_TOKEN_SECRET'))
 
     @staticmethod
     def get_attachment(media):

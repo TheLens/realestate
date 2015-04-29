@@ -118,7 +118,14 @@
   <h1>Source code for landrecords.lib.clean</h1><div class="highlight"><pre>
 <span class="c"># -*- coding: utf-8 -*-</span>
 
-<span class="sd">&#39;&#39;&#39;JOIN the four individual tables, clean and commit to cleaned.&#39;&#39;&#39;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Has two classes: `Join` and `Clean`.</span>
+<span class="sd">`Join` joins each of the four sale tables (details, vendors, vendees and</span>
+<span class="sd">locations) on their document ID and commits each sale to the `cleaned` table.</span>
+
+<span class="sd">`Clean` has methods to check for errors, mistakes and style issues. It</span>
+<span class="sd">utilizes `libraries.py`, a collection of items to check for.</span>
+<span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">insert</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">cast</span><span class="p">,</span> <span class="n">Text</span><span class="p">,</span> <span class="n">exc</span>
@@ -810,7 +817,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Thomas Thoren.
+        &copy; Copyright 2015, The Lens.
     </p>
   </div>
 

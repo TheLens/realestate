@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
 
-'''Send emails using Gmail.'''
+"""
+A universal mail-sender, with methods for plain text, HTML and attachments.
+"""
 
+import os
 import smtplib
 import mimetypes
 from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from landrecords.config import Config
 from landrecords import log
 
 
@@ -36,8 +38,8 @@ class Mail(object):
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(Config().GMAIL_USERNAME,
-                Config().GMAIL_PASSWORD)
+        s.login(os.environ.get('GMAIL_USERNAME'),
+                os.environ.get('GMAIL_PASSWORD'))
         s.sendmail(self.frm, self.to, msg.as_string())
         s.quit()
 

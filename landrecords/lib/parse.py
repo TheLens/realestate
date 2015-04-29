@@ -1,11 +1,14 @@
 # -*- coding: utf-8 -*-
 
-'''Parse sale HTML and return as structured data.'''
+"""
+This contains all of the logic for parsing the different pages for each sale
+and makes use of the [Beautiful Soup]
+(http://www.crummy.com/software/BeautifulSoup/bs4/doc/) library. Returns
+either a dict of list of dicts.
+"""
 
 import re
 from bs4 import BeautifulSoup
-
-# from landrecords import log
 from landrecords.lib.utils import Utils
 
 
@@ -14,13 +17,24 @@ class AllPurposeParser(object):
     '''Parsing that is not specific to any table.'''
 
     def __init__(self, html_path):
-        '''Receives path to HTML file.'''
+        '''
+        Receives path to HTML file.
+
+        :param html_path: A path to a sale file. Ex. '/path/OPR123456789.html'
+
+        '''
 
         self.document_id = self.get_document_id(html_path)
 
     @staticmethod
     def get_document_id(html_path):
-        '''Find a sale\'s document ID based on the file name.'''
+        """
+        Return a sale's document ID based on the file name.
+
+        :param html_path: A path to a sale file. Ex. '/path/OPR123456789.html'
+        :type html_path: string
+        :returns: A string containing the document ID. Ex. 'OPR123456789'
+        """
 
         doc_id = re.search(r"(\w+)\.html", html_path).group(1)
 
@@ -29,7 +43,7 @@ class AllPurposeParser(object):
 
 class DetailParser(object):
 
-    '''Parse details HTML.'''
+    '''Parses the details section of the HTML.'''
 
     def __init__(self, html_path):
         '''Create self variables for each detail field.'''
@@ -58,7 +72,13 @@ class DetailParser(object):
         self.image = self.get_field(17)
 
     def get_rows(self, html_path):
-        '''Return rows for details table HTML.'''
+        """
+        Return rows for details table HTML.
+
+        :param html_path: A path to a sale file. Ex. '/path/OPR123456789.html'
+        :type html_path: string
+        :returns: A something containing something.
+        """
 
         html_file = open(html_path, 'r')
         soup = BeautifulSoup(html_file.read())
@@ -72,7 +92,13 @@ class DetailParser(object):
 
     @staticmethod
     def parse_rows(soup):
-        '''Find rows in details table HTML.'''
+        """
+        Find rows in details table HTML.
+
+        :param soup: A BeautifulSoup object.
+        :type soup: something
+        :returns: something.
+        """
 
         rows = soup.find(
             'table',
@@ -84,7 +110,13 @@ class DetailParser(object):
         return rows
 
     def get_field(self, row_id):
-        '''Extract values in rows.'''
+        """
+        Extract the value in a given row's key-value pair.
+
+        :param row_id: The row ID in the HTML, specifying the field. Ex. '0'
+        :type row_id: string
+        :returns: A string containing the field in the row. Ex. 'SALE'
+        """
 
         # log.debug(row_id)
 
@@ -117,7 +149,13 @@ class DetailParser(object):
         return field
 
     def form_dict(self):
-        '''Return dict of details rows.'''
+        """
+        Return dict of this sale's detail table.
+
+        :param self: The self variable, which contains the necessary fields.
+        :type row_id: instance
+        :returns: A dict containg all of the details values.
+        """
 
         dict_output = self.__dict__
 
@@ -128,7 +166,7 @@ class DetailParser(object):
 
 class VendorParser(object):
 
-    '''Parse vendors HTML.'''
+    '''Parses the vendors section of the HTML.'''
 
     def __init__(self, html_path):
         '''Establish self variables.'''
@@ -197,7 +235,7 @@ class VendorParser(object):
 
 class VendeeParser(object):
 
-    '''Parse vendees HTML.'''
+    '''Parses the vendees section of the HTML.'''
 
     def __init__(self, html_path):
         '''Establish self variables.'''
@@ -265,7 +303,7 @@ class VendeeParser(object):
 
 class LocationParser(object):
 
-    '''Parse locations HTML.'''
+    '''Parses the locations section of the HTML.'''
 
     def __init__(self, html_path):
         '''Establish self variables.'''
@@ -319,12 +357,12 @@ class LocationParser(object):
                 'district': self.get_district(table_no),
                 'square': self.get_square(table_no),
                 'lot': self.get_lot(table_no),
-                'cancel_status': self.get_cancel_status(table_no),
+                'cancel_status_lot': self.get_cancel_status_lot(table_no),
                 'street_number': self.get_street_number(table_no),
                 'address': self.get_address(table_no),
                 'unit': self.get_unit(table_no),
                 'weeks': self.get_weeks(table_no),
-                'cancel_stat': self.get_cancel_stat(table_no),
+                'cancel_status_unit': self.get_cancel_status_unit(table_no),
                 'freeform_legal': self.get_freeform_legal(table_no),
                 'document_id': self.document_id
             }
@@ -443,15 +481,15 @@ class LocationParser(object):
 
         return weeks
 
-    def get_cancel_stat(self, table_no):
+    def get_cancel_status_unit(self, table_no):
         '''Returns the cancel stat field value.'''
 
         row_index = 6
         cell_index = 5
 
-        cancel_stat = self.get_field(row_index, cell_index, table_no)
+        cancel_status_unit = self.get_field(row_index, cell_index, table_no)
 
-        return cancel_stat
+        return cancel_status_unit
 
     def get_freeform_legal(self, table_no):
         '''Returns the freeform legal field value.'''
@@ -463,22 +501,22 @@ class LocationParser(object):
 
         return freeform_legal
 
-    def get_cancel_status(self, table_no):
+    def get_cancel_status_lot(self, table_no):
         '''Returns the cancel status field value.'''
 
         row_index = 3
         overall_index = table_no * 10 + row_index
 
-        cancel_status = ""
+        cancel_status_lot = ""
 
         cells = self.rows[overall_index].find_all('span')
 
         if len(cells) == 10:  # There are Lot from and Lot to fields
-            cancel_status = self.convert_to_string(cells[9])
+            cancel_status_lot = self.convert_to_string(cells[9])
         else:
-            cancel_status = self.convert_to_string(cells[7])
+            cancel_status_lot = self.convert_to_string(cells[7])
 
-        return cancel_status
+        return cancel_status_lot
 
     def get_lot(self, table_no):
         '''Returns the lot field value.'''

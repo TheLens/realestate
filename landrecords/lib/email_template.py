@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 
-'''Forms the daily email summary.'''
+'''
+The template for the summary email. Draws on `stat_analysis.py` for common,
+interesting queries.
+'''
 
 from landrecords.lib.stat_analysis import StatAnalysis
-# from landrecords import log
 from landrecords.lib.utils import Utils
 
 
@@ -43,7 +45,10 @@ class EmailTemplate(object):
     def generate_body_summary(self):
         '''Generates body for email, including statistics.'''
 
-        stat = StatAnalysis(self.initial_date, self.until_date)
+        stat = StatAnalysis(
+            initial_date=self.initial_date,
+            until_date=self.until_date
+        )
 
         email_summary = (
             '<p>http://vault.thelensnola.org/realestate/search?d1={0}&d2={1}' +

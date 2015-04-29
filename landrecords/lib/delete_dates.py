@@ -1,14 +1,22 @@
 # -*- coding: utf-8 -*-
 
-'''Deletes certain dates from database.'''
+'''
+Accpts command line parameters for quick deletion of all records for a given
+date or date range. Meant for quicker testing.
 
+```bash
+python delete_dates.py '2014-02-18' # Deletes one day
+python delete_dates.py '2014-02-18' '2014-02-19' # Deletes range
+```
+'''
+
+import os
 import sys
 import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
 from landrecords.db import (
     Cleaned,
     Detail
@@ -24,11 +32,11 @@ class DeleteDates(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
-        self.conn = psycopg2.connect(Config().SERVER_CONNECTION)
+        self.conn = psycopg2.connect(os.environ.get('SERVER_CONNECTION'))
         self.cursor = self.conn.cursor()
 
         self.initial_date = initial_date

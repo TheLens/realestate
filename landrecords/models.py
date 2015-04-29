@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''The models.'''
+'''Gets the data.'''
 
+import os
 import math
 import urllib
-
 # from flask.ext.cache import Cache
 from flask import (
     # request,
@@ -17,15 +17,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
 from landrecords.db import (
     Cleaned,
     Neighborhood
 )
 # from landrecords.lib.check_assessor_urls import Assessor
-from landrecords import log
 from landrecords.lib.results_language import ResultsLanguage
 from landrecords.lib.utils import Utils
+from landrecords import log, TODAY_DAY
 
 
 class Models(object):
@@ -39,7 +38,7 @@ class Models(object):
         self.until_date = until_date
 
         base = declarative_base()
-        engine = create_engine(Config().SERVER_ENGINE)
+        engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 
@@ -336,8 +335,8 @@ class Models(object):
             row.amount = Utils().get_num_with_curr_sign(row.amount)
             row.document_date = Utils().ymd_to_full_date(
                 (row.document_date).strftime('%Y-%m-%d'), no_day=True)
-            address = row.address
-            location_info = row.location_info
+            # address = row.address
+            # location_info = row.location_info
             data['assessor_publish'] = row.assessor_publish
 
         # newrows = query
@@ -546,7 +545,7 @@ class Models(object):
         if data['begin_date'] == '':
             data['begin_date'] = "1900-01-01"
         if data['end_date'] == '':
-            data['end_date'] = Config().TODAY_DAY
+            data['end_date'] = TODAY_DAY
 
         return data
 
@@ -560,7 +559,7 @@ class Models(object):
             data['amount_high'] = ''
         if data['begin_date'] == '1900-01-01':
             data['begin_date'] = ''
-        if data['end_date'] == Config().TODAY_DAY:
+        if data['end_date'] == TODAY_DAY:
             data['end_date'] = ''
 
         return data

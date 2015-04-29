@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
-'''Deletes the database.'''
+'''
+Deletes the database's tables. Makes backups of dashboard's manual
+adjustments before dropping all tables (minus PostGIS' `spatial_ref_sys`
+table) and running `VACUUM`.
+'''
 
-# from __future__ import absolute_import
-
+import os
 from subprocess import call
 from sqlalchemy.engine import reflection
 from sqlalchemy import create_engine
@@ -15,8 +18,7 @@ from sqlalchemy.schema import (
     DropConstraint
 )
 
-from landrecords import log
-from landrecords.config import Config
+from landrecords import log, DATABASE_NAME, BACKUP_DIR, TODAY_DATE
 
 
 class Delete(object):
@@ -26,7 +28,7 @@ class Delete(object):
     def __init__(self):
         '''Establish connection to the database.'''
 
-        engine = create_engine('%s' % (Config().SERVER_ENGINE))
+        engine = create_engine('%s' % (os.environ.get('SERVER_ENGINE')))
         self.conn = engine.connect()
         self.trans = self.conn.begin()
         self.inspector = reflection.Inspector.from_engine(engine)
@@ -56,12 +58,12 @@ class Delete(object):
             call([
                 'pg_dump',
                 '-Fc',
-                '%s' % Config().DATABASE_NAME,
+                '%s' % DATABASE_NAME,
                 '-t',
                 'dashboard',
                 '-f',
-                '{0}'.format(Config().BACKUP_DIR) +
-                '/dashboard_table_{0}.sql'.format(Config().TODAY_DATE)
+                '{0}'.format(BACKUP_DIR) +
+                '/dashboard_table_{0}.sql'.format(TODAY_DATE)
             ])
         except Exception, error:
             log.debug(error, exc_info=True)
@@ -78,7 +80,7 @@ class Delete(object):
         try:
             call([
                 'dropdb',
-                '%s' % Config().DATABASE_NAME
+                '%s' % DATABASE_NAME
             ])
         except Exception, error:
             log.debug(error, exc_info=True)
@@ -93,7 +95,7 @@ class Delete(object):
         try:
             call([
                 'psql',
-                '%s' % Config().DATABASE_NAME,
+                '%s' % DATABASE_NAME,
                 '-c',
                 'VACUUM;'
             ])

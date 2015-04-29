@@ -54,7 +54,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Land records'
-copyright = u'2015, Thomas Thoren'
+copyright = u'2015, The Lens'
 author = u'Thomas Thoren'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -230,7 +230,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [(
     master_doc, 'Landrecords.tex', u'Land records Documentation',
-    u'Thomas Thoren', 'manual'
+    u'The Lens', 'manual'
 )]
 
 # The name of an image file (relative to this directory) to place at the top of

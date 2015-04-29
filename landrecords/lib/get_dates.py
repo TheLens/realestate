@@ -2,16 +2,14 @@
 
 '''Gets date range for initialize script.'''
 
+import os
 from datetime import timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
-from landrecords.db import (
-    Detail
-)
-from landrecords import log
+from landrecords.db import Detail
+from landrecords import log, YESTERDAY_DATE, OPENING_DATE
 
 
 class GetDates(object):
@@ -22,7 +20,7 @@ class GetDates(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        self.engine = create_engine(Config().SERVER_ENGINE)
+        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
@@ -37,13 +35,13 @@ class GetDates(object):
         # log.debug(existing_until_date)
 
         # Check if all dates already added
-        yesterday_date = (Config().YESTERDAY_DATE).date()
+        yesterday_date = (YESTERDAY_DATE)
 
         if existing_until_date == yesterday_date:
             raise ValueError("All dates already added to database.")
 
         initial_date = existing_until_date + timedelta(days=1)
-        until_date = Config().YESTERDAY_DATE
+        until_date = YESTERDAY_DATE
 
         initial_date = initial_date.strftime('%Y-%m-%d')
         until_date = until_date.strftime('%Y-%m-%d')
@@ -68,7 +66,7 @@ class GetDates(object):
         # Check if any records at all
         if len(query_until_date) == 0:
             # Make it so initialized date range will start from beginning.
-            until_date = Config().OPENING_DATE - timedelta(days=1)
+            until_date = OPENING_DATE - timedelta(days=1)
             # log.debug(until_date)
             # log.debug(type(until_date))
         else:

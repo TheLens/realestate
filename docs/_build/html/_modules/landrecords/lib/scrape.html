@@ -119,8 +119,12 @@
 <span class="c"># -*- coding: utf-8 -*-</span>
 
 <span class="sd">&#39;&#39;&#39;</span>
-<span class="sd">Scrape the Land Records Division. Give it the date range you want and it will</span>
-<span class="sd">download the HTML in /data/raw.</span>
+<span class="sd">The daily scraper that checks for the previous day&#39;s sales and saves the HTML</span>
+<span class="sd">for those records. It uses [Selenium](</span>
+<span class="sd">https://github.com/SeleniumHQ/selenium/tree/master/py) and [PhantomJS](</span>
+<span class="sd">http://phantomjs.org/). This also makes a note of when each date was scraped</span>
+<span class="sd">and what the Land Records Division&#39;s permanent date range was at the time of</span>
+<span class="sd">that scrape (see `check_temp_status.py` for details).</span>
 <span class="sd">&#39;&#39;&#39;</span>
 
 <span class="kn">import</span> <span class="nn">time</span>
@@ -137,7 +141,11 @@
 
 <div class="viewcode-block" id="Scrape"><a class="viewcode-back" href="../../../scrape.html#landrecords.lib.scrape.Scrape">[docs]</a><span class="k">class</span> <span class="nc">Scrape</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 
-    <span class="sd">&#39;&#39;&#39;Navigate and scrape the Land Records Division.&#39;&#39;&#39;</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    Navigate and scrape the Land Records Division.</span>
+<span class="sd">    Scrape the Land Records Division. Give it the date range you want and it</span>
+<span class="sd">    will download the HTML in /data/raw.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
 
     <span class="c"># todo: write function with rewrite = False that ignores any</span>
     <span class="c"># sales previously scraped.</span>
@@ -595,7 +603,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Thomas Thoren.
+        &copy; Copyright 2015, The Lens.
     </p>
   </div>
 

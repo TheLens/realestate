@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
-'''Builds languages for returned results.'''
+'''
+Creates the results language on the /search page, such as, "10 sales found
+for keyword 'LLC' in the French Quarter neighborhood where the price was
+between $10,000 and $200,000 between Feb. 18, 2014, and Feb. 20, 2014.'
+'''
 
 from landrecords.lib.utils import Utils
 

@@ -118,12 +118,18 @@
             
   <div class="section" id="scrape">
 <span id="id1"></span><h1>Scrape<a class="headerlink" href="#scrape" title="Permalink to this headline">¶</a></h1>
-<span class="target" id="module-landrecords.lib.scrape"></span><p>Scrape the Land Records Division. Give it the date range you want and it will
-download the HTML in /data/raw.</p>
+<span class="target" id="module-landrecords.lib.scrape"></span><p>The daily scraper that checks for the previous day&#8217;s sales and saves the HTML
+for those records. It uses [Selenium](
+<a class="reference external" href="https://github.com/SeleniumHQ/selenium/tree/master/py">https://github.com/SeleniumHQ/selenium/tree/master/py</a>) and [PhantomJS](
+<a class="reference external" href="http://phantomjs.org/">http://phantomjs.org/</a>). This also makes a note of when each date was scraped
+and what the Land Records Division&#8217;s permanent date range was at the time of
+that scrape (see <cite>check_temp_status.py</cite> for details).</p>
 <dl class="class">
 <dt id="landrecords.lib.scrape.Scrape">
-<em class="property">class </em><code class="descclassname">landrecords.lib.scrape.</code><code class="descname">Scrape</code><span class="sig-paren">(</span><em>initial_date=datetime.date(2015</em>, <em>4</em>, <em>26)</em>, <em>until_date=datetime.date(2015</em>, <em>4</em>, <em>26)</em>, <em>rewrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/scrape.html#Scrape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.scrape.Scrape" title="Permalink to this definition">¶</a></dt>
-<dd><p>Navigate and scrape the Land Records Division.</p>
+<em class="property">class </em><code class="descclassname">landrecords.lib.scrape.</code><code class="descname">Scrape</code><span class="sig-paren">(</span><em>initial_date=datetime.date(2015</em>, <em>4</em>, <em>27)</em>, <em>until_date=datetime.date(2015</em>, <em>4</em>, <em>27)</em>, <em>rewrite=True</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/scrape.html#Scrape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.scrape.Scrape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Navigate and scrape the Land Records Division.
+Scrape the Land Records Division. Give it the date range you want and it
+will download the HTML in /data/raw.</p>
 <dl class="staticmethod">
 <dt id="landrecords.lib.scrape.Scrape.check_if_error">
 <em class="property">static </em><code class="descname">check_if_error</code><span class="sig-paren">(</span><em>html</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/landrecords/lib/scrape.html#Scrape.check_if_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#landrecords.lib.scrape.Scrape.check_if_error" title="Permalink to this definition">¶</a></dt>
@@ -304,7 +310,7 @@ and update local date range files..</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, Thomas Thoren.
+        &copy; Copyright 2015, The Lens.
     </p>
   </div>
 

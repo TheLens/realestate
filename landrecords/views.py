@@ -2,18 +2,27 @@
 
 '''Renders the views.'''
 
-from __future__ import absolute_import
-
 # from flask.ext.cache import Cache
 from flask import (
     render_template,
     jsonify,
     make_response
 )
-
-from landrecords.config import Config
-from landrecords import log
 from landrecords.lib.utils import Utils
+from landrecords import (
+    log,
+    JS,
+    INDEX_JS,
+    SEARCH_JS,
+    SEARCH_AREA_JS,
+    SALE_JS,
+    MAP_JS,
+    LENS_CSS,
+    LANDRECORDS_CSS,
+    TABLE_CSS,
+    BANNER_CSS,
+    JS_APP_ROUTING
+)
 
 
 class Views(object):
@@ -23,17 +32,17 @@ class Views(object):
     def __init__(self):
         '''Commonly accessed static files.'''
 
-        self.js = Config().JS
-        self.index_js = Config().INDEX_JS
-        self.search_js = Config().SEARCH_JS
-        self.search_area_js = Config().SEARCH_AREA_JS
-        self.sale_js = Config().SALE_JS
-        self.map_js = Config().MAP_JS
-        self.lens_css = Config().LENS_CSS
-        self.landrecords_css = Config().LANDRECORDS_CSS
-        self.banner_css = Config().BANNER_CSS
-        self.table_css = Config().TABLE_CSS
-        self.js_app_routing = Config().JS_APP_ROUTING
+        self.js = JS
+        self.index_js = INDEX_JS
+        self.search_js = SEARCH_JS
+        self.search_area_js = SEARCH_AREA_JS
+        self.sale_js = SALE_JS
+        self.map_js = MAP_JS
+        self.lens_css = LENS_CSS
+        self.landrecords_css = LANDRECORDS_CSS
+        self.banner_css = BANNER_CSS
+        self.table_css = TABLE_CSS
+        self.js_app_routing = JS_APP_ROUTING
         self.zip_codes = Utils().zip_codes
 
         # self.home_assets = {

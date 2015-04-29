@@ -1,16 +1,24 @@
 # -*- coding: utf-8 -*-
 
 '''
-Checks the integrity of the data to determine whether to publish each sale,
-both for the map and only in the table.
+Runs checks against the `cleaned` table to make sure information is suitable
+for publication. Checks for things such as lat/long coordinates outside of
+New Orleans, sale amounts that are questionably high or low and whether the
+sale has a date or not.
+
+Sales can fail for detail data (`detail_publish` field) or location data (
+`location_publish`). If a sale fails meet all criteria for each field, it
+will be set as False. Sales will only appear in the table if `detail_publish`
+is True but `location_publish` is False. If both are False, then sale won't
+appear at all.
 '''
 
+import os
 from datetime import datetime, timedelta
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.config import Config
 from landrecords.db import (
     Detail,
     Location
@@ -26,7 +34,7 @@ class Publish(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        engine = create_engine(Config().SERVER_ENGINE)
+        engine = create_engine(os.environ.get('SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

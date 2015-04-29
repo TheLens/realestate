@@ -2,9 +2,6 @@
 import os
 from setuptools import setup
 
-# APP_DIR = os.path.normpath(os.path.dirname(__file__))
-# sys.path.insert(0, APP_DIR)
-
 
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
