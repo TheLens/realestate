@@ -32,6 +32,7 @@ def home():
     '''
 
     log.debug('home')
+    log.debug(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
 
     data = Models().get_home()
 
