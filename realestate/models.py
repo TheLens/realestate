@@ -45,7 +45,10 @@ class Models(object):
         base = declarative_base()
         log.debug('4')
 
-        engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        en = os.environ.get('SERVER_ENGINE')
+        log.debug(en)
+
+        engine = create_engine(en)
         log.debug('5')
 
         base.metadata.create_all(engine)
