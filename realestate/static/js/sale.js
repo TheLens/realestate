@@ -52,7 +52,7 @@ function addLensLogoToMap() {
   var logo = L.control({position: 'bottomleft'});
   logo.onAdd = function () {
     var div = L.DomUtil.create('div');
-    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/land-records/css/images/lens-logo-retina.png' alt='Lens logo' width='100' >";
+    div.innerHTML = "<img src='https://s3-us-west-2.amazonaws.com/lensnola/realestate/css/images/lens-logo-retina.png' alt='Lens logo' width='100' >";
     return div;
   };
   logo.addTo(map);

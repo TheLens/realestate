@@ -11,8 +11,8 @@ import psycopg2
 from sqlalchemy import create_engine
 from subprocess import call, Popen, PIPE
 
-from landrecords import log, DATABASE_NAME, GEO_DIR
-from landrecords import db
+from realestate import log, DATABASE_NAME, GEO_DIR
+from realestate import db
 
 
 class MakeDB(object):

@@ -1,0 +1,2 @@
+2015-04-29 10:37:21,395 - delete_db.py - vacuum_database - DEBUG - 92 - vacuum_database
+2015-04-29 10:37:21,604 - delete_db.py - drop_tables - DEBUG - 112 - drop_tables

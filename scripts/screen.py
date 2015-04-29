@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from subprocess import call
-from landrecords import PROJECT_DIR, IMAGE_DIR
+from realestate import PROJECT_DIR, IMAGE_DIR
 
 name = 'test'
 

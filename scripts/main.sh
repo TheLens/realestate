@@ -1,10 +1,10 @@
 #!/bin/bash
 
-#Property sales
-# ran chmod +x on this file
-cd /apps/land-records
+# Ran chmod +x on this file
+
+cd /apps/realestate
 . bin/activate
-cd /apps/land-records/repo/landrecords/lib
+cd /apps/realestate/repo/realestate/lib
 python scrape.py
-cd /apps/land-records/repo/scripts
+cd /apps/realestate/repo/scripts
 python initialize.py

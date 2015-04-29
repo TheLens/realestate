@@ -16,9 +16,9 @@ from sqlalchemy.orm import sessionmaker
 from datetime import timedelta
 from subprocess import call
 
-from landrecords.db import Cleaned
-from landrecords import log, TODAY_DATE, SCRIPTS_DIR, PICTURES_DIR
-from landrecords.lib.twitter import Twitter
+from realestate.db import Cleaned
+from realestate import log, TODAY_DATE, SCRIPTS_DIR, PICTURES_DIR
+from realestate.lib.twitter import Twitter
 
 
 class AutoTweet(object):

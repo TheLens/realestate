@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 """
-Defines tables in `landrecords` database using SQLAlchemy.
+Defines tables in `realestate` database using SQLAlchemy.
 
-The `landrecords` database consists of eight tables, four of which come from \
+The `realestate` database consists of eight tables, four of which come from \
 the raw HTML data (`details`, `vendors`, `vendees` and `locations`). \
 `neighborhoods` comes from the city's shapefile on data.nola.gov. `dashboard` \
 is a private admin dashboard. `spatial_ref_sys` is part of the PostGIS \

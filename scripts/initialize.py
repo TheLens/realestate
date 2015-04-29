@@ -5,15 +5,15 @@ Calls on other classes to build, geocode, clean and publish records to the
 cleaned table. Can receive a date range or determine the dates on its own.
 '''
 
-from landrecords.lib.build import Build
-from landrecords.lib.clean import Clean
-from landrecords.lib.geocode import Geocode
-from landrecords.lib.get_dates import GetDates
-from landrecords.lib.mail import Mail
-from landrecords.lib.publish import Publish
-# from landrecords.lib.check_temp_status import CheckTemp
-from landrecords.lib.email_template import EmailTemplate
-from landrecords import log, LOG_DIR
+from realestate.lib.build import Build
+from realestate.lib.clean import Clean
+from realestate.lib.geocode import Geocode
+from realestate.lib.get_dates import GetDates
+from realestate.lib.mail import Mail
+from realestate.lib.publish import Publish
+# from realestate.lib.check_temp_status import CheckTemp
+from realestate.lib.email_template import EmailTemplate
+from realestate import log, LOG_DIR
 
 
 class Initialize(object):
@@ -120,10 +120,10 @@ if __name__ == '__main__':
     except Exception, error:
         log.exception(error, exc_info=True)
         Mail(
-            subject="Error running Land Record's initialize.py script",
+            subject="Error running realestate's initialize.py script",
             body='Check log for more details.',
             frm='tthoren@thelensnola.org',
             to=['tthoren@thelensnola.org']
         ).send_with_attachment(
-            files=['%s/landrecords.log' % LOG_DIR]
+            files=['%s/realestate.log' % LOG_DIR]
         )

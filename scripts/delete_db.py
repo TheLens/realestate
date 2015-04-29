@@ -18,7 +18,7 @@ from sqlalchemy.schema import (
     DropConstraint
 )
 
-from landrecords import log, DATABASE_NAME, BACKUP_DIR, TODAY_DATE
+from realestate import log, DATABASE_NAME, BACKUP_DIR, TODAY_DATE
 
 
 class Delete(object):

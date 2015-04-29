@@ -14,15 +14,15 @@ import re
 from sqlalchemy import create_engine, insert, func, cast, Text, exc
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from landrecords.db import (
+from realestate.db import (
     Cleaned,
     Detail,
     Location,
     Vendee,
     Vendor
 )
-from landrecords.lib.libraries import Library
-from landrecords import log, USER
+from realestate.lib.libraries import Library
+from realestate import log, USER
 
 
 class Join(object):

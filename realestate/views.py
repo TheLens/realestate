@@ -8,8 +8,8 @@ from flask import (
     jsonify,
     make_response
 )
-from landrecords.lib.utils import Utils
-from landrecords import (
+from realestate.lib.utils import Utils
+from realestate import (
     log,
     JS,
     INDEX_JS,
@@ -18,7 +18,7 @@ from landrecords import (
     SALE_JS,
     MAP_JS,
     LENS_CSS,
-    LANDRECORDS_CSS,
+    REALESTATE_CSS,
     TABLE_CSS,
     BANNER_CSS,
     JS_APP_ROUTING
@@ -39,7 +39,7 @@ class Views(object):
         self.sale_js = SALE_JS
         self.map_js = MAP_JS
         self.lens_css = LENS_CSS
-        self.landrecords_css = LANDRECORDS_CSS
+        self.realestate_css = REALESTATE_CSS
         self.banner_css = BANNER_CSS
         self.table_css = TABLE_CSS
         self.js_app_routing = JS_APP_ROUTING
@@ -80,7 +80,7 @@ class Views(object):
                 # home_assets=self.home_assets
                 js=self.js,
                 lens_css=self.lens_css,
-                landrecords_css=self.landrecords_css,
+                realestate_css=self.realestate_css,
                 banner_css=self.banner_css,
                 table_css=self.table_css,
                 index_js=self.index_js,
@@ -109,7 +109,7 @@ class Views(object):
                 search_area_js=self.search_area_js,
                 map_js=self.map_js,
                 lens_css=self.lens_css,
-                landrecords_css=self.landrecords_css,
+                realestate_css=self.realestate_css,
                 banner_css=self.banner_css,
                 table_css=self.table_css,
                 js_app_routing=self.js_app_routing,
@@ -159,7 +159,7 @@ class Views(object):
                 # sale_assets=self.sale_assets
                 js=self.js,
                 lens_css=self.lens_css,
-                landrecords_css=self.landrecords_css,
+                realestate_css=self.realestate_css,
                 banner_css=self.banner_css,
                 table_css=self.table_css,
                 sale_js=self.sale_js

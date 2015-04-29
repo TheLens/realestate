@@ -13,11 +13,11 @@ from flask import (
 )
 from functools import wraps
 
-from landrecords import (
+from realestate import (
     log, APP_ROUTING, DEBUG, RELOADER
 )
-from landrecords.models import Models
-from landrecords.views import Views
+from realestate.models import Models
+from realestate.views import Views
 
 app = Flask(__name__)
 

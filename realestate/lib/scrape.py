@@ -16,8 +16,8 @@ import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from datetime import date, timedelta
-from landrecords.lib.mail import Mail
-from landrecords import (
+from realestate.lib.mail import Mail
+from realestate import (
     log, YESTERDAY_DATE, SCRIPTS_DIR, LOG_DIR, DATA_DIR
 )
 
@@ -43,7 +43,7 @@ class Scrape(object):
 
         self.driver = webdriver.PhantomJS(
             executable_path='%s/phantomjs' % SCRIPTS_DIR,
-            service_log_path='%s/landrecords.log' % LOG_DIR,
+            service_log_path='%s/realestate.log' % LOG_DIR,
             port=0)
         # self.driver = webdriver.Firefox(timeout=60)
 

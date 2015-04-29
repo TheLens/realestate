@@ -18,12 +18,12 @@ from sqlalchemy import create_engine, func, cast, Float, update
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.db import (
+from realestate.db import (
     Detail,
     Location,
     Neighborhood
 )
-from landrecords import log
+from realestate import log
 
 
 class Geocode(object):

@@ -8,7 +8,7 @@ from unittest import TestCase
 import os
 import fnmatch
 from subprocess import call
-from landrecords import PROJECT_DIR
+from realestate import PROJECT_DIR
 
 # ignore stuff in virtualenvs or version control directories
 ignore_patterns = ('scripts', 'tests', 'misc')

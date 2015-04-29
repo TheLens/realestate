@@ -12,9 +12,9 @@ from sqlalchemy import create_engine, insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords import db
-from landrecords.lib import parse
-from landrecords import log, DATA_DIR
+from realestate import db
+from realestate.lib import parse
+from realestate import log, DATA_DIR
 
 
 class Build(object):

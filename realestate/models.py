@@ -17,14 +17,14 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.db import (
+from realestate.db import (
     Cleaned,
     Neighborhood
 )
-# from landrecords.lib.check_assessor_urls import Assessor
-from landrecords.lib.results_language import ResultsLanguage
-from landrecords.lib.utils import Utils
-from landrecords import log, TODAY_DAY
+# from realestate.lib.check_assessor_urls import Assessor
+from realestate.lib.results_language import ResultsLanguage
+from realestate.lib.utils import Utils
+from realestate import log, TODAY_DAY
 
 
 class Models(object):

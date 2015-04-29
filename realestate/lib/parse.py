@@ -9,7 +9,7 @@ either a dict of list of dicts.
 
 import re
 from bs4 import BeautifulSoup
-from landrecords.lib.utils import Utils
+from realestate.lib.utils import Utils
 
 
 class AllPurposeParser(object):
@@ -544,9 +544,8 @@ class LocationParser(object):
         return lot
 
 if __name__ == '__main__':
-    # from landrecords.config import Config
     # html_path = (
-    #     '%s/' % Config().DATA_DIR +
+    #     '%s/' % DATA_DIR +
     #     'raw/2014-02-18/form-html/OPR288694480.html')
     # print LocationParser(html_path).form_list()
     pass

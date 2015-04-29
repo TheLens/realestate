@@ -6,7 +6,7 @@ from unittest import TestCase
 import pep8
 import os
 import fnmatch
-from landrecords import PROJECT_DIR
+from realestate import PROJECT_DIR
 
 # ignore stuff in virtualenvs or version control directories
 ignore_patterns = ('backup', 'data', 'logs', 'misc')

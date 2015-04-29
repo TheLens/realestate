@@ -7,16 +7,16 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(
-    name='land-records',
+    name='realestate',
     version='0.0.1',
     packages=(
-        'landrecords',
-        'landrecords.lib',
+        'realestate',
+        'realestate.lib',
         'tests',
     ),
     data_files=[
         (".", ["README.md", "requirements.txt"]),
-        ("logs", ["logs/landrecords.log"]),
+        ("logs", ["logs/realestate.log"]),
         ("scripts", [
             "scripts/backup.sh",
             "scripts/delete_db.py",
@@ -33,7 +33,7 @@ setup(
         "A package for scraping and publishing New Orleans land " +
         "records."),
     long_description=read('README.md'),
-    keywords="The Lens land records",
+    keywords="The Lens realestate",
     url='http://vault.thelensnola.org/realestate/',
     author='Thomas Thoren',
     author_email='tthoren@thelensnola.org',

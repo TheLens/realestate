@@ -32,10 +32,10 @@ if USER == 'thomasthoren':  # Local
     BACKUP_DIR = '%s/backups' % PROJECT_DIR
     DATA_DIR = '%s/data' % PROJECT_DIR
     LOG_DIR = '%s/logs' % PROJECT_DIR
-    LIB_DIR = '%s/landrecords/lib' % PROJECT_DIR
+    LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
     GEO_DIR = '/Users/thomasthoren/projects/geographic-data/repo'
     PICTURES_DIR = '%s' % PROJECT_DIR + \
-        '/landrecords/static/pictures'
+        '/realestate/static/pictures'
     SCRIPTS_DIR = '%s' % PROJECT_DIR + \
         '/scripts'
 
@@ -56,7 +56,7 @@ if USER == 'thomasthoren':  # Local
     SQUARES_TOPO = "/static/js/squares-topo.js"
 
     LENS_CSS = "/static/css/lens.css"
-    LANDRECORDS_CSS = "/static/css/landrecords.css"
+    REALESTATE_CSS = "/static/css/realestate.css"
     BANNER_CSS = "/static/css/banner.css"
     TABLE_CSS = "/static/css/table.css"
 
@@ -65,13 +65,13 @@ if USER == 'thomasthoren':  # Local
 
 else:  # Server
     PROJECT_DIR = '%s' % PROJECT_DIR
-    BACKUP_DIR = '/backups/land-records'
+    BACKUP_DIR = '/backups/realestate'
     DATA_DIR = '%s/data' % PROJECT_DIR
     LOG_DIR = '%s/logs' % PROJECT_DIR
-    LIB_DIR = '%s/landrecords/lib' % PROJECT_DIR
+    LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
     GEO_DIR = '/apps/geographic-data/repo'
     PICTURES_DIR = '%s' % PROJECT_DIR + \
-        '/landrecords/static/pictures'
+        '/realestate/static/pictures'
     SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
 
     PROJECT_URL = 'http://vault.thelensnola.org/realestate'
@@ -83,74 +83,74 @@ else:  # Server
 
     # Static assets
     JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/js/lens.js"
+        "lensnola/realestate/js/lens.js"
     SEARCH_AREA_JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/js/search-area.js"
+        "lensnola/realestate/js/search-area.js"
     INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/js/index.js"
+        "realestate/js/index.js"
     SEARCH_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/js/search.js"
+        "realestate/js/search.js"
     MAP_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/js/map.js"
+        "realestate/js/map.js"
     SALE_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/js/sale.js"
+        "realestate/js/sale.js"
     DASHBOARD_JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/js/dashboard.js"
+        "lensnola/realestate/js/dashboard.js"
     NEIGHBORHOODS_TOPO = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/js/neighborhoods-topo.min.js"
+        "lensnola/realestate/js/neighborhoods-topo.min.js"
     SQUARES_TOPO = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/js/squares-topo.js"
+        "lensnola/realestate/js/squares-topo.js"
 
     LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/css/lens.css"
-    LANDRECORDS_CSS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/css/landrecords.css"
+        "realestate/css/lens.css"
+    REALESTATE_CSS = "https://s3-us-west-2.amazonaws.com/" + \
+        "lensnola/realestate/css/realestate.css"
     BANNER_CSS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/land-records/css/banner.css"
+        "lensnola/realestate/css/banner.css"
     TABLE_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "land-records/css/table.css"
+        "realestate/css/table.css"
 
     RELOADER = True
     DEBUG = True
 
 # Stuff that is permanent, such as for fabfile deployment
 SERVER_NAME = 'vault.thelensnola.org'
-DATABASE_NAME = 'landrecords'
+DATABASE_NAME = 'realestate'
 
 LOCAL_PROJECT_DIR = '%s' % PROJECT_DIR
-LOCAL_APP_DIR = '%s/landrecords' % PROJECT_DIR
+LOCAL_APP_DIR = '%s/realestate' % PROJECT_DIR
 LOCAL_DATA_DIR = '%s/data' % PROJECT_DIR
 LOCAL_SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
 LOCAL_TESTS_DIR = '%s/tests' % PROJECT_DIR
-LOCAL_TEMPLATE_DIR = '%s/landrecords' % PROJECT_DIR + \
+LOCAL_TEMPLATE_DIR = '%s/realestate' % PROJECT_DIR + \
     '/templates'
-LOCAL_LIB_DIR = '%s/landrecords/lib' % PROJECT_DIR
+LOCAL_LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
 LOCAL_CSS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/css'
+    '/realestate/static/css'
 LOCAL_JS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/js'
+    '/realestate/static/js'
 LOCAL_FONTS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/fonts'
+    '/realestate/static/fonts'
 LOCAL_IMAGES_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/css/images'
+    '/realestate/static/css/images'
 
 SERVER_PROJECT_DIR = '%s' % PROJECT_DIR
-SERVER_APP_DIR = '%s/landrecords' % PROJECT_DIR
+SERVER_APP_DIR = '%s/realestate' % PROJECT_DIR
 SERVER_DATA_DIR = '%s/data' % PROJECT_DIR
 SERVER_SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
 SERVER_TESTS_DIR = '%s/tests' % PROJECT_DIR
 SERVER_TEMPLATE_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/templates'
+    '/realestate/templates'
 SERVER_LIB_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/lib'
+    '/realestate/lib'
 SERVER_CSS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/css'
+    '/realestate/static/css'
 SERVER_JS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/js'
+    '/realestate/static/js'
 SERVER_FONTS_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/fonts'
+    '/realestate/static/fonts'
 SERVER_IMAGES_DIR = '%s' % PROJECT_DIR + \
-    '/landrecords/static/css/images'
+    '/realestate/static/css/images'
 
 OPENING_DAY = date(2014, 2, 18).strftime('%Y-%m-%d')
 
@@ -165,18 +165,18 @@ YESTERDAY_DATE = date.today() - timedelta(days=1)
 TODAY_DAY = (date.today()).strftime('%Y-%m-%d')
 TODAY_DATE = date.today()
 
-S3_PATH = 's3://lensnola/land-records'
+S3_PATH = 's3://lensnola/realestate'
 
 # Logging
-if os.path.isfile('%s/landrecords.log' % (LOG_DIR)):
-    os.remove('%s/landrecords.log' % (LOG_DIR))
+if os.path.isfile('%s/realestate.log' % (LOG_DIR)):
+    os.remove('%s/realestate.log' % (LOG_DIR))
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # Create file handler which logs debug messages or higher
 filehandler = logging.FileHandler(
-    '%s/landrecords.log' % (LOG_DIR))
+    '%s/realestate.log' % (LOG_DIR))
 filehandler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers

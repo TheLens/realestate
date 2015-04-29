@@ -19,11 +19,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.db import (
+from realestate.db import (
     Detail,
     Location
 )
-from landrecords import log
+from realestate import log
 
 
 class Publish(object):

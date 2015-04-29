@@ -17,11 +17,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.db import (
+from realestate.db import (
     Cleaned,
     Detail
 )
-from landrecords import log
+from realestate import log
 
 
 class DeleteDates(object):

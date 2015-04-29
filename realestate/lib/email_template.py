@@ -5,8 +5,8 @@ The template for the summary email. Draws on `stat_analysis.py` for common,
 interesting queries.
 '''
 
-from landrecords.lib.stat_analysis import StatAnalysis
-from landrecords.lib.utils import Utils
+from realestate.lib.stat_analysis import StatAnalysis
+from realestate.lib.utils import Utils
 
 
 class EmailTemplate(object):
@@ -21,7 +21,7 @@ class EmailTemplate(object):
     def generate_subject(self):
         '''Generates subject for email.'''
 
-        subject = "Land records summary for"
+        subject = "Real Estate summary for"
 
         if self.initial_date == self.until_date:
             subject += " %s" % Utils().ymd_to_full_date(self.initial_date)

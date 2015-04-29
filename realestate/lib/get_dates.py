@@ -8,8 +8,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
-from landrecords.db import Detail
-from landrecords import log, YESTERDAY_DATE, OPENING_DATE
+from realestate.db import Detail
+from realestate import log, YESTERDAY_DATE, OPENING_DATE
 
 
 class GetDates(object):

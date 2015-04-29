@@ -11,7 +11,7 @@ from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-from landrecords import log
+from realestate import log
 
 
 class Mail(object):
@@ -19,7 +19,7 @@ class Mail(object):
     '''Mail methods include test, HTML and add attachments.'''
 
     def __init__(self,
-                 subject="Land records summary",
+                 subject="Real Estate summary",
                  body="Here is your email",
                  frm='tthoren@thelensnola.org',
                  to=['tthoren@thelensnola.org']):

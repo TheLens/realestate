@@ -3,14 +3,14 @@
 # import mock
 from unittest import TestCase
 
-from landrecords.lib.parse import (
+from realestate.lib.parse import (
     AllPurposeParser,
     DetailParser,
     VendorParser,
     VendeeParser,
     LocationParser
 )
-from landrecords import DATA_DIR
+from realestate import DATA_DIR
 
 
 class TestAllPurposeParser(TestCase):
