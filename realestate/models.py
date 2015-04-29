@@ -34,20 +34,11 @@ class Models(object):
     def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
 
-        log.debug('1')
-
         self.initial_date = initial_date
-        log.debug('2')
 
         self.until_date = until_date
-        log.debug('3')
 
         base = declarative_base()
-        log.debug('4')
-
-        en = os.environ.get('REAL_ESTATE_SERVER_ENGINE')
-        log.debug(en)
-        log.debug(type(en))
 
         try:
             engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))

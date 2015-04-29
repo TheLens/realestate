@@ -36,13 +36,16 @@ class Geocode(object):
         self.initial_date = initial_date
         self.until_date = until_date
 
-        self.gmaps = googlemaps.Client(key=os.environ.get('GOOGLE_API_KEY'))
+        self.gmaps = googlemaps.Client(
+            key=os.environ.get('GEOCODING_GOOGLE_API_KEY'))
 
-        self.conn = psycopg2.connect(os.environ.get('SERVER_CONNECTION'))
+        self.conn = psycopg2.connect(
+            os.environ.get('REAL_ESTATE_SERVER_CONNECTION'))
         self.cursor = self.conn.cursor()
 
         base = declarative_base()
-        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        self.engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 

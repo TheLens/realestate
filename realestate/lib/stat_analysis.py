@@ -17,7 +17,8 @@ class StatAnalysis(object):
         self.initial_date = initial_date
         self.until_date = until_date
 
-        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        self.engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
 
     def count(self):
         '''Get number of records.'''

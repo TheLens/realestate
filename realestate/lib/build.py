@@ -28,7 +28,7 @@ class Build(object):
         '''
 
         base = declarative_base()
-        engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

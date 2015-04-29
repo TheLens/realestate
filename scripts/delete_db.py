@@ -28,7 +28,8 @@ class Delete(object):
     def __init__(self):
         '''Establish connection to the database.'''
 
-        engine = create_engine('%s' % (os.environ.get('SERVER_ENGINE')))
+        engine = create_engine(
+            '%s' % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
         self.conn = engine.connect()
         self.trans = self.conn.begin()
         self.inspector = reflection.Inspector.from_engine(engine)

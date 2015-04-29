@@ -36,7 +36,8 @@ class Join(object):
         self.until_date = until_date
 
         base = declarative_base()
-        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        self.engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
@@ -287,7 +288,8 @@ class Clean(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        self.engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 

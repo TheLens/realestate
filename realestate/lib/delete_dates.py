@@ -32,11 +32,13 @@ class DeleteDates(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        self.engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        self.engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
-        self.conn = psycopg2.connect(os.environ.get('SERVER_CONNECTION'))
+        self.conn = psycopg2.connect(
+            os.environ.get('REAL_ESTATE_SERVER_CONNECTION'))
         self.cursor = self.conn.cursor()
 
         self.initial_date = initial_date

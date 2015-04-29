@@ -70,7 +70,7 @@ class Scrape(object):
         log.info('Find username field')
         unsername_elem = self.driver.find_element_by_id("Header1_txtLogonName")
         log.info('Enter username')
-        unsername_elem.send_keys(os.environ.get('LRD_USERNAME'))
+        unsername_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_USERNAME'))
 
     def enter_password(self):
         '''Type in password.'''
@@ -78,7 +78,7 @@ class Scrape(object):
         log.info('Find password field')
         password_elem = self.driver.find_element_by_id("Header1_txtPassword")
         log.info('Enter password')
-        password_elem.send_keys(os.environ.get('LRD_PASSWORD'))
+        password_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_PASSWORD'))
         log.info('Return')
         password_elem.send_keys('\n')  # To trigger search function
         time.sleep(0.2)

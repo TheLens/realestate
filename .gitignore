@@ -1,13 +1,18 @@
-#directories
+# Directories
 backups
 data
-docs
-logs
+# logs
 misc
+realestate/static/pictures
 
-#files
+# Files
 *config.py
-landrecords/config.py
+realestate/config.py
+scripts/phantomjs
+scripts/ngrok
+
+*.txt
+# *.log
 *.pyc
 *.DS_Store
 *.sql

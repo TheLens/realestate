@@ -2,9 +2,9 @@
 
 # Ran chmod +x on this file
 
-cd /apps/realestate
-. bin/activate
-cd /apps/realestate/repo/realestate/lib
+cd /home/ubuntu/realestate
+workon realestate
+cd /home/ubuntu/realestate/realestate/lib
 python scrape.py
-cd /apps/realestate/repo/scripts
+cd /home/ubuntu/realestate/scripts
 python initialize.py

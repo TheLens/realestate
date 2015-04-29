@@ -37,7 +37,7 @@ class MakeDB(object):
 
         try:
             conn = psycopg2.connect(
-                "%s" % (os.environ.get('SERVER_CONNECTION')))
+                "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
             cur = conn.cursor()
             sql = "SELECT 1;"
             cur.execute(sql)
@@ -49,7 +49,7 @@ class MakeDB(object):
             ])
 
             conn = psycopg2.connect(
-                "%s" % (os.environ.get('SERVER_CONNECTION')))
+                "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
             cur = conn.cursor()
             cur.execute("CREATE EXTENSION POSTGIS;")
 
@@ -64,7 +64,7 @@ class MakeDB(object):
         log.debug('create_tables')
 
         engine = create_engine(
-            os.environ.get('SERVER_ENGINE')
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE')
         )
         db.Base.metadata.create_all(engine)
 
@@ -74,7 +74,8 @@ class MakeDB(object):
 
         log.debug('import_neighorhoods')
 
-        conn = psycopg2.connect("%s" % (os.environ.get('SERVER_CONNECTION')))
+        conn = psycopg2.connect(
+            "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
         cur = conn.cursor()
 
         p1 = Popen(
@@ -121,7 +122,8 @@ class MakeDB(object):
 
         log.debug('spatial_index_on_cleaned_geom')
 
-        conn = psycopg2.connect("%s" % (os.environ.get('SERVER_CONNECTION')))
+        conn = psycopg2.connect(
+            "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
         cur = conn.cursor()
 
         sql = """

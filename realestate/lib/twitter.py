@@ -20,10 +20,10 @@ class Twitter(object):
         '''Make connection to Twitter API.'''
 
         self.status = status
-        self.twitter = Twython(os.environ.get('APP_KEY'),
-                               os.environ.get('APP_SECRET'),
-                               os.environ.get('OAUTH_TOKEN'),
-                               os.environ.get('OAUTH_TOKEN_SECRET'))
+        self.twitter = Twython(os.environ.get('TWITTER_APP_KEY'),
+                               os.environ.get('TWITTER_APP_SECRET'),
+                               os.environ.get('TWITTER_OAUTH_TOKEN'),
+                               os.environ.get('TWITTER_OAUTH_TOKEN_SECRET'))
 
     @staticmethod
     def get_attachment(media):

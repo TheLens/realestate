@@ -34,7 +34,7 @@ class Publish(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

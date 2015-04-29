@@ -38,8 +38,8 @@ class Mail(object):
         s.ehlo()
         s.starttls()
         s.ehlo()
-        s.login(os.environ.get('GMAIL_USERNAME'),
-                os.environ.get('GMAIL_PASSWORD'))
+        s.login(os.environ.get('REAL_ESTATE_GMAIL_USERNAME'),
+                os.environ.get('REAL_ESTATE_GMAIL_PASSWORD'))
         s.sendmail(self.frm, self.to, msg.as_string())
         s.quit()
 
