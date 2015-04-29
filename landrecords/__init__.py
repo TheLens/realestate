@@ -78,7 +78,7 @@ else:  # Server
 
     PROJECT_URL = 'http://vault.thelensnola.org/realestate'
 
-    APP_ROUTING = ''
+    APP_ROUTING = '/realestate'
     JS_APP_ROUTING = '/realestate'
 
     # Static assets
