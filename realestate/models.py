@@ -48,8 +48,11 @@ class Models(object):
         en = os.environ.get('REAL_ESTATE_SERVER_ENGINE')
         log.debug(en)
 
-        engine = create_engine(en)
-        log.debug(engine)
+        try:
+            engine = create_engine(en)
+            log.debug(engine)
+        except Exception, error:
+            log.debug(error, exc_info=True)
 
         base.metadata.create_all(engine)
         log.debug('6')
