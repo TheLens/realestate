@@ -34,13 +34,25 @@ class Models(object):
     def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
 
+        log.debug('1')
+
         self.initial_date = initial_date
+        log.debug('2')
+
         self.until_date = until_date
+        log.debug('3')
 
         base = declarative_base()
+        log.debug('4')
+
         engine = create_engine(os.environ.get('SERVER_ENGINE'))
+        log.debug('5')
+
         base.metadata.create_all(engine)
+        log.debug('6')
+
         self.sn = sessionmaker(bind=engine)
+        log.debug('7')
 
     def get_home(self):
         '''Gets data for the homepage (/).'''
