@@ -47,6 +47,7 @@ class Models(object):
 
         en = os.environ.get('REAL_ESTATE_SERVER_ENGINE')
         log.debug(en)
+        log.debug(type(en))
 
         try:
             engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
