@@ -14,7 +14,7 @@ from flask import (
 from functools import wraps
 
 from realestate import (
-    log, APP_ROUTING, DEBUG, RELOADER
+    log, APP_ROUTING, DEBUG, RELOADER, PORT
 )
 from realestate.models import Models
 from realestate.views import Views
@@ -231,7 +231,7 @@ def page_not_found(error):
 
 if __name__ == '__main__':
     app.run(
-        # port=PORT,
+        port=PORT,
         use_reloader=RELOADER,
         debug=DEBUG
     )

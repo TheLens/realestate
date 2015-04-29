@@ -62,6 +62,7 @@ if USER == 'thomasthoren':  # Local
 
     RELOADER = True
     DEBUG = True
+    PORT = 5000
 
 else:  # Server
     PROJECT_DIR = '%s' % PROJECT_DIR
@@ -110,8 +111,9 @@ else:  # Server
     TABLE_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
         "realestate/css/table.css"
 
-    RELOADER = True
-    DEBUG = True
+    RELOADER = False
+    DEBUG = False
+    PORT = 5004
 
 # Stuff that is permanent, such as for fabfile deployment
 SERVER_NAME = 'vault.thelensnola.org'
