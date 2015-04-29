@@ -45,15 +45,26 @@ class Models(object):
     def get_home(self):
         '''Gets data for the homepage (/).'''
 
+        log.debug('get_home')
+
         session = self.sn()
 
+        log.debug(session)
+
         update_date = self.get_last_updated_date()
+        log.debug(update_date)
+
         neighborhoods = self.get_neighborhoods()
+        log.debug(neighborhoods)
 
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
 
+        log.debug(data)
+
         session.close()
+        log.debug('session.close()')
+
         return data
 
     def query_search_term_limit_3(self, table, term):
