@@ -1,0 +1,35 @@
+[run]
+include =
+    realestate/__init__.py
+    realestate/app.py
+    realestate/db.py
+    realestate/models.py
+    realestate/views.py
+    realestate/lib/build.py
+    realestate/lib/clean.py
+    realestate/lib/delete_dates.py
+    realestate/lib/email_template.py
+    realestate/lib/form_tweet.py
+    realestate/lib/geocode.py
+    realestate/lib/get_dates.py
+    realestate/lib/libraries.py
+    realestate/lib/mail.py
+    realestate/lib/parse.py
+    realestate/lib/publish.py
+    realestate/lib/results_language.py
+    realestate/lib/scrape.py
+    realestate/lib/stat_analysis.py
+    realestate/lib/twitter.py
+    realestate/lib/utils.py
+    scripts/delete_db.py
+    scripts/initialize.py
+    scripts/make_db.py
+    scripts/screen.py
+    tests/test_parse.py
+    tests/test_pep8.py
+    tests/test_pylint.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    add_introspection_rules
