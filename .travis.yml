@@ -6,10 +6,11 @@ install:
 - pip install -r requirements.txt
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
+- aws s3 sync realestate/static s3://lensnola/realestate/ --acl public-read
 script:
 - coverage run tests/test*.py
 after_success:
-- aws s3 sync . s3://lensnola/realestate/
+- aws s3 sync realestate/static s3://lensnola/realestate/ --acl public-read
 - coveralls
 env:
   matrix:
