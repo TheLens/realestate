@@ -87,7 +87,8 @@ else:  # Server
         "lensnola/realestate/js/lens.js"
     SEARCH_AREA_JS = "https:aws.com/lensnola/realestate/js/squares-topo.js"
 
-    LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/css/lens.css"
+    LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
+        "realestate/css/lens.css"
     REALESTATE_CSS = "https://s3-us-west-2.amazonaws.com/" + \
         "lensnola/realestate/css/realestate.css"
     BANNER_CSS = "https://s3-us-west-2.amazonaws.com/" + \
