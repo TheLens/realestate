@@ -85,24 +85,9 @@ else:  # Server
     # Static assets
     JS = "https://s3-us-west-2.amazonaws.com/" + \
         "lensnola/realestate/js/lens.js"
-    SEARCH_AREA_JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/js/search-area.js"
-    INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/js/index.js" 
-    SEARCH_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/js/search.js"
-    MAP_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/js/map.js"
-    SALE_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/js/sale.js"
-    DASHBOARD_JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/js/dashboard.js"
-    NEIGHBORHOODS_TOPO = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/js/neighborhoods-topo.min.js"
-    SQUARES_TOPO = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/js/squares-topo.js"
+    SEARCH_AREA_JS = "https:aws.com/lensnola/realestate/js/squares-topo.js"
 
-    LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/css/lens.css"
+    LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/css/lens.css"
     REALESTATE_CSS = "https://s3-us-west-2.amazonaws.com/" + \
         "lensnola/realestate/css/realestate.css"
     BANNER_CSS = "https://s3-us-west-2.amazonaws.com/" + \
