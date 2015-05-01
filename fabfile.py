@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''Methods for deploying app to server.'''
+'''
+Methods for commiting app to Github. It should never deploy to the server or
+S3. That should be left to Travis CI and the server calling git pull.
+'''
 
 from fabric.api import local
 from realestate import (
