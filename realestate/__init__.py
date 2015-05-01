@@ -87,8 +87,7 @@ else:  # Server
         "lensnola/realestate/js/lens.js"
     SEARCH_AREA_JS = "https://s3-us-west-2.amazonaws.com/" + \
         "lensnola/realestate/js/search-area.js"
-    INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/js/index.js"
+    INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/js/index.js"
     SEARCH_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
         "realestate/js/search.js"
     MAP_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
@@ -143,8 +142,7 @@ SERVER_SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
 SERVER_TESTS_DIR = '%s/tests' % PROJECT_DIR
 SERVER_TEMPLATE_DIR = '%s' % PROJECT_DIR + \
     '/realestate/templates'
-SERVER_LIB_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/lib'
+SERVER_LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
 SERVER_CSS_DIR = '%s' % PROJECT_DIR + \
     '/realestate/static/css'
 SERVER_JS_DIR = '%s' % PROJECT_DIR + \
