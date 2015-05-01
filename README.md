@@ -4,9 +4,7 @@
 
 This app scrapes the latest property sales in New Orleans, stores the records in a database and publishes the results with a map.
 
-[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records) [![Documentation Status](https://readthedocs.org/projects/land-records/badge/?version=latest)](https://readthedocs.org/projects/land-records/?badge=latest)
-
-[![Coverage Status](https://coveralls.io/repos/TheLens/land-records/badge.svg?branch=master)](https://coveralls.io/r/TheLens/land-records?branch=master)
+[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records) [![Documentation Status](https://readthedocs.org/projects/land-records/badge/?version=latest)](https://readthedocs.org/projects/land-records/?badge=latest) [![Coverage Status](https://coveralls.io/repos/TheLens/land-records/badge.svg?branch=master)](https://coveralls.io/r/TheLens/land-records?branch=master)
 
 Documentation: https://readthedocs.org/projects/land-records/
 
