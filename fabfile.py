@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 '''
-Methods for commiting app to Github. It should never deploy to the server or
+Methods for commiting app to Github.
+It should never deploy to the server or
 S3. That should be left to Travis CI and the server calling git pull.
 '''
 
@@ -23,6 +24,10 @@ from realestate import (
 
 def push():
     local('git push origin master')
+
+
+def pull():
+    local('git pull origin master')
 
 
 def data():
