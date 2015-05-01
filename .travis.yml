@@ -9,6 +9,7 @@ before_script:
 script:
 - coverage run tests/test*.py
 after_success:
+- aws s3 sync . s3://lensnola/realestate/
 - coveralls
 env:
   matrix:
