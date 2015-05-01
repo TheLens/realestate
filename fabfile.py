@@ -35,8 +35,7 @@ def data():
 
     local(
         'git add %s/assessor-error-html/assessor_error.html' % LOCAL_DATA_DIR)
-    local(
-        'git add %s/sale-error-html/sale_error.html' % LOCAL_DATA_DIR)
+    local('git add %s/sale-error-html/sale_error.html' % LOCAL_DATA_DIR)
 
 
 def repo():
@@ -131,7 +130,6 @@ def lib():
 def css():
     '''/realestate/static/css'''
 
-    # Server
     local('git add %s/banner.css' % LOCAL_CSS_DIR)
     local('git add %s/font-awesome.css' % LOCAL_CSS_DIR)
     local('git add %s/foundation.min.css' % LOCAL_CSS_DIR)
@@ -147,7 +145,6 @@ def css():
 def images():
     '''/realestate/static/css/images'''
 
-    # Server
     local('git add %s/corporate-realty.jpg' % LOCAL_IMAGES_DIR)
     local('git add %s/corporate-realty-large.jpg' % LOCAL_IMAGES_DIR)
     local('git add %s/corporate-realty.png' % LOCAL_IMAGES_DIR)
@@ -156,29 +153,21 @@ def images():
     local('git add %s/icons-000000.png' % LOCAL_IMAGES_DIR)
     local('git add %s/icons-000000@2x.png' % LOCAL_IMAGES_DIR)
     local('git add %s/lens-logo-retina.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/lens-logo-magnifying-glass-only.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/ui-bg_flat_75_ffffff_40x100.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/ui-bg_glass_55_fbf9ee_1x400.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/ui-bg_glass_75_dadada_1x400.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/ui-bg_glass_75_e6e6e6_1x400.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/lens-logo-magnifying-glass-only.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-bg_flat_75_ffffff_40x100.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-bg_glass_55_fbf9ee_1x400.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-bg_glass_75_dadada_1x400.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-bg_glass_75_e6e6e6_1x400.png' % LOCAL_IMAGES_DIR)
     local(
         'git add %s/' % LOCAL_IMAGES_DIR +
         'ui-bg_highlight-soft_75_cccccc_1x100.png')
-    local(
-        'git add %s/ui-bg_glass_65_ffffff_1x400.png' % LOCAL_IMAGES_DIR)
-    local(
-        'git add %s/ui-icons_454545_256x240.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-bg_glass_65_ffffff_1x400.png' % LOCAL_IMAGES_DIR)
+    local('git add %s/ui-icons_454545_256x240.png' % LOCAL_IMAGES_DIR)
 
 
 def fonts():
     '''/realestate/static/fonts'''
 
-    # Server
     local('git add %s/fontawesome-webfont.eot' % LOCAL_FONTS_DIR)
     local('git add %s/fontawesome-webfont.svg' % LOCAL_FONTS_DIR)
     local('git add %s/fontawesome-webfont.ttf' % LOCAL_FONTS_DIR)
@@ -189,7 +178,6 @@ def fonts():
 def js():
     '''/realestate/static/js'''
 
-    # Server
     local('git add %s/dashboard.js' % LOCAL_JS_DIR)
     local('git add %s/foundation.min.js' % LOCAL_JS_DIR)
     local('git add %s/foundation.tooltip.js' % LOCAL_JS_DIR)
