@@ -23,9 +23,7 @@ class Initialize(object):
     records to the cleaned table.
     '''
 
-    def __init__(self,
-                 initial_date=None,
-                 until_date=None):
+    def __init__(self, initial_date=None, until_date=None):
         '''Runs through all classes.'''
 
         if initial_date is not None and until_date is not None:
@@ -112,10 +110,10 @@ if __name__ == '__main__':
         Initialize(
             # select count(*) from locations join details on
             # locations.document_id = details.document_id where
-            # details.document_recorded >= '2014-02-25' and
-            # details.document_recorded <= '2014-05-15';  # 2455 records
-            initial_date='2014-02-26',
-            until_date='2014-05-15'
+            # details.document_recorded >= '2014-09-30' and
+            # details.document_recorded <= '2014-12-09';  # 2475 records
+            initial_date='2014-09-30',
+            until_date='2014-12-09'
         )
     except Exception, error:
         log.exception(error, exc_info=True)
