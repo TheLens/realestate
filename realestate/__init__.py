@@ -87,7 +87,7 @@ else:  # Server
         "lensnola/realestate/js/lens.js"
     SEARCH_AREA_JS = "https://s3-us-west-2.amazonaws.com/" + \
         "lensnola/realestate/js/search-area.js"
-    INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/js/index.js"
+    INDEX_JS = "https://s3-us-west-2.amazonaws.com/lensnola/realestate/js/index.js" 
     SEARCH_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
         "realestate/js/search.js"
     MAP_JS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
