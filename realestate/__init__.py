@@ -120,6 +120,7 @@ LOCAL_FONTS_DIR = '%s' % PROJECT_DIR + \
     '/realestate/static/fonts'
 LOCAL_IMAGES_DIR = '%s' % PROJECT_DIR + \
     '/realestate/static/css/images'
+LOCAL_DOCS_DIR = '%s/docs' % PROJECT_DIR
 
 SERVER_PROJECT_DIR = '%s' % PROJECT_DIR
 SERVER_APP_DIR = '%s/realestate' % PROJECT_DIR

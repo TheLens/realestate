@@ -11,6 +11,7 @@ from realestate import (
     LOCAL_APP_DIR,
     LOCAL_CSS_DIR,
     LOCAL_DATA_DIR,
+    LOCAL_DOCS_DIR,
     LOCAL_FONTS_DIR,
     LOCAL_IMAGES_DIR,
     LOCAL_JS_DIR,
@@ -20,22 +21,6 @@ from realestate import (
     LOCAL_TEMPLATE_DIR,
     LOCAL_TESTS_DIR
 )
-
-
-def push():
-    local('git push origin master')
-
-
-def pull():
-    local('git pull origin master')
-
-
-def data():
-    '''/data'''
-
-    local(
-        'git add %s/assessor-error-html/assessor_error.html' % LOCAL_DATA_DIR)
-    local('git add %s/sale-error-html/sale_error.html' % LOCAL_DATA_DIR)
 
 
 def repo():
@@ -53,51 +38,37 @@ def repo():
     local('git add %s/setup.py' % LOCAL_PROJECT_DIR)
 
 
-def app():
+def data():
+    '''/data'''
+
+    local(
+        'git add %s/assessor-error-html/assessor_error.html' % LOCAL_DATA_DIR)
+    local('git add %s/sale-error-html/sale_error.html' % LOCAL_DATA_DIR)
+
+
+def docs():
+    '''/docs/'''
+
+    local('git add %s/' % LOCAL_DOCS_DIR)
+
+    # local('git add %s/build.rst' % LOCAL_DOCS_DIR)
+    # local('git add %s/conf.py' % LOCAL_DOCS_DIR)
+    # local('git add %s/database.rst' % LOCAL_DOCS_DIR)
+    # local('git add %s/index.rst' % LOCAL_DOCS_DIR)
+    # local('git add %s/Makefile' % LOCAL_DOCS_DIR)
+    # local('git add %s/misc.rst' % LOCAL_DOCS_DIR)
+    # local('git add %s/scrape.rst' % LOCAL_DOCS_DIR)
+    # local('git add %s/tests.rst' % LOCAL_DOCS_DIR)
+
+
+def realestate():
     '''/realestate/'''
 
     local('git add %s/__init__.py' % LOCAL_APP_DIR)
     local('git add %s/app.py' % LOCAL_APP_DIR)
-    local('git add %s/config.py' % LOCAL_APP_DIR)
     local('git add %s/db.py' % LOCAL_APP_DIR)
     local('git add %s/models.py' % LOCAL_APP_DIR)
     local('git add %s/views.py' % LOCAL_APP_DIR)
-
-
-def scripts():
-    '''/scripts/'''
-
-    local('git add %s/backup.sh' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/delete_db.py' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/initialize.py' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/main.sh' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/make_db.py' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/screen.js' % LOCAL_SCRIPTS_DIR)
-    local('git add %s/tserver.py' % LOCAL_SCRIPTS_DIR)
-
-
-def tests():
-    '''/tests/'''
-
-    local('git add %s/__init__.py' % LOCAL_TESTS_DIR)
-    local('git add %s/test_pep8.py' % LOCAL_TESTS_DIR)
-    local('git add %s/test_pylint.py' % LOCAL_TESTS_DIR)
-
-
-def templates():
-    '''/realestate/templates'''
-
-    local('git add %s/404.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/banner.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/dashboard.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/footer.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/head.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/index.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/js.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/sale.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/search.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/search-area.html' % LOCAL_TEMPLATE_DIR)
-    local('git add %s/table.html' % LOCAL_TEMPLATE_DIR)
 
 
 def lib():
@@ -105,11 +76,7 @@ def lib():
 
     local('git add %s/__init__.py' % LOCAL_LIB_DIR)
     local('git add %s/build.py' % LOCAL_LIB_DIR)
-    local('git add %s/build_assessor_urls.py' % LOCAL_LIB_DIR)
-    local('git add %s/check_assessor_urls.py' % LOCAL_LIB_DIR)
-    local('git add %s/check_temp_status.py' % LOCAL_LIB_DIR)
     local('git add %s/clean.py' % LOCAL_LIB_DIR)
-    local('git add %s/dashboard_sync.py' % LOCAL_LIB_DIR)
     local('git add %s/delete_dates.py' % LOCAL_LIB_DIR)
     local('git add %s/email_template.py' % LOCAL_LIB_DIR)
     local('git add %s/form_tweet.py' % LOCAL_LIB_DIR)
@@ -124,7 +91,6 @@ def lib():
     local('git add %s/stat_analysis.py' % LOCAL_LIB_DIR)
     local('git add %s/twitter.py' % LOCAL_LIB_DIR)
     local('git add %s/utils.py' % LOCAL_LIB_DIR)
-    local('git add %s/webhook.py' % LOCAL_LIB_DIR)
 
 
 def css():
@@ -135,10 +101,10 @@ def css():
     local('git add %s/foundation.min.css' % LOCAL_CSS_DIR)
     local('git add %s/jquery-ui.css' % LOCAL_CSS_DIR)
     local('git add %s/jquery.tablesorter.pager.css' % LOCAL_CSS_DIR)
-    local('git add %s/realestate.css' % LOCAL_CSS_DIR)
     local('git add %s/lens.css' % LOCAL_CSS_DIR)
     local('git add %s/lenstablesorter.css' % LOCAL_CSS_DIR)
     local('git add %s/mapbox.css' % LOCAL_CSS_DIR)
+    local('git add %s/realestate.css' % LOCAL_CSS_DIR)
     local('git add %s/table.css' % LOCAL_CSS_DIR)
 
 
@@ -198,28 +164,79 @@ def js():
     local('git add %s/search-area.js' % LOCAL_JS_DIR)
 
 
-def doitall():
+def templates():
+    '''/realestate/templates'''
+
+    local('git add %s/404.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/banner.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/dashboard.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/footer.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/head.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/index.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/js.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/sale.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/search.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/search-area.html' % LOCAL_TEMPLATE_DIR)
+    local('git add %s/table.html' % LOCAL_TEMPLATE_DIR)
+
+
+def scripts():
+    '''/scripts/'''
+
+    local('git add %s/backup.sh' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/delete_db.py' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/initialize.py' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/main.sh' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/make_db.py' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/screen.js' % LOCAL_SCRIPTS_DIR)
+    local('git add %s/screen.py' % LOCAL_SCRIPTS_DIR)
+
+
+def tests():
+    '''/tests/'''
+
+    local('git add %s/__init__.py' % LOCAL_TESTS_DIR)
+    local('git add %s/test_parse.py' % LOCAL_TESTS_DIR)
+    local('git add %s/test_pep8.py' % LOCAL_TESTS_DIR)
+    local('git add %s/test_pylint.py' % LOCAL_TESTS_DIR)
+
+
+# Others
+def addthemall():
     '''Run through entire deployment.'''
 
-    data()
     repo()
-    app()
-    scripts()
-    tests()
+    data()
+    docs()
+    realestate()
     lib()
-    templates()
-    js()
     css()
     images()
     fonts()
-
-
-def python():
-    '''Deploy all *.py files.'''
-
-    app()
+    js()
+    templates()
     scripts()
-    lib()
+    tests()
+
+
+def commit(message):
+    local('git commit -m "%s"' % message)
+
+
+def push():
+    local('git push origin master')
+
+
+def pull():
+    local('git pull origin master')
+
+
+def github(message):
+    '''Add, commit and push to Github.'''
+
+    addthemall()
+    commit(message)
+    push()
 
 
 if __name__ == '__main__':

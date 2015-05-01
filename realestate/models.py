@@ -32,7 +32,14 @@ class Models(object):
     '''Gathers data from particular requests.'''
 
     def __init__(self, initial_date=None, until_date=None):
-        '''Initialize self variables and establish connection to database.'''
+        '''
+        Initializes self variables and establishes connection to database.
+
+        :param initial_date: string. YYYY-MM-DD. Default is None.
+        :type initial_date: string
+        :param until_date: string. YYYY-MM-DD. Default is None.
+        :type until_date: string
+        '''
 
         self.initial_date = initial_date
 
@@ -43,13 +50,16 @@ class Models(object):
         engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
 
         base.metadata.create_all(engine)
-        log.debug('6')
 
         self.sn = sessionmaker(bind=engine)
-        log.debug('7')
 
     def get_home(self):
-        '''Gets data for the homepage (/).'''
+        '''
+        Gets data for the homepage (/realestate/).
+
+        :returns: Data for the homepage, such as date the app was last updated
+        and a list of neighborhoods for the dropdown.
+        '''
 
         log.debug('get_home')
 
@@ -74,7 +84,15 @@ class Models(object):
         return data
 
     def query_search_term_limit_3(self, table, term):
-        '''Gets the top three results for autocomplete dropdown.'''
+        '''
+        Gets the top three results for autocomplete dropdown.
+
+        :param table: string. The database to query.
+        :type table: string
+        :param term: string. The autocomplete term entered in search box.
+        :type term: string
+        :returns: A SQLAlchemy query result for three matches, at most.
+        '''
 
         session = self.sn()
 
@@ -88,7 +106,17 @@ class Models(object):
         return query
 
     def searchbar_input(self, term):
-        '''docstring'''
+        '''
+        Receives the autocomplete term from the search input and returns
+        a JSON with three suggestions for each of the following
+        categories: neighborhoods, ZIP codes, locations, buyers and
+        sellers.
+
+        :param term: string. The autocomplete term entered in search box.
+        :type term: string
+        :returns: A JSON with at most three suggestions for each
+        category.
+        '''
 
         term = urllib.unquote(term).decode('utf8')
 
@@ -124,7 +152,12 @@ class Models(object):
 
     @staticmethod
     def parse_query_string(request):
-        '''Parses URL query string parameters.'''
+        '''
+        Receives URL query string parameters and returns as dict.
+
+        :param request: A (Flask object?) containing query string.
+        :returns: A dict with the query string parameters.
+        '''
 
         data = {}
         data['name_address'] = request.args.get('q')
@@ -143,7 +176,16 @@ class Models(object):
         return data
 
     def determine_pages(self, data):
-        '''docstring'''
+        '''
+        Receives data dict and returns with additional
+        information about pager (number of records, page length, number
+        of pages, current page and page offset) and URL query string
+        parameters and returns as dict.
+
+        :param data: The response's data dict.
+        :type data: dict
+        :returns: The dict with additional pager information.
+        '''
 
         query = self.find_all_publishable_rows_fitting_criteria(data)
 
@@ -157,7 +199,12 @@ class Models(object):
         return data
 
     def get_search(self, request):
-        '''GET call to /realestate/search.'''
+        '''
+        GET call for /realestate/search.
+
+        :param request: The request object(?).
+        :returns: A data dict, SQL query result and JS data.
+        '''
 
         data = self.parse_query_string(request)
         data = self.decode_data(data)

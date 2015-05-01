@@ -104,7 +104,12 @@ class Geocode(object):
         session.close()
 
     def get_rows_with_null_rating(self):
-        '''Gets locations with rating IS NULL.'''
+        '''
+        Returns query result for locations with rating IS NULL, between dates
+        defined in self.initial_date and self.until_date.
+
+        :returns: SQLAlchemy query result.
+        '''
 
         session = self.sn()
 
