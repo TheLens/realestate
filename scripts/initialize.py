@@ -107,15 +107,7 @@ if __name__ == '__main__':
         # Default is to build and clean anything that needs it.
         # Specify custom date range in 'YYYY-mm-dd' string format
         # or use variables such as OPENING_DAY, YESTERDAY_DAY.
-        Initialize(
-            # select count(*) from locations join details on
-            # locations.document_id = details.document_id where
-            # details.document_recorded >= '2015-02-24' and
-            # details.document_recorded <= '2015-04-21';  # 2085 records
-            # todo: might not have everyday. ^^^^^
-            initial_date=None,  # '2015-05-03',
-            until_date=None  # '2015-05-03'
-        )
+        Initialize()
     except Exception, error:
         log.exception(error, exc_info=True)
         Mail(
