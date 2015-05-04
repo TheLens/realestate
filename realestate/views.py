@@ -11,7 +11,7 @@ from flask import (
 from realestate.lib.utils import Utils
 from realestate import (
     log,
-    JS,
+    LENS_JS,
     INDEX_JS,
     SEARCH_JS,
     SEARCH_AREA_JS,
@@ -32,40 +32,27 @@ class Views(object):
     def __init__(self):
         '''Commonly accessed static files.'''
 
-        self.js = JS
-        self.index_js = INDEX_JS
-        self.search_js = SEARCH_JS
-        self.search_area_js = SEARCH_AREA_JS
-        self.sale_js = SALE_JS
-        self.map_js = MAP_JS
-        self.lens_css = LENS_CSS
-        self.realestate_css = REALESTATE_CSS
-        self.banner_css = BANNER_CSS
-        self.table_css = TABLE_CSS
-        self.js_app_routing = JS_APP_ROUTING
-        self.zip_codes = Utils().zip_codes
-
         # self.home_assets = {
-        #     'js': self.js,
-        #     'css': self.css,
-        #     'index_js': self.index_js,
-        #     'search_area_js': self.search_area_js,
-        #     'js_app_routing': self.js_app_routing,
-        #     'zip_codes': self.zip_codes
+        #     'js': LENS_JS,
+        #     'css': LENS_CSS,
+        #     'index_js': INDEX_JS,
+        #     'search_area_js': SEARCH_AREA_JS,
+        #     'js_app_routing': JS_APP_ROUTING,
+        #     'zip_codes': Utils().zip_codes
         # }
         # self.search_assets = {
-        #     'js': self.js,
-        #     'search_js': self.search_js,
-        #     'search_area_js': self.search_area_js,
-        #     'map_js': self.map_js,
-        #     'css': self.css,
-        #     'js_app_routing': self.js_app_routing,
-        #     'zip_codes': self.zip_codes
+        #     'js': LENS_JS,
+        #     'search_js': SEARCH_JS,
+        #     'search_area_js': SEARCH_AREA_JS,
+        #     'map_js': MAP_JS,
+        #     'css': LENS_CSS,
+        #     'js_app_routing': JS_APP_ROUTING,
+        #     'zip_codes': Utils().zip_codes
         # }
         # self.sale_assets = {
-        #     'js': self.js,
-        #     'css': self.css,
-        #     'salejs': self.sale_js
+        #     'js': LENS_JS,
+        #     'css': LENS_CSS,
+        #     'salejs': SALE_JS
         # }
 
     def get_home(self, data):
@@ -78,15 +65,15 @@ class Views(object):
                 'index.html',
                 data=data,
                 # home_assets=self.home_assets
-                js=self.js,
-                lens_css=self.lens_css,
-                realestate_css=self.realestate_css,
-                banner_css=self.banner_css,
-                table_css=self.table_css,
-                index_js=self.index_js,
-                search_area_js=self.search_area_js,
-                js_app_routing=self.js_app_routing,
-                zip_codes=self.zip_codes
+                lens_js=LENS_JS,
+                lens_css=LENS_CSS,
+                realestate_css=REALESTATE_CSS,
+                banner_css=BANNER_CSS,
+                table_css=TABLE_CSS,
+                index_js=INDEX_JS,
+                search_area_js=SEARCH_AREA_JS,
+                js_app_routing=JS_APP_ROUTING,
+                zip_codes=Utils().zip_codes
             )
         )
 
@@ -104,16 +91,16 @@ class Views(object):
                 newrows=newrows,
                 js_data=js_data,
                 # search_assets=self.search_assets
-                js=self.js,
-                search_js=self.search_js,
-                search_area_js=self.search_area_js,
-                map_js=self.map_js,
-                lens_css=self.lens_css,
-                realestate_css=self.realestate_css,
-                banner_css=self.banner_css,
-                table_css=self.table_css,
-                js_app_routing=self.js_app_routing,
-                zip_codes=self.zip_codes
+                lens_js=LENS_JS,
+                search_js=SEARCH_JS,
+                search_area_js=SEARCH_AREA_JS,
+                map_js=MAP_JS,
+                lens_css=LENS_CSS,
+                realestate_css=REALESTATE_CSS,
+                banner_css=BANNER_CSS,
+                table_css=TABLE_CSS,
+                js_app_routing=JS_APP_ROUTING,
+                zip_codes=Utils().zip_codes
             )
         )
 
@@ -157,12 +144,12 @@ class Views(object):
                 newrows=newrows,
                 js_data=js_data,
                 # sale_assets=self.sale_assets
-                js=self.js,
-                lens_css=self.lens_css,
-                realestate_css=self.realestate_css,
-                banner_css=self.banner_css,
-                table_css=self.table_css,
-                sale_js=self.sale_js
+                lens_js=LENS_JS,
+                lens_css=LENS_CSS,
+                realestate_css=REALESTATE_CSS,
+                banner_css=BANNER_CSS,
+                table_css=TABLE_CSS,
+                sale_js=SALE_JS
             )
         )
 
@@ -179,13 +166,13 @@ class Views(object):
                 newrows=newrows,
                 js_data=js_data,
                 parameters=parameters,
-                js=self.js,
-                search_js=self.search_js,
-                search_area_js=self.search_area_js,
-                map_js=self.map_js,
-                lens_css=self.lens_css,
-                js_app_routing=self.js_app_routing,
-                zip_codes=self.zip_codes
+                lens_js=LENS_JS,
+                search_js=SEARCH_JS,
+                search_area_js=SEARCH_AREA_JS,
+                map_js=MAP_JS,
+                lens_css=LENS_CSS,
+                js_app_routing=JS_APP_ROUTING,
+                zip_codes=Utils().zip_codes
             )
         )
 
@@ -202,13 +189,13 @@ class Views(object):
                 newrows=newrows,
                 js_data=js_data,
                 parameters=parameters,
-                js=self.js,
-                search_js=self.search_js,
-                search_area_js=self.search_area_js,
-                map_js=self.map_js,
-                lens_css=self.lens_css,  # todo
-                js_app_routing=self.js_app_routing,
-                zip_codes=self.zip_codes
+                lens_js=LENS_JS,
+                search_js=SEARCH_JS,
+                search_area_js=SEARCH_AREA_JS,
+                map_js=MAP_JS,
+                lens_css=LENS_CSS,  # todo
+                js_app_routing=JS_APP_ROUTING,
+                zip_codes=Utils().zip_codes
             )
         )
 
@@ -220,9 +207,9 @@ class Views(object):
         response = make_response(
             render_template(
                 '404.html',
-                lens_css=self.lens_css,  # todo
-                js=self.js,
-                index_js=self.index_js
+                lens_css=LENS_CSS,  # todo
+                lens_js=LENS_JS,
+                index_js=INDEX_JS
             )
         )
 

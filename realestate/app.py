@@ -35,11 +35,7 @@ def home():
 
     data = Models().get_home()
 
-    log.debug(data)
-
     view = Views().get_home(data)
-
-    log.debug(view)
 
     return view
 
@@ -194,17 +190,6 @@ def dashboard():
         # view = Views().post_dashboard(data)
 
         # return view
-
-
-@app.route("%s/webhook" % (APP_ROUTING), methods=['POST'])
-def webhook():
-    '''Run Webhook class to keep server and S3 in sync'''
-
-    log.debug('webhook')
-
-    data = request.get_json()
-
-    webhook.Webhook().main(data)
 
 
 # @cache.memoize(timeout=5000)

@@ -17,7 +17,7 @@ from datetime import timedelta
 from subprocess import call
 
 from realestate.db import Cleaned
-from realestate import log, TODAY_DATE, SCRIPTS_DIR, PICTURES_DIR
+from realestate import log, TODAY_DATE, PROJECT_DIR
 from realestate.lib.twitter import Twitter
 
 
@@ -187,17 +187,21 @@ class AutoTweet(object):
         log.debug('get_image')
         log.debug('url: %s', url)
 
-        call(['%s/phantomjs' % SCRIPTS_DIR,
-              '%s/screen.js' % SCRIPTS_DIR,
-              url,
-              '%s/tweets/%s' % (PICTURES_DIR, name)])
+        call([
+            '%s/scripts/phantomjs' % PROJECT_DIR,
+            '%s/scripts/screen.js' % PROJECT_DIR,
+            url,
+            '%s/realestate/static/pictures/tweets/%s' % (
+                PROJECT_DIR, name)
+        ])
 
     def open_image(self, url, name):
         '''Get file path to screenshot.'''
 
         self.get_image(url, name)
 
-        filename = '%s/tweets/%s' % (PICTURES_DIR, name)
+        filename = '%s/realestate/' % PROJECT_DIR + \
+            'static/pictures/tweets/%s' % name
 
         return filename
 

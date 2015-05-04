@@ -65,21 +65,15 @@ class Models(object):
 
         session = self.sn()
 
-        log.debug(session)
-
         update_date = self.get_last_updated_date()
         log.debug(update_date)
 
         neighborhoods = self.get_neighborhoods()
-        log.debug(neighborhoods)
 
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
 
-        log.debug(data)
-
         session.close()
-        log.debug('session.close()')
 
         return data
 
@@ -639,10 +633,8 @@ class Models(object):
             # log.debug(row.buyers)
             if row.location_publish is False:
                 row.document_date = row.document_date + "*"
-                continue
             if row.permanent_flag is False:
                 row.document_date = row.document_date + u"\u2020"
-                # continue
             features_dict = {
                 "type": "Feature",
                 "properties": {
@@ -652,7 +644,9 @@ class Models(object):
                     "amount": row.amount,
                     "buyers": row.buyers,
                     "sellers": row.sellers,
-                    "instrument_no": row.instrument_no
+                    "instrument_no": row.instrument_no,
+                    "location_publish": row.location_publish,
+                    "permanent_flag": row.permanent_flag
                 },
                 "geometry": {
                     "type": "Point",
@@ -678,6 +672,8 @@ class Models(object):
     def get_last_updated_date(self):
         '''docstring'''
 
+        log.debug('get_last_updated_date')
+
         session = self.sn()
 
         query = session.query(
@@ -693,6 +689,8 @@ class Models(object):
         for row in query:
             updated_date = Utils().ymd_to_full_date(
                 (row.document_recorded).strftime('%Y-%m-%d'), no_day=True)
+
+        log.debug(updated_date)
 
         session.close()
 

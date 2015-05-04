@@ -13,7 +13,7 @@ from realestate.lib.mail import Mail
 from realestate.lib.publish import Publish
 # from realestate.lib.check_temp_status import CheckTemp
 from realestate.lib.email_template import EmailTemplate
-from realestate import log, LOG_DIR
+from realestate import log, LOG_DIR, OPENING_DAY
 
 
 class Initialize(object):
@@ -37,43 +37,43 @@ class Initialize(object):
         log.debug('self.initial_date: %s', self.initial_date)
         log.debug('self.until_date: %s', self.until_date)
 
-        # try:
-        #     Build(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).build_all()
+        try:
+            Build(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).build_all()
 
-        # except Exception, error:
-        #     log.exception(error, exc_info=True)
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
         Geocode(
             initial_date=self.initial_date,
             until_date=self.until_date
         ).geocode()  # Geocoding takes over an hour
-        # Geocode().update_locations_with_neighborhoods()
+        Geocode().update_locations_with_neighborhoods()
 
-        # try:
-        #     Publish(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).main()
-        # except Exception, error:
-        #     log.exception(error, exc_info=True)
+        try:
+            Publish(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).main()
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
-        # try:
-        #     Clean(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).main()
-        # except Exception, error:
-        #     log.exception(error, exc_info=True)
+        try:
+            Clean(
+                initial_date=self.initial_date,
+                until_date=self.until_date
+            ).main()
+        except Exception, error:
+            log.exception(error, exc_info=True)
 
-        # # dashboard_sync.DashboardSync()  # todo
+        # dashboard_sync.DashboardSync()  # todo
 
-        # Clean(
-        #     initial_date=self.initial_date,
-        #     until_date=self.until_date
-        # ).update_cleaned_geom()
+        Clean(
+            initial_date=self.initial_date,
+            until_date=self.until_date
+        ).update_cleaned_geom()
 
         # CheckTemp(
         #     initial_date=self.initial_date,
@@ -110,10 +110,11 @@ if __name__ == '__main__':
         Initialize(
             # select count(*) from locations join details on
             # locations.document_id = details.document_id where
-            # details.document_recorded >= '2014-09-30' and
-            # details.document_recorded <= '2014-12-09';  # 2475 records
-            initial_date='2014-09-30',
-            until_date='2014-12-09'
+            # details.document_recorded >= '2015-02-24' and
+            # details.document_recorded <= '2015-04-21';  # 2085 records
+            # todo: might not have everyday. ^^^^^
+            initial_date=None,  # '2015-05-03',
+            until_date=None  # '2015-05-03'
         )
     except Exception, error:
         log.exception(error, exc_info=True)

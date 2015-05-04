@@ -11,7 +11,7 @@ utilizes `libraries.py`, a collection of items to check for.
 
 import os
 import re
-from sqlalchemy import create_engine, insert, func, cast, Text, exc
+from sqlalchemy import create_engine, insert, func, cast, Text
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from realestate.db import (
@@ -639,17 +639,13 @@ class Clean(object):
         session = self.sn()
 
         for count, row in enumerate(rows):
-            log.debug(count)
+            log.debug("Row %d", count)
             try:
                 with session.begin_nested():
                     i = insert(Cleaned)
                     i = i.values(row)
                     session.execute(i)
                     session.flush()
-            except exc.IntegrityError, error:
-                log.debug('count: %s', count)
-                log.exception(error, exc_info=True)
-                session.rollback()
             except Exception, error:
                 log.debug('count: %s', count)
                 log.exception(error, exc_info=True)

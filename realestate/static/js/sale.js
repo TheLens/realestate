@@ -115,12 +115,26 @@ function addDataToMap(data) {
   //logo.addTo(map);
 }
 
+function showFooterOrNot(data) {
+  console.log(data);
+  for (var i = 0; i < length(data.features); i++) {
+    if (data.features[i].properties.location_publish === false) {
+      // Show asterisk note
+      document.getElementById('asterisk-note').style.display = 'none';
+    } else if (data.features[i].properties.permanent_flag === false) {
+      // Show cross note
+      document.getElementById('cross-note').style.display = 'none';
+    }
+  }
+}
+
 function initialMapFunction(data) {
 
   createMap();
   loadMapTiles();
   addLensLogoToMap();
   addDataToMap(data);
+  showFooterOrNot(data);
 
   if (Object.keys(dataLayer._layers).length === 0) { //if there aren't any points on the map
     map.setView([29.996953, -90.048277], 11);

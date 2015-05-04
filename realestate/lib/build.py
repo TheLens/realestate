@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from realestate import db
 from realestate.lib import parse
-from realestate import log, DATA_DIR
+from realestate import log, PROJECT_DIR
 
 
 class Build(object):
@@ -61,9 +61,9 @@ class Build(object):
         self.list_parse('LocationParser', 'Location')
 
     def dict_parse(self, parser_name, table):
-        '''Parses data structured in a dict, which is how `details` returns.'''
-
-        session = self.sn()
+        '''
+        Parses data structured in a dict, which is how `details` returns.
+        '''
 
         initial_datetime = datetime.strptime(
             self.initial_date, '%Y-%m-%d').date()
@@ -71,14 +71,11 @@ class Build(object):
 
         while initial_datetime != (until_datetime + timedelta(days=1)):
             current_date = initial_datetime.strftime('%Y-%m-%d')
-
-            log.debug(initial_datetime)
-            log.debug(until_datetime)
             log.debug('Current date: %s', current_date)
             print current_date
 
-            glob_string = '%s/raw/%s/form-html/*.html' % (
-                DATA_DIR, current_date)
+            glob_string = '%s/data/raw/%s/form-html/*.html' % (
+                PROJECT_DIR, current_date)
 
             # Allows for variable calls to a class.
             # Ex module.Class().method -> parse.parser_name(f).list_output
@@ -86,19 +83,26 @@ class Build(object):
                 # log.debug('filepath: %s', filepath)
                 dict_output = getattr(parse, parser_name)(filepath).form_dict()
 
-                try:
-                    with session.begin_nested():
-                        i = insert(getattr(db, table))
-                        i = i.values(dict_output)
-                        session.execute(i)
-                        session.flush()
-                except Exception, error:
-                    log.debug(error, exc_info=True)
-                    session.rollback()
-
-                session.commit()
+                self.commit_to_database(table, dict_output)
 
             initial_datetime += timedelta(days=1)
+
+    def commit_to_database(self, table, output):
+        '''Commits to database using nested transactions and exceptions.'''
+
+        session = self.sn()
+
+        try:
+            with session.begin_nested():
+                i = insert(getattr(db, table))
+                vals = i.values(output)
+                session.execute(vals)
+                session.flush()
+        except Exception, error:
+            log.debug(error, exc_info=True)
+            session.rollback()
+
+        session.commit()
 
         session.close()
 
@@ -108,8 +112,6 @@ class Build(object):
         which is how `locations`, `vendees` and `vendors` returns.
         '''
 
-        session = self.sn()
-
         initial_datetime = datetime.strptime(
             self.initial_date, '%Y-%m-%d').date()
         until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d').date()
@@ -120,30 +122,17 @@ class Build(object):
             log.debug('Current date: %s', current_date)
             print current_date
 
-            glob_string = '%s/raw/%s/form-html/*.html' % (
-                DATA_DIR, current_date)
+            glob_string = '%s/data/raw/%s/form-html/*.html' % (
+                PROJECT_DIR, current_date)
 
             for filepath in sorted(glob.glob(glob_string)):
                 list_output = getattr(parse, parser_name)(filepath).form_list()
 
-                try:
-                    with session.begin_nested():
-                        i = insert(getattr(db, table))
-
-                        # Because might have multiple rows:
-                        for output in list_output:
-                            vals = i.values(output)
-                            session.execute(vals)
-                            session.flush()
-                except Exception, error:
-                    log.debug(error, exc_info=True)
-                    session.rollback()
-
-                session.commit()
+                # Because output might have multiple rows:
+                for output in list_output:
+                    self.commit_to_database(table, output)
 
             initial_datetime += timedelta(days=1)
-
-        session.close()
 
 if __name__ == '__main__':
     pass

@@ -4,15 +4,15 @@
 
 This app scrapes the latest property sales in New Orleans, stores the records in a database and publishes the results with a map.
 
-[![Build Status](https://travis-ci.org/TheLens/land-records.svg?branch=master)](https://travis-ci.org/TheLens/land-records) [![Documentation Status](https://readthedocs.org/projects/land-records/badge/?version=latest)](https://readthedocs.org/projects/land-records/?badge=latest) [![Coverage Status](https://coveralls.io/repos/TheLens/land-records/badge.svg?branch=master)](https://coveralls.io/r/TheLens/land-records?branch=master)
+[![Build Status](https://travis-ci.org/TheLens/realestate.svg?branch=master)](https://travis-ci.org/TheLens/realestate) [![Documentation Status](https://readthedocs.org/projects/realestate/badge/?version=latest)](https://readthedocs.org/projects/realestate/?badge=latest) [![Coverage Status](https://coveralls.io/repos/TheLens/realestate/badge.svg?branch=master)](https://coveralls.io/r/TheLens/realestate?branch=master)
 
-Documentation: https://readthedocs.org/projects/land-records/
+Documentation: https://readthedocs.org/projects/realestate/
 
-Issues: https://github.com/TheLens/land-records/issues
+Issues: https://github.com/TheLens/realestate/issues
 
-Tests: https://travis-ci.org/TheLens/land-records
+Tests: https://travis-ci.org/TheLens/realestate
 
-Testing coverage: https://coveralls.io/r/TheLens/land-records
+Testing coverage: https://coveralls.io/r/TheLens/realestate
 
 #### Dependencies
 
@@ -26,9 +26,9 @@ Testing coverage: https://coveralls.io/r/TheLens/land-records
 
 Not yet sure if this setup will work or not.
 
-`git clone https://github.com/TheLens/land-records.git`
+`git clone https://github.com/TheLens/realestate.git`
 
-`cd` into the `land-records` directory.
+`cd` into the `realestate` directory.
 
 `pip install -r requirements.txt`
 

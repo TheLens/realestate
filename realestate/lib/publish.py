@@ -301,47 +301,46 @@ class Publish(object):
             previous_date_string = previous_date.strftime('%Y-%m-%d')
             current_date_string = current_date.strftime('%Y-%m-%d')
 
-            with session.begin_nested():
-                # For sales recorded on a given day, check if the document
-                # date is unbelievable (too old or in the future)
+            # For sales recorded on a given day, check if the document
+            # date is unbelievable (too old or in the future)
 
-                session.query(
-                    Detail.document_recorded,
-                    Detail.document_date,
-                    Detail.detail_publish
-                ).filter(
-                    Detail.document_recorded == '%s' % current_date_string
-                ).filter(
-                    Detail.document_date < '%s' % old_date_string
-                ).update({"detail_publish": False})
+            try:
+                with session.begin_nested():
+                    session.query(
+                        Detail.document_recorded,
+                        Detail.document_date,
+                        Detail.detail_publish
+                    ).filter(
+                        Detail.document_recorded == '%s' % current_date_string
+                    ).filter(
+                        Detail.document_date < '%s' % old_date_string
+                    ).update({"detail_publish": False})
 
-                try:
-                    session.commit()
-                    # with session.begin_nested():
-                    #     session.flush()
-                except Exception, error:
-                    log.exception(error, exc_info=True)
-                    session.rollback()
+                    session.flush()
+            except Exception, error:
+                log.exception(error, exc_info=True)
+                session.rollback()
 
-                session.query(
-                    Detail.document_recorded,
-                    Detail.document_date,
-                    Detail.detail_publish
-                ).filter(
-                    Detail.document_recorded == '%s' % current_date_string
-                ).filter(
-                    Detail.document_date > '%s' % previous_date_string
-                ).update({
-                    "detail_publish": False
-                })
+            try:
+                with session.begin_nested():
+                    session.query(
+                        Detail.document_recorded,
+                        Detail.document_date,
+                        Detail.detail_publish
+                    ).filter(
+                        Detail.document_recorded == '%s' % current_date_string
+                    ).filter(
+                        Detail.document_date > '%s' % previous_date_string
+                    ).update({
+                        "detail_publish": False
+                    })
 
-                try:
-                    session.commit()
-                    # with session.begin_nested():
-                    #     session.flush()
-                except Exception, error:
-                    log.exception(error, exc_info=True)
-                    session.rollback()
+                    session.flush()
+            except Exception, error:
+                log.exception(error, exc_info=True)
+                session.rollback()
+
+            session.commit()
 
             current_date = current_date + timedelta(days=1)
 

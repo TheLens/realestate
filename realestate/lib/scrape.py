@@ -18,7 +18,7 @@ from selenium import webdriver
 from datetime import date, timedelta
 from realestate.lib.mail import Mail
 from realestate import (
-    log, YESTERDAY_DATE, SCRIPTS_DIR, LOG_DIR, DATA_DIR
+    log, YESTERDAY_DATE, PROJECT_DIR, LOG_DIR
 )
 
 
@@ -42,7 +42,7 @@ class Scrape(object):
         self.until_date = until_date
 
         self.driver = webdriver.PhantomJS(
-            executable_path='%s/phantomjs' % SCRIPTS_DIR,
+            executable_path='%s/scripts/phantomjs' % PROJECT_DIR,
             service_log_path='%s/realestate.log' % LOG_DIR,
             port=0)
         # self.driver = webdriver.Firefox(timeout=60)
@@ -138,7 +138,7 @@ class Scrape(object):
 
         log.info('Delete old permanent-date-range-when-scraped*.html')
 
-        for file_path in glob.glob("%s/raw/" % (DATA_DIR) +
+        for file_path in glob.glob("%s/data/raw/" % (PROJECT_DIR) +
                                    "%s-%s-%s/" % (year, month, day) +
                                    "permanent-date-range-when-scraped*.html"):
             os.remove(file_path)
@@ -152,10 +152,10 @@ class Scrape(object):
         # Save permanent date range for this individual sale.
         log.info('Save new permanent-date-range-when-scraped*.html file')
         individual_html_out = open(
-            "%s/raw/%s-%s-%s/permanent-date-range-when-scraped_%s-%s.html" % (
-                DATA_DIR, year, month, day,
-                first_date, second_date
-            ), "w")
+            "%s/data/raw/" % PROJECT_DIR +
+            "%s-%s-%s/permanent-date-range-when-scraped" % (year, month, day) +
+            "_%s-%s.html" % (first_date, second_date),
+            "w")
         individual_html_out.write(date_range_html.encode('utf-8'))
         individual_html_out.close()
 
@@ -167,8 +167,8 @@ class Scrape(object):
         log.info(
             'Delete old most-recent-permanent-date-range/*.html file')
 
-        file_string = "%s/most-recent-permanent-date-range/*.html" % (
-            DATA_DIR)
+        file_string = "%s/data/most-recent-permanent-date-range/*.html" % (
+            PROJECT_DIR)
         for file_path in glob.glob(file_string):
             os.remove(file_path)
 
@@ -179,7 +179,7 @@ class Scrape(object):
         '''Save new most-recent-permanent-date-range/*.html.'''
 
         log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open("%s/" % (DATA_DIR) +
+        overall_html_out = open("%s/data/" % (PROJECT_DIR) +
                                 "most-recent-permanent-date-range/" +
                                 "%s-%s.html" % (first_date, second_date),
                                 "w")
@@ -274,8 +274,8 @@ class Scrape(object):
             # Save table page
             log.error(error, exc_info=True)
             log.info('No sales for this day')
-            html_out = open("%s/raw/%s-%s-%s/page-html/page1.html"
-                            % (DATA_DIR, year, month, day), "w")
+            html_out = open("%s/data/raw/%s-%s-%s/page-html/page1.html"
+                            % (PROJECT_DIR, year, month, day), "w")
             html_out.write((self.driver.page_source).encode('utf-8'))
             html_out.close()
             return
@@ -294,13 +294,13 @@ class Scrape(object):
 
         # Save table page
         log.info('Parse results page table HTML')
-        html_out = open("%s/raw/%s-%s-%s/page-html/page%d.html"
-                        % (DATA_DIR, year, month, day, i), "w")
+        html_out = open("%s/data/raw/%s-%s-%s/page-html/page%d.html"
+                        % (PROJECT_DIR, year, month, day, i), "w")
         html_out.write((self.driver.page_source).encode('utf-8'))
         html_out.close()
 
-        bs_file = "%s/raw/%s-%s-%s/page-html/page%d.html" % (
-            DATA_DIR, year, month, day, i)
+        bs_file = "%s/data/raw/%s-%s-%s/page-html/page%d.html" % (
+            PROJECT_DIR, year, month, day, i)
         soup = BeautifulSoup(open(bs_file))
 
         log.info('Find all object IDs')
@@ -357,7 +357,7 @@ class Scrape(object):
 
         log.info('Save this sale HTML')
 
-        html_file = "%s/raw/" % (DATA_DIR) + \
+        html_file = "%s/data/raw/" % (PROJECT_DIR) + \
                     "%s-%s-%s/" % (year, month, day) + \
                     "form-html/%s.html" % (document_id)
 
@@ -426,12 +426,12 @@ class Scrape(object):
             log.debug(year + '-' + month + '-' + day)
 
             # Check if folder for this day exists. If not, then make one.
-            pagedir = "%s/raw/%s-%s-%s/page-html" % (
-                DATA_DIR, year, month, day)
+            pagedir = "%s/data/raw/%s-%s-%s/page-html" % (
+                PROJECT_DIR, year, month, day)
             log.debug(pagedir)
 
-            formdir = "%s/raw/%s-%s-%s/form-html" % (
-                DATA_DIR, year, month, day)
+            formdir = "%s/data/raw/%s-%s-%s/form-html" % (
+                PROJECT_DIR, year, month, day)
             log.debug(formdir)
 
             if not os.path.exists(pagedir):
@@ -473,6 +473,6 @@ class Scrape(object):
 
 if __name__ == '__main__':
     Scrape(
-        initial_date=date(2015, 4, 13),
-        until_date=YESTERDAY_DATE
+        initial_date=date(2015, 4, 22),
+        until_date=date(2015, 5, 2)
     ).main()

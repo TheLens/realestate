@@ -28,32 +28,20 @@ PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..'))
 
 if USER == 'thomasthoren':  # Local
-    PROJECT_DIR = '%s' % PROJECT_DIR
     BACKUP_DIR = '%s/backups' % PROJECT_DIR
-    DATA_DIR = '%s/data' % PROJECT_DIR
-    LOG_DIR = '%s/logs' % PROJECT_DIR
-    LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
     GEO_DIR = '/Users/thomasthoren/projects/geographic-data/repo'
-    PICTURES_DIR = '%s' % PROJECT_DIR + \
-        '/realestate/static/pictures'
-    SCRIPTS_DIR = '%s' % PROJECT_DIR + \
-        '/scripts'
 
     PROJECT_URL = 'http://localhost:5000/realestate'
 
-    APP_ROUTING = '/realestate'
-    JS_APP_ROUTING = '/realestate'
-
     # Static assets
-    JS = '/static/js/lens.js'
-    SEARCH_AREA_JS = '/static/js/search-area.js'
+    LENS_JS = '/static/js/lens.js'
     INDEX_JS = "/static/js/index.js"
+    SEARCH_AREA_JS = '/static/js/search-area.js'
     SEARCH_JS = "/static/js/search.js"
     MAP_JS = "/static/js/map.js"
     SALE_JS = "/static/js/sale.js"
     DASHBOARD_JS = "/static/js/dashboard.js"
     NEIGHBORHOODS_TOPO = "/static/js/neighborhoods-topo.min.js"
-    SQUARES_TOPO = "/static/js/squares-topo.js"
 
     LENS_CSS = "/static/css/lens.css"
     REALESTATE_CSS = "/static/css/realestate.css"
@@ -65,96 +53,51 @@ if USER == 'thomasthoren':  # Local
     PORT = 5000
 
 else:  # Server
-    PROJECT_DIR = '%s' % PROJECT_DIR
     BACKUP_DIR = '/backups/realestate'
-    DATA_DIR = '%s/data' % PROJECT_DIR
-    LOG_DIR = '%s/logs' % PROJECT_DIR
-    LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
     GEO_DIR = '/apps/geographic-data/repo'
-    PICTURES_DIR = '%s' % PROJECT_DIR + \
-        '/realestate/static/pictures'
-    SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
 
     PROJECT_URL = 'http://vault.thelensnola.org/realestate'
-
-    PROJECT_URL = 'http://vault.thelensnola.org/realestate'
-
-    APP_ROUTING = '/realestate'
-    JS_APP_ROUTING = '/realestate'
 
     # Static assets
-    JS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/js/lens.js"
-    SEARCH_AREA_JS = "https:aws.com/lensnola/realestate/js/squares-topo.js"
+    S3_URL = "https://s3-us-west-2.amazonaws.com/lensnola/realestate"
 
-    LENS_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/css/lens.css"
-    REALESTATE_CSS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/css/realestate.css"
-    BANNER_CSS = "https://s3-us-west-2.amazonaws.com/" + \
-        "lensnola/realestate/css/banner.css"
-    TABLE_CSS = "https://s3-us-west-2.amazonaws.com/lensnola/" + \
-        "realestate/css/table.css"
+    LENS_JS = "%s/js/lens.js" % S3_URL
+    INDEX_JS = "%s/js/index.js" % S3_URL
+    SEARCH_AREA_JS = "%s/js/search-area.js" % S3_URL
+    SEARCH_JS = "%s/js/search.js" % S3_URL
+    MAP_JS = "%s/js/map.js" % S3_URL
+    SALE_JS = "%s/js/sale.js" % S3_URL
+    DASHBOARD_JS = "%s/js/dashboard.js" % S3_URL
+    NEIGHBORHOODS_TOPO = "%s/js/neighborhoods-topo.js" % S3_URL
+
+    LENS_CSS = "%s/css/lens.css" % S3_URL
+    REALESTATE_CSS = "%s/css/realestate.css" % S3_URL
+    BANNER_CSS = "%s/css/banner.css" % S3_URL
+    TABLE_CSS = "%s/css/table.css" % S3_URL
 
     RELOADER = False
     DEBUG = False
     PORT = 5004
 
-# Stuff that is permanent, such as for fabfile deployment
-SERVER_NAME = 'vault.thelensnola.org'
+APP_ROUTING = '/realestate'
+JS_APP_ROUTING = '/realestate'
+
 DATABASE_NAME = 'realestate'
 
-LOCAL_PROJECT_DIR = '%s' % PROJECT_DIR
-LOCAL_APP_DIR = '%s/realestate' % PROJECT_DIR
-LOCAL_DATA_DIR = '%s/data' % PROJECT_DIR
-LOCAL_SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
-LOCAL_TESTS_DIR = '%s/tests' % PROJECT_DIR
-LOCAL_TEMPLATE_DIR = '%s/realestate' % PROJECT_DIR + \
-    '/templates'
-LOCAL_LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
-LOCAL_CSS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/css'
-LOCAL_JS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/js'
-LOCAL_FONTS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/fonts'
-LOCAL_IMAGES_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/css/images'
-LOCAL_DOCS_DIR = '%s/docs' % PROJECT_DIR
-
-SERVER_PROJECT_DIR = '%s' % PROJECT_DIR
-SERVER_APP_DIR = '%s/realestate' % PROJECT_DIR
-SERVER_DATA_DIR = '%s/data' % PROJECT_DIR
-SERVER_SCRIPTS_DIR = '%s/scripts' % PROJECT_DIR
-SERVER_TESTS_DIR = '%s/tests' % PROJECT_DIR
-SERVER_TEMPLATE_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/templates'
-SERVER_LIB_DIR = '%s/realestate/lib' % PROJECT_DIR
-SERVER_CSS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/css'
-SERVER_JS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/js'
-SERVER_FONTS_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/fonts'
-SERVER_IMAGES_DIR = '%s' % PROJECT_DIR + \
-    '/realestate/static/css/images'
-
-OPENING_DAY = date(2014, 2, 18).strftime('%Y-%m-%d')
-
 OPENING_DATE = date(2014, 2, 18)
-
-YESTERDAY_DAY = (
-    date.today() - timedelta(days=1)
-).strftime('%Y-%m-%d')
+OPENING_DAY = OPENING_DATE.strftime('%Y-%m-%d')
 
 YESTERDAY_DATE = date.today() - timedelta(days=1)
+YESTERDAY_DAY = YESTERDAY_DATE.strftime('%Y-%m-%d')
 
-TODAY_DAY = (date.today()).strftime('%Y-%m-%d')
 TODAY_DATE = date.today()
+TODAY_DAY = TODAY_DATE.strftime('%Y-%m-%d')
 
 S3_PATH = 's3://lensnola/realestate'
 
 # Logging
+LOG_DIR = '%s/logs' % PROJECT_DIR
+
 if os.path.isfile('%s/realestate.log' % (LOG_DIR)):
     os.remove('%s/realestate.log' % (LOG_DIR))
 
@@ -174,3 +117,5 @@ filehandler.setFormatter(formatter)
 
 # Add the handlers to the logger
 log.addHandler(filehandler)
+
+log.debug('thisisatest')
