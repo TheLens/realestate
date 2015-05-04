@@ -1,5 +1,5 @@
 function changeBannerImage() {
-  // console.log('changeBannerImage');
+  console.log('changeBannerImage');
   var header_img;
   var screenWidth = document.documentElement.clientWidth;
 
@@ -18,7 +18,11 @@ function changeBannerImage() {
   }
 }
 
+var window_resize_timeout;
+
 window.addEventListener('resize', function(e) {
-  changeBannerImage();
+  clearTimeout(window_resize_timeout);
+  window_resize_timeout = setTimeout(changeBannerImage, 100);
 });
+
 changeBannerImage();
