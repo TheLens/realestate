@@ -41,11 +41,19 @@ class Models(object):
         :type until_date: string
         '''
 
+        log.debug('1')
+
         self.initial_date = initial_date
+
+        log.debug('2')
 
         self.until_date = until_date
 
+        log.debug('3')
+
         base = declarative_base()
+
+        log.debug('4')
 
         try:
             print os.environ.get('REAL_ESTATE_SERVER_ENGINE')
