@@ -24,8 +24,7 @@ setup(
             "scripts/main.sh",
             "scripts/make_db.py",
             "scripts/screen.js",
-            "scripts/screen.py",
-            "scripts/tserver.py"])
+            "scripts/screen.py"])
     ],
     include_package_data=True,
     license='MIT',
