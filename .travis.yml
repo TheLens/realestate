@@ -20,7 +20,7 @@ deploy:
   upload-dir: realestate
   acl: public_read
   on:
-    repo: TheLens/land-records
+    repo: TheLens/realestate
 env:
   global:
   - secure: B43D3wsqZ/+a/1OA6T0Cqevr96bUs3iqqMilZNyiZnwjdu+j2qKQ0JFMhiaUDvnSW41xhkQR00Yi5q6G1rWJ95eM67k/hFVCabIo0nbqKgHVtTOvofV443al9svZW70gaKFdWfHmwizaGFEshdddoUd/Q4Ic30mNiL3/yiGZ9fk=
