@@ -46,6 +46,7 @@ setup(
         'botocore',
         'colorama',
         'docutils',
+        'Fabric',
         'Flask',
         'GeoAlchemy2',
         'googlemaps',

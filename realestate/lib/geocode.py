@@ -37,7 +37,7 @@ class Geocode(object):
         self.until_date = until_date
 
         self.gmaps = googlemaps.Client(
-            key=os.environ.get('GEOCODING_GOOGLE_API_KEY'))
+            key=os.environ.get('GOOGLE_GEOCODING_API_KEY'))
 
         self.conn = psycopg2.connect(
             os.environ.get('REAL_ESTATE_SERVER_CONNECTION'))
