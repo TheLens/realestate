@@ -1,12 +1,12 @@
-.. Land records documentation master file, created by
-   sphinx-quickstart on Sun Apr 26 00:52:50 2015.
+.. Real estate documentation master file, created by
+   sphinx-quickstart on Tue May  5 15:29:59 2015.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-New Orleans Land Records
-========================
+New Orleans real estate
+=======================
 
-The Lens' news app for New Orleans' land records. http://vault.thelensnola.org/realestate
+The Lens' news app for New Orleans' real estate apps. http://vault.thelensnola.org/realestate
 
 .. toctree::
    :maxdepth: 2
