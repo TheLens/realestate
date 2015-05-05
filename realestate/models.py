@@ -112,6 +112,8 @@ class Models(object):
         category.
         '''
 
+        log.debug('searchbar_input')
+
         term = urllib.unquote(term).decode('utf8')
 
         query_neighborhoods = self.query_search_term_limit_3(
@@ -128,17 +130,27 @@ class Models(object):
                 "label": (row.neighborhood).title().replace('Mcd', 'McD'),
                 "category": "Neighborhoods"})
 
+        log.debug(response)
+
         for row in query_zip:
             response.append({"label": row.zip_code, "category": "ZIP codes"})
+
+        log.debug(response)
 
         for row in query_locations:
             response.append({"label": row.address, "category": "Addresses"})
 
+        log.debug(response)
+
         for row in query_buyers:
             response.append({"label": row.buyers, "category": "Buyers"})
 
+        log.debug(response)
+
         for row in query_sellers:
             response.append({"label": row.sellers, "category": "Sellers"})
+
+        log.debug(response)
 
         return jsonify(
             response=response

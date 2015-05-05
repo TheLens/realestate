@@ -289,7 +289,7 @@ $("body").on("click", ".page-forward", function () {
       data: maprequest,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
-        console.log('returned info:', info);
+        // console.log('returned info:', info);
         document.getElementById('current-page').innerHTML = info.data.current_page;
         document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 

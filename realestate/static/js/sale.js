@@ -117,13 +117,15 @@ function addDataToMap(data) {
 
 function showFooterOrNot(data) {
   console.log(data);
-  for (var i = 0; i < length(data.features); i++) {
+  for (var i = 0; i < data.features.length; i++) {
+    console.log(data.features[i].properties.location_publish);
+    console.log(data.features[i].properties.permanent_flag);
     if (data.features[i].properties.location_publish === false) {
       // Show asterisk note
-      document.getElementById('asterisk-note').style.display = 'none';
+      document.getElementById('asterisk-note').style.display = 'block';
     } else if (data.features[i].properties.permanent_flag === false) {
       // Show cross note
-      document.getElementById('cross-note').style.display = 'none';
+      document.getElementById('cross-note').style.display = 'block';
     }
   }
 }

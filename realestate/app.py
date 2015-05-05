@@ -54,6 +54,8 @@ def searchbar_input():
 
     term = request.args.get('q')
 
+    log.debug('term: %s', term)
+
     data = Models().searchbar_input(term)
 
     return data

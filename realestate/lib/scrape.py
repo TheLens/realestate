@@ -15,7 +15,7 @@ import re
 import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from datetime import timedelta
+from datetime import timedelta, date
 from realestate.lib.mail import Mail
 from realestate import (
     log, YESTERDAY_DATE, PROJECT_DIR, LOG_DIR
@@ -472,4 +472,7 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
-    Scrape().main()
+    Scrape(
+        initial_date=date(2015, 5, 3),
+        until_date=date(2015, 5, 4)
+    ).main()

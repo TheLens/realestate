@@ -273,6 +273,18 @@ function addDataToMap(data) {
   });
 }
 
+function showFooterOrNot(data) {
+  for (var i = 0; i < data.features.length; i++) {
+    if (data.features[i].properties.location_publish === false) {
+      // Show asterisk note
+      document.getElementById('asterisk-note').style.display = 'block';
+    } else if (data.features[i].properties.permanent_flag === false) {
+      // Show cross note
+      document.getElementById('cross-note').style.display = 'block';
+    }
+  }
+}
+
 function initialMapFunction(data) {
   // Not sure what this is
   tablesorterOptions();
@@ -281,6 +293,7 @@ function initialMapFunction(data) {
   loadMapTiles();
   addLensLogoToMap();
   addDataToMap(data);
+  showFooterOrNot(data);
 
   var nbhd_text;
 

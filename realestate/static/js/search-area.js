@@ -303,9 +303,11 @@ $.widget( "custom.catcomplete", $.ui.autocomplete, {
 $('#name-address-box').catcomplete({//autocomplete({
   source: function (request, response) {
     $.ajax({
+      type: 'POST',
       url: js_app_routing + "/input" + "?q=" + request.term,
       contentType: "application/json; charset=utf-8",
       success: function (info) {
+        // console.log('success!');
         response(info.response);
       }
     });

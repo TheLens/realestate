@@ -244,6 +244,9 @@ input[type=radio].leaflet-control-layers-selector {
 .footer-sponsor-image {
     width: 40%;
 }
+.asterisk-note, .cross-note {
+    display: none;
+}
 
 
 /***************
