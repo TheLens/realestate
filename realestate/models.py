@@ -47,6 +47,11 @@ class Models(object):
 
         base = declarative_base()
 
+        try:
+            print os.environ.get('REAL_ESTATE_SERVER_ENGINE')
+        except Exception, error:
+            log.debug(error, exc_info=True)
+
         engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
 
         base.metadata.create_all(engine)
