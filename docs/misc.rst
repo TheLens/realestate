@@ -3,41 +3,41 @@
 Misc.
 =====
 
-.. automodule:: landrecords.app
+.. automodule:: realestate.app
     :members:
 
-.. automodule:: landrecords.models
+.. automodule:: realestate.models
     :members:
 
-.. automodule:: landrecords.views
+.. automodule:: realestate.views
     :members:
 
-.. automodule:: landrecords.lib.delete_dates
+.. automodule:: realestate.lib.delete_dates
     :members:
 
-.. automodule:: landrecords.lib.email_template
+.. automodule:: realestate.lib.email_template
     :members:
 
-.. automodule:: landrecords.lib.form_tweet
+.. automodule:: realestate.lib.form_tweet
     :members:
 
-.. automodule:: landrecords.lib.get_dates
+.. automodule:: realestate.lib.get_dates
     :members:
 
-.. automodule:: landrecords.lib.libraries
+.. automodule:: realestate.lib.libraries
     :members:
 
-.. automodule:: landrecords.lib.mail
+.. automodule:: realestate.lib.mail
     :members:
 
-.. automodule:: landrecords.lib.results_language
+.. automodule:: realestate.lib.results_language
     :members:
 
-.. automodule:: landrecords.lib.stat_analysis
+.. automodule:: realestate.lib.stat_analysis
     :members:
 
-.. automodule:: landrecords.lib.twitter
+.. automodule:: realestate.lib.twitter
     :members:
 
-.. automodule:: landrecords.lib.utils
+.. automodule:: realestate.lib.utils
     :members:

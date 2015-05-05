@@ -8,29 +8,29 @@ These scripts are all part of the general process of taking the raw data and pub
 Parse
 -----
 
-.. automodule:: landrecords.lib.parse
+.. automodule:: realestate.lib.parse
     :members:
 
 Build
 -----
 
-.. automodule:: landrecords.lib.build
+.. automodule:: realestate.lib.build
     :members:
 
 Geocode
 -------
 
-.. automodule:: landrecords.lib.geocode
+.. automodule:: realestate.lib.geocode
     :members:
 
 Clean
 -----
 
-.. automodule:: landrecords.lib.clean
+.. automodule:: realestate.lib.clean
     :members:
 
 Publish
 -------
 
-.. automodule:: landrecords.lib.publish
+.. automodule:: realestate.lib.publish
     :members:

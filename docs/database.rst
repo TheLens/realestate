@@ -3,5 +3,5 @@
 Database
 ========
 
-.. automodule:: landrecords.db
+.. automodule:: realestate.db
     :members:

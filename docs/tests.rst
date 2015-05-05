@@ -3,7 +3,7 @@
 Tests
 =====
 
-Tests for the Land Records module.
+Tests for the realestate module.
 
 Parsing
 -------

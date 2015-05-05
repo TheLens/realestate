@@ -3,5 +3,5 @@
 Scrape
 ======
 
-.. automodule:: landrecords.lib.scrape
+.. automodule:: realestate.lib.scrape
     :members:
