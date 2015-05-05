@@ -56,9 +56,13 @@ class Models(object):
         log.debug('4')
 
         try:
+            log.debug('try')
             print os.environ.get('REAL_ESTATE_SERVER_ENGINE')
+            log.debug('why')
         except Exception, error:
             log.debug(error, exc_info=True)
+
+        log.debug('5')
 
         engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
 
