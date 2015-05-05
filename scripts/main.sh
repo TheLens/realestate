@@ -2,9 +2,7 @@
 
 # Ran chmod +x on this file
 
-cd /home/ubuntu/realestate
 workon realestate
-cd /home/ubuntu/realestate/realestate/lib
-python scrape.py
-cd /home/ubuntu/realestate/scripts
-python initialize.py
+python /home/ubuntu/realestate/realestate/lib/scrape.py
+python /home/ubuntu/realestate/scripts/initialize.py
+deactivate
