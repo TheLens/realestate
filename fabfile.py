@@ -234,6 +234,9 @@ def pull():
 def github(message):
     '''Add, commit and push to Github.'''
 
+    print message
+    print type(message)
+
     addthemall()
     commit(message)
     push()

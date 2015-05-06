@@ -4,6 +4,7 @@
 
 import os
 from sqlalchemy import create_engine
+from realestate import DATABASE_NAME
 
 
 class StatAnalysis(object):
@@ -18,7 +19,12 @@ class StatAnalysis(object):
         self.until_date = until_date
 
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
 
     def count(self):
         '''Get number of records.'''

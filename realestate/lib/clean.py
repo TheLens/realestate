@@ -22,7 +22,7 @@ from realestate.db import (
     Vendor
 )
 from realestate.lib.libraries import Library
-from realestate import log, USER
+from realestate import log, USER, DATABASE_NAME
 
 
 class Join(object):
@@ -37,7 +37,12 @@ class Join(object):
 
         base = declarative_base()
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
@@ -289,7 +294,12 @@ class Clean(object):
 
         base = declarative_base()
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 

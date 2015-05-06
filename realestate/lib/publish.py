@@ -23,7 +23,7 @@ from realestate.db import (
     Detail,
     Location
 )
-from realestate import log
+from realestate import log, DATABASE_NAME
 
 
 class Publish(object):
@@ -34,7 +34,13 @@ class Publish(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+        engine = create_engine(
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

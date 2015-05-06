@@ -18,6 +18,17 @@ class MakeDB(object):
 
     '''Create database and make tables.'''
 
+    def __init__(self):
+        '''docstring'''
+
+        self.engine = create_engine(
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
+
     def main(self):
         '''Run all methods.'''
 
@@ -36,7 +47,12 @@ class MakeDB(object):
 
         try:
             engine = create_engine(
-                '%s' % os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+                'postgresql://%s:%s@localhost/%s' % (
+                    os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                    os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                    DATABASE_NAME
+                )
+            )
             conn = engine.connect()
             sql = "SELECT 1;"
             conn.execute(sql)
@@ -48,7 +64,12 @@ class MakeDB(object):
             ])
 
             engine = create_engine(
-                "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+                'postgresql://%s:%s@localhost/%s' % (
+                    os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                    os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                    DATABASE_NAME
+                )
+            )
             engine.execute("CREATE EXTENSION POSTGIS;")
 
         conn.close()
@@ -60,7 +81,11 @@ class MakeDB(object):
         log.debug('create_tables')
 
         engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE')
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
         )
         db.Base.metadata.create_all(engine)
 
@@ -71,7 +96,12 @@ class MakeDB(object):
         log.debug('import_neighorhoods')
 
         engine = create_engine(
-            "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         conn = engine.connect()
 
         p1 = Popen(
@@ -116,7 +146,12 @@ class MakeDB(object):
         log.debug('spatial_index_on_cleaned_geom')
 
         engine = create_engine(
-            "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         conn = engine.connect()
 
         sql = """

@@ -17,7 +17,7 @@ from datetime import timedelta
 from subprocess import call
 
 from realestate.db import Cleaned
-from realestate import log, TODAY_DATE, PROJECT_DIR
+from realestate import log, TODAY_DATE, PROJECT_DIR, DATABASE_NAME
 from realestate.lib.twitter import Twitter
 
 
@@ -29,7 +29,13 @@ class AutoTweet(object):
         '''Initialize self variables and establish connection to database.'''
 
         base = declarative_base()
-        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+        engine = create_engine(
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

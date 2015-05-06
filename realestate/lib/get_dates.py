@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 
 from realestate.db import Detail
-from realestate import log, YESTERDAY_DATE, OPENING_DATE
+from realestate import log, YESTERDAY_DATE, OPENING_DATE, DATABASE_NAME
 
 
 class GetDates(object):
@@ -21,7 +21,12 @@ class GetDates(object):
 
         base = declarative_base()
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 

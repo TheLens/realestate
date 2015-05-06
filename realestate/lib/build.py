@@ -14,7 +14,7 @@ from sqlalchemy.ext.declarative import declarative_base
 
 from realestate import db
 from realestate.lib import parse
-from realestate import log, PROJECT_DIR
+from realestate import log, PROJECT_DIR, DATABASE_NAME
 
 
 class Build(object):
@@ -28,7 +28,13 @@ class Build(object):
         '''
 
         base = declarative_base()
-        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+        engine = create_engine(
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(engine)
         self.sn = sessionmaker(bind=engine)
 

@@ -22,7 +22,7 @@ from realestate.db import (
     Location,
     Neighborhood
 )
-from realestate import log
+from realestate import log, DATABASE_NAME
 
 
 class Geocode(object):
@@ -40,7 +40,12 @@ class Geocode(object):
 
         base = declarative_base()
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 

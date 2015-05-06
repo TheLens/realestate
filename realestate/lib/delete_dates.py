@@ -12,6 +12,7 @@ python delete_dates.py '2014-02-18' '2014-02-19' # Deletes range
 
 import os
 import sys
+import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -20,7 +21,7 @@ from realestate.db import (
     Cleaned,
     Detail
 )
-from realestate import log
+from realestate import log, DATABASE_NAME
 
 
 class DeleteDates(object):
@@ -32,9 +33,23 @@ class DeleteDates(object):
 
         base = declarative_base()
         self.engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
+
+        self.conn = psycopg2.connect(
+            'host=localhost dbname=%s user=%s password=%s' % (
+                DATABASE_NAME,
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD')
+            )
+        )
+        self.cursor = self.conn.cursor()
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -52,17 +67,12 @@ class DeleteDates(object):
     def vacuum(self):
         '''docstring'''
 
-        engine = create_engine(
-            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
-        conn = engine.connect()
-
-        old_isolation_level = conn.isolation_level
-        conn.set_isolation_level(0)
+        old_isolation_level = self.conn.isolation_level
+        self.conn.set_isolation_level(0)
         sql = 'VACUUM;'
-        conn.execute(sql)
-        conn.set_isolation_level(old_isolation_level)
-
-        conn.close()
+        self.cursor.execute(sql)
+        self.conn.commit()
+        self.conn.set_isolation_level(old_isolation_level)
 
     def delete_details(self):
         session = self.sn()

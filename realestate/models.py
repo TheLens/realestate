@@ -24,7 +24,7 @@ from realestate.db import (
 # from realestate.lib.check_assessor_urls import Assessor
 from realestate.lib.results_language import ResultsLanguage
 from realestate.lib.utils import Utils
-from realestate import log, TODAY_DAY
+from realestate import log, TODAY_DAY, DATABASE_NAME
 
 
 class Models(object):
@@ -41,30 +41,19 @@ class Models(object):
         :type until_date: string
         '''
 
-        log.debug('1')
-
         self.initial_date = initial_date
-
-        log.debug('2')
 
         self.until_date = until_date
 
-        log.debug('3')
-
         base = declarative_base()
 
-        log.debug('4')
-
-        try:
-            log.debug('try')
-            print os.environ.get('REAL_ESTATE_SERVER_ENGINE')
-            log.debug('why')
-        except Exception, error:
-            log.debug(error, exc_info=True)
-
-        log.debug('5')
-
-        engine = create_engine(os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+        engine = create_engine(
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
 
         base.metadata.create_all(engine)
 

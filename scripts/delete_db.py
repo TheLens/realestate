@@ -29,7 +29,12 @@ class Delete(object):
         '''Establish connection to the database.'''
 
         engine = create_engine(
-            '%s' % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+            'postgresql://%s:%s@localhost/%s' % (
+                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+                DATABASE_NAME
+            )
+        )
         self.conn = engine.connect()
         self.trans = self.conn.begin()
         self.inspector = reflection.Inspector.from_engine(engine)
@@ -77,7 +82,6 @@ class Delete(object):
 
         log.debug('drop DB')
 
-        # Backup dashboard table, if it exists
         try:
             call([
                 'dropdb',
