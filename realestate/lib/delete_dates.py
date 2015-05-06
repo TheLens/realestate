@@ -12,7 +12,6 @@ python delete_dates.py '2014-02-18' '2014-02-19' # Deletes range
 
 import os
 import sys
-import psycopg2
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -37,10 +36,6 @@ class DeleteDates(object):
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
-        self.conn = psycopg2.connect(
-            os.environ.get('REAL_ESTATE_SERVER_CONNECTION'))
-        self.cursor = self.conn.cursor()
-
         self.initial_date = initial_date
         self.until_date = until_date
 
@@ -55,12 +50,19 @@ class DeleteDates(object):
         self.vacuum()
 
     def vacuum(self):
-        old_isolation_level = self.conn.isolation_level
-        self.conn.set_isolation_level(0)
+        '''docstring'''
+
+        engine = create_engine(
+            os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+        conn = engine.connect()
+
+        old_isolation_level = conn.isolation_level
+        conn.set_isolation_level(0)
         sql = 'VACUUM;'
-        self.cursor.execute(sql)
-        self.conn.commit()
-        self.conn.set_isolation_level(old_isolation_level)
+        conn.execute(sql)
+        conn.set_isolation_level(old_isolation_level)
+
+        conn.close()
 
     def delete_details(self):
         session = self.sn()

@@ -7,7 +7,6 @@ data and creates spatial indexes. It makes use of `db.py`.
 """
 
 import os
-import psycopg2
 from sqlalchemy import create_engine
 from subprocess import call, Popen, PIPE
 
@@ -36,11 +35,11 @@ class MakeDB(object):
         log.debug('create_db')
 
         try:
-            conn = psycopg2.connect(
-                "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
-            cur = conn.cursor()
+            engine = create_engine(
+                '%s' % os.environ.get('REAL_ESTATE_SERVER_ENGINE'))
+            conn = engine.connect()
             sql = "SELECT 1;"
-            cur.execute(sql)
+            conn.execute(sql)
         except Exception, error:
             log.exception(error, exc_info=True)
             call([
@@ -48,13 +47,10 @@ class MakeDB(object):
                 '%s' % DATABASE_NAME
             ])
 
-            conn = psycopg2.connect(
-                "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
-            cur = conn.cursor()
-            cur.execute("CREATE EXTENSION POSTGIS;")
+            engine = create_engine(
+                "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+            engine.execute("CREATE EXTENSION POSTGIS;")
 
-        conn.commit()
-        cur.close()
         conn.close()
 
     @staticmethod
@@ -74,9 +70,9 @@ class MakeDB(object):
 
         log.debug('import_neighorhoods')
 
-        conn = psycopg2.connect(
-            "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
-        cur = conn.cursor()
+        engine = create_engine(
+            "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+        conn = engine.connect()
 
         p1 = Popen(
             [
@@ -104,16 +100,13 @@ class MakeDB(object):
         p2.communicate()[0]
 
         # If need to alter geometry's SRID
-        cur.execute("""
+        conn.execute("""
             SELECT updategeometrysrid('neighborhoods', 'geom', 3452);""")
-        cur.execute("""
+        conn.execute("""
             ALTER TABLE neighborhoods
             ALTER COLUMN geom TYPE geometry(MultiPolygon, 4326)
             USING ST_Transform(geom, 4326);""")
 
-        conn.commit()
-
-        cur.close()
         conn.close()
 
     @staticmethod
@@ -122,18 +115,15 @@ class MakeDB(object):
 
         log.debug('spatial_index_on_cleaned_geom')
 
-        conn = psycopg2.connect(
-            "%s" % (os.environ.get('REAL_ESTATE_SERVER_CONNECTION')))
-        cur = conn.cursor()
+        engine = create_engine(
+            "%s" % (os.environ.get('REAL_ESTATE_SERVER_ENGINE')))
+        conn = engine.connect()
 
         sql = """
             CREATE INDEX index_cleaned_geom ON cleaned USING GIST(geom);"""
 
-        cur.execute(sql)
+        conn.execute(sql)
 
-        conn.commit()
-
-        cur.close()
         conn.close()
 
 if __name__ == '__main__':

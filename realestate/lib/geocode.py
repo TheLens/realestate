@@ -12,7 +12,6 @@ from [data.nola.gov](http://data.nola.gov).
 """
 
 import os
-import psycopg2
 import googlemaps
 from sqlalchemy import create_engine, func, cast, Float, update
 from sqlalchemy.orm import sessionmaker
@@ -38,10 +37,6 @@ class Geocode(object):
 
         self.gmaps = googlemaps.Client(
             key=os.environ.get('GOOGLE_GEOCODING_API_KEY'))
-
-        self.conn = psycopg2.connect(
-            os.environ.get('REAL_ESTATE_SERVER_CONNECTION'))
-        self.cursor = self.conn.cursor()
 
         base = declarative_base()
         self.engine = create_engine(
