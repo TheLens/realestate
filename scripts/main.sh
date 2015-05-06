@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Ran chmod +x on this file
+source `which virtualenvwrapper.sh`
 
 workon realestate
 python /home/ubuntu/realestate/realestate/lib/scrape.py

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source `which virtualenvwrapper.sh`
+
 workon realestate
 # rm /backups/realestate/realestate-db*.sql
 pg_dump realestate > /backups/realestate/realestate-db-$(date +%Y-%m-%d).sql
