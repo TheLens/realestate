@@ -17,7 +17,7 @@ class TestAllPurposeParser(TestCase):
     "TestAllPurposeParser"
 
     html_path = (
-        '%s/data/' % PROJECT_DIR +
+        '%s/tests/data/' % PROJECT_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_all_purpose_get_document_id_var(self):
@@ -41,7 +41,7 @@ class TestDetailParser(TestCase):
     '''Test parser for details table.'''
 
     html_path = (
-        '%s/data/' % PROJECT_DIR +
+        '%s/tests/data/' % PROJECT_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     # todo: rows, parse_rows
@@ -109,7 +109,7 @@ class TestDetailParser(TestCase):
         '''
 
         html_no_document_date = (
-            '%s/data/' % PROJECT_DIR +
+            '%s/tests/data/' % PROJECT_DIR +
             'raw/2014-05-01/form-html/OPR291526640.html')
 
         document_date = DetailParser(html_no_document_date).document_date
@@ -230,7 +230,7 @@ class TestVendorParser(TestCase):
     '''TestVendorParser'''
 
     html_path = (
-        '%s/data/' % PROJECT_DIR +
+        '%s/tests/data/' % PROJECT_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_vendor_blank(self):
@@ -336,7 +336,7 @@ class TestVendeeParser(TestCase):
     '''TestVendeeParser'''
 
     html_path = (
-        '%s/data/' % PROJECT_DIR +
+        '%s/tests/data/' % PROJECT_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_vendee_blank(self):
@@ -416,7 +416,7 @@ class TestLocationParser(TestCase):
     "TestLocationParser"
 
     html_path = (
-        '%s/data/' % PROJECT_DIR +
+        '%s/tests/data/' % PROJECT_DIR +
         'raw/2014-02-18/form-html/OPR288694480.html')
 
     def test_get_field_subdivision(self):
