@@ -6,6 +6,8 @@ install:
 - pip install -r requirements.txt
 before_script:
 - export PYTHONPATH=$PYTHONPATH:$(pwd)
+- mkdir logs
+- touch logs/realestate.log
 script:
 - coverage run tests/test*.py
 after_success:
