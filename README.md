@@ -66,6 +66,6 @@ export DASHBOARD_PASSWORD='mypass'
 
 export REAL_ESTATE_GMAIL_USERNAME=tthoren@thelensnola.org
 
-export REAL_ESTATE_GMAIL_PASSWORD=TT89Bigdane89!
+export REAL_ESTATE_GMAIL_PASSWORD=mypass
 
 ```
