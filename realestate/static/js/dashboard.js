@@ -169,7 +169,7 @@ function buildQueryString(data) {
 }
 
 function doPostBack(data) {
-  console.log('doPostBack');
+  // console.log('doPostBack');
   var searchrequest = JSON.stringify(data);
   //var query_string = buildQueryString(data);
   $.ajax({
@@ -178,7 +178,7 @@ function doPostBack(data) {
     data: searchrequest,
     contentType: "application/json; charset=utf-8",
     success: function (info) {
-      console.log('yo');
+      // console.log('yo');
       //window.history.pushState(null,'hi','search' + query_string);
 
       // $("#map-table-wrapper").html(info.template1);
@@ -193,7 +193,7 @@ function doPostBack(data) {
 
 function preparePOST(loop_index) {
   //$("body").addClass("loading");
-  console.log('loop_index:', loop_index);
+  // console.log('loop_index:', loop_index);
 
   var data = {};
   data.instrument_no = $('#instrument_no_' + loop_index).text();
@@ -214,11 +214,11 @@ function preparePOST(loop_index) {
   data.zip_code = $('#zip_code_' + loop_index).val();
   data.neighborhood = $('#neighborhood_' + loop_index).val();
 
-  console.log('amount: ', data.amount);
-  console.log('amount type: ', typeof data.amount);
+  // console.log('amount: ', data.amount);
+  // console.log('amount type: ', typeof data.amount);
 
-  console.log('instrument no: ', data.instrument_no);
-  console.log('data:', data);
+  // console.log('instrument no: ', data.instrument_no);
+  // console.log('data:', data);
 
   return data;
 }
@@ -230,9 +230,9 @@ function preparePOST(loop_index) {
 // }
 
 $(document).on("click", '.searchButton', function (e) {
-  console.log('e:', e);
+  // console.log('e:', e);
   var loop_index = $(event.target).attr('id');
-  console.log('loop_index:', loop_index);
+  // console.log('loop_index:', loop_index);
 
   var data = preparePOST(loop_index);
 

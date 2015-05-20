@@ -399,7 +399,7 @@ $("body").on("click", ".page-back", function () {
 
     var maprequest = JSON.stringify(data);
 
-    console.log(data);
+    // console.log(data);
 
     $.ajax({
       url: js_app_routing + "/search",
@@ -447,7 +447,7 @@ function populateSearchParameters(data) {
       document.getElementById('name-address-box').value = data.zip_code;
     }
   }
-  if(data.amount_low !== '' || data.amount_high !== '' || data.begin_date !== '' || data.end_date !== '') {
+  if (data.amount_low !== '' || data.amount_high !== '' || data.begin_date !== '' || data.end_date !== '') {
     document.getElementById('filters').style.display = 'block';
     document.getElementById('advanced-search').innerHTML = '<a>Hide advanced search <i class="fa fa-caret-up"></i></a>';
   }

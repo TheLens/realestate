@@ -114,7 +114,7 @@ function loadMapTiles() {
 
   function switchToStamen() {
     clearTimeout(tileTimeout);
-    console.error('Not finding Stamen tiles. Switching to OSM tiles...');
+    // console.error('Not finding Stamen tiles. Switching to OSM tiles...');
     map.removeLayer(mapboxLayer);
     map.addLayer(stamenLayer);
   }

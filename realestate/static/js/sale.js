@@ -28,7 +28,7 @@ function loadMapTiles() {
 
   function switchToStamen() {
     clearTimeout(tileTimeout);
-    console.error('Not finding Stamen tiles. Switching to OSM tiles...');
+    // console.error('Not finding Stamen tiles. Switching to OSM tiles...');
     map.removeLayer(mapboxLayer);
     map.addLayer(stamenLayer);
   }
@@ -116,10 +116,10 @@ function addDataToMap(data) {
 }
 
 function showFooterOrNot(data) {
-  console.log(data);
+  // console.log(data);
   for (var i = 0; i < data.features.length; i++) {
-    console.log(data.features[i].properties.location_publish);
-    console.log(data.features[i].properties.permanent_flag);
+    // console.log(data.features[i].properties.location_publish);
+    // console.log(data.features[i].properties.permanent_flag);
     if (data.features[i].properties.location_publish === false) {
       // Show asterisk note
       document.getElementById('asterisk-note').style.display = 'block';
