@@ -22,6 +22,12 @@ import sphinx_rtd_theme
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
+# Custom additions
+if not os.path.exists('../logs'):
+    os.makedirs('../logs')
+
+f = file('../logs/elections.log', 'w')
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
