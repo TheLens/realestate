@@ -26,7 +26,7 @@ sys.path.insert(0, os.path.abspath('..'))
 if not os.path.exists('../logs'):
     os.makedirs('../logs')
 
-f = file('../logs/elections.log', 'w')
+f = file('../logs/realestate.log', 'w')
 
 # -- General configuration ------------------------------------------------
 
