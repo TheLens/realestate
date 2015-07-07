@@ -27,32 +27,7 @@ USER = getpass.getuser()
 PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..'))
 
-if USER == 'thomasthoren':  # Local
-    BACKUP_DIR = '%s/backups' % PROJECT_DIR
-    GEO_DIR = '/Users/thomasthoren/projects/geographic-data/repo'
-
-    PROJECT_URL = 'http://localhost:5000/realestate'
-
-    # Static assets
-    LENS_JS = '/static/js/lens.js'
-    INDEX_JS = "/static/js/index.js"
-    SEARCH_AREA_JS = '/static/js/search-area.js'
-    SEARCH_JS = "/static/js/search.js"
-    MAP_JS = "/static/js/map.js"
-    SALE_JS = "/static/js/sale.js"
-    DASHBOARD_JS = "/static/js/dashboard.js"
-    NEIGHBORHOODS_TOPO = "/static/js/neighborhoods-topo.min.js"
-
-    LENS_CSS = "/static/css/lens.css"
-    REALESTATE_CSS = "/static/css/realestate.css"
-    BANNER_CSS = "/static/css/banner.css"
-    TABLE_CSS = "/static/css/table.css"
-
-    RELOADER = True
-    DEBUG = True
-    PORT = 5000
-
-else:  # Server
+if USER == 'ubuntu':  # Server
     BACKUP_DIR = '/backups/realestate'
     GEO_DIR = '/apps/geographic-data/repo'
 
@@ -78,6 +53,30 @@ else:  # Server
     RELOADER = False
     DEBUG = False
     PORT = 5004
+else:  # Local
+    BACKUP_DIR = '%s/backups' % PROJECT_DIR
+    GEO_DIR = '/Users/%s/projects/geographic-data/repo' % USER
+
+    PROJECT_URL = 'http://localhost:5000/realestate'
+
+    # Static assets
+    LENS_JS = '/static/js/lens.js'
+    INDEX_JS = "/static/js/index.js"
+    SEARCH_AREA_JS = '/static/js/search-area.js'
+    SEARCH_JS = "/static/js/search.js"
+    MAP_JS = "/static/js/map.js"
+    SALE_JS = "/static/js/sale.js"
+    DASHBOARD_JS = "/static/js/dashboard.js"
+    NEIGHBORHOODS_TOPO = "/static/js/neighborhoods-topo.min.js"
+
+    LENS_CSS = "/static/css/lens.css"
+    REALESTATE_CSS = "/static/css/realestate.css"
+    BANNER_CSS = "/static/css/banner.css"
+    TABLE_CSS = "/static/css/table.css"
+
+    RELOADER = True
+    DEBUG = True
+    PORT = 5000
 
 APP_ROUTING = '/realestate'
 JS_APP_ROUTING = '/realestate'
@@ -98,15 +97,19 @@ S3_PATH = 's3://lensnola/realestate'
 # Logging
 LOG_DIR = '%s/logs' % PROJECT_DIR
 
-if os.path.isfile('%s/realestate.log' % (LOG_DIR)):
-    os.remove('%s/realestate.log' % (LOG_DIR))
+# if os.path.isfile('%s/realestate.log' % (LOG_DIR)):
+#     os.remove('%s/realestate.log' % (LOG_DIR))
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # Create file handler which logs debug messages or higher
-filehandler = logging.FileHandler(
-    '%s/realestate.log' % (LOG_DIR))
+filehandler = logging.handlers.RotatingFileHandler(
+    '%s/realestate.log' % (LOG_DIR),
+    maxBytes=(5 * 1024 * 1024),  # 5 MB
+    backupCount=5
+)
+
 filehandler.setLevel(logging.DEBUG)
 
 # Create formatter and add it to the handlers
@@ -117,5 +120,3 @@ filehandler.setFormatter(formatter)
 
 # Add the handlers to the logger
 log.addHandler(filehandler)
-
-log.debug('thisisatest')
