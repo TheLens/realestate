@@ -9,11 +9,11 @@ from realestate.lib.build import Build
 from realestate.lib.clean import Clean
 from realestate.lib.geocode import Geocode
 from realestate.lib.get_dates import GetDates
-from realestate.lib.mail import Mail
+# from realestate.lib.mail import Mail
 from realestate.lib.publish import Publish
 # from realestate.lib.check_temp_status import CheckTemp
-from realestate.lib.email_template import EmailTemplate
-from realestate import log, LOG_DIR, OPENING_DAY
+# from realestate.lib.email_template import EmailTemplate
+from realestate import log  # LOG_DIR, OPENING_DAY
 
 
 class Initialize(object):
@@ -85,18 +85,18 @@ class Initialize(object):
         #     until_date=self.until_date
         # ).check_permanent_status_of_temp_sales()
 
-        Mail(
-            subject=EmailTemplate(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).generate_subject(),
-            body=EmailTemplate(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).generate_body(),
-            frm='tthoren@thelensnola.org',
-            to=['tthoren@thelensnola.org']
-        ).send_as_html()
+        # Mail(
+        #     subject=EmailTemplate(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).generate_subject(),
+        #     body=EmailTemplate(
+        #         initial_date=self.initial_date,
+        #         until_date=self.until_date
+        #     ).generate_body(),
+        #     frm='tthoren@thelensnola.org',
+        #     to=['tthoren@thelensnola.org']
+        # ).send_as_html()
 
         # check_assessor_urls().check(
         #     initial_date=initial_date, until_date=until_date)
@@ -107,14 +107,16 @@ if __name__ == '__main__':
         # Default is to build and clean anything that needs it.
         # Specify custom date range in 'YYYY-mm-dd' string format
         # or use variables such as OPENING_DAY, YESTERDAY_DAY.
-        Initialize()
+        # e.g. Initialize(initial_date='2014-02-18', until_date=YESTERDAY_DAY)
+        # Initialize()
+        Initialize(initial_date='2015-07-05', until_date='2015-07-07')
     except Exception, error:
         log.exception(error, exc_info=True)
-        Mail(
-            subject="Error running realestate's initialize.py script",
-            body='Check log for more details.',
-            frm='tthoren@thelensnola.org',
-            to=['tthoren@thelensnola.org']
-        ).send_with_attachment(
-            files=['%s/realestate.log' % LOG_DIR]
-        )
+        # Mail(
+        #     subject="Error running realestate's initialize.py script",
+        #     body='Check log for more details.',
+        #     frm='tthoren@thelensnola.org',
+        #     to=['tthoren@thelensnola.org']
+        # ).send_with_attachment(
+        #     files=['%s/realestate.log' % LOG_DIR]
+        # )
