@@ -53,7 +53,7 @@ class Scrape(object):
 
         log.info('Load homepage')
         self.driver.get("http://onlinerecords.orleanscivilclerk.com/")
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     def find_login_link(self):
         '''Find and click on login link.'''
@@ -62,7 +62,7 @@ class Scrape(object):
         login_link_elem = self.driver.find_element_by_id("Header1_lnkLogin")
         log.info('Click login link')
         login_link_elem.click()
-        time.sleep(0.2)
+        time.sleep(4.2)
 
     def enter_username(self):
         '''Type in username.'''
@@ -71,6 +71,7 @@ class Scrape(object):
         unsername_elem = self.driver.find_element_by_id("Header1_txtLogonName")
         log.info('Enter username')
         unsername_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_USERNAME'))
+        time.sleep(4.2)
 
     def enter_password(self):
         '''Type in password.'''
@@ -81,7 +82,7 @@ class Scrape(object):
         password_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_PASSWORD'))
         log.info('Return')
         password_elem.send_keys('\n')  # To trigger search function
-        time.sleep(0.2)
+        time.sleep(4.2)
 
         log.debug(self.driver.title)
 
@@ -101,7 +102,7 @@ class Scrape(object):
         self.driver.get(
             "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
             "SearchEntry.aspx")
-        time.sleep(0.2)
+        time.sleep(4.2)
 
     def find_permanent_date_range(self):
         '''Parse search page for permanent date range.'''
@@ -186,7 +187,7 @@ class Scrape(object):
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     def navigate_search_page(self, year, month, day):
         '''Navigate search page to find permanent date range
@@ -214,13 +215,13 @@ class Scrape(object):
             "x:2130005445.2:mkr:ti1")
         log.info('Click on advanced tab')
         advanced_tab_elem.click()
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     def enter_date_filed_from(self, search_date):
         '''Enter "date from".'''
 
         date_file_from_elem = self.driver.find_element_by_id(
-            "x:2002578730.0:mkr:3")
+            "x:1221134975.0:mkr:3")
         date_file_from_elem.click()
         date_file_from_elem.send_keys(search_date)
 
@@ -228,7 +229,7 @@ class Scrape(object):
         '''Enter "date to".'''
 
         date_file_to_elem = self.driver.find_element_by_id(
-            "x:625521537.0:mkr:3")
+            "x:96043147.0:mkr:3")
         date_file_to_elem.click()
         date_file_to_elem.send_keys(search_date)
 
@@ -236,7 +237,7 @@ class Scrape(object):
         '''Select SALE document type in dropdown.'''
 
         document_type_elem = self.driver.find_element_by_id(
-            "cphNoMargin_f_dclDocType_291")
+            "cphNoMargin_f_dclDocType_292")
         log.info('Select SALE document type')
         document_type_elem.click()
 
@@ -248,7 +249,7 @@ class Scrape(object):
             "cphNoMargin_SearchButtons2_btnSearch__2")
         log.info('Click search button')
         search_button_elem.click()
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     def search_parameters(self, search_date):
         '''Enter search parameters.'''
@@ -257,6 +258,7 @@ class Scrape(object):
         self.enter_date_filed_from(search_date)
         self.enter_date_filed_to(search_date)
         self.select_document_type()
+        time.sleep(1.2)
         self.click_search_button()
 
     # Parse results
@@ -328,7 +330,7 @@ class Scrape(object):
             "OptionsBar1_imgNext")
         log.info('Click next page button')
         next_button_elem.click()
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     def parse_sale(self, j, rows, year, month, day):
         '''Parse single sale page and save HTML.'''
@@ -349,7 +351,7 @@ class Scrape(object):
         try:
             log.info('Loading %s', single_sale_url)
             self.driver.get(single_sale_url)
-            time.sleep(0.2)
+            time.sleep(1.2)
         except Exception, error:
             log.error(error, exc_info=True)
 
@@ -374,7 +376,7 @@ class Scrape(object):
             log.error(error, exc_info=True)
             return
 
-        time.sleep(0.2)
+        time.sleep(1.2)
 
     @staticmethod
     def check_if_error(html):
@@ -459,6 +461,7 @@ class Scrape(object):
         try:
             self.cycle_through_dates()
         except Exception, error:
+            print error
             log.error(error, exc_info=True)
             Mail(
                 subject="Error running Land Record's scrape.py script",
