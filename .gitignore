@@ -4,6 +4,8 @@ data
 logs
 misc
 realestate/static/pictures
+tests/data
+tests/misc
 
 # Files
 scripts/phantomjs
@@ -18,3 +20,5 @@ scripts/ngrok
 *.bmml
 *.csv
 *.out
+
+fabfile.py

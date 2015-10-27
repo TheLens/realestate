@@ -9,16 +9,17 @@ and what the Land Records Division's permanent date range was at the time of
 that scrape (see `check_temp_status.py` for details).
 '''
 
-import time
 import os
 import re
+import sys
+import time
 import glob
 from bs4 import BeautifulSoup
 from selenium import webdriver
-from datetime import timedelta
+from datetime import timedelta, datetime
 from realestate.lib.mail import Mail
 from realestate import (
-    log, YESTERDAY_DATE, PROJECT_DIR, LOG_DIR
+    log, YESTERDAY_DAY, PROJECT_DIR, LOG_DIR
 )
 
 
@@ -33,13 +34,13 @@ class Scrape(object):
     # todo: write function with rewrite = False that ignores any
     # sales previously scraped.
     def __init__(self,
-                 initial_date=YESTERDAY_DATE,
-                 until_date=YESTERDAY_DATE,
+                 initial_date=YESTERDAY_DAY,
+                 until_date=YESTERDAY_DAY,
                  rewrite=True):
         '''Initialize self variables and PhantomJS browser.'''
 
-        self.initial_date = initial_date
-        self.until_date = until_date
+        self.initial_date = datetime.strptime(initial_date, '%Y-%m-%d')
+        self.until_date = datetime.strptime(until_date, '%Y-%m-%d')
 
         self.driver = webdriver.PhantomJS(
             executable_path='%s/scripts/phantomjs' % PROJECT_DIR,
@@ -475,4 +476,24 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
-    Scrape().main()
+    if len(sys.argv) == 2:  # One argument
+        day = sys.argv[1]
+
+        Scrape(
+            initial_date=day,
+            until_date=day
+        ).main()
+    elif len(sys.argv) == 3:  # Two arguments
+        initial_day = sys.argv[1]
+        until_day = sys.argv[2]
+
+        Scrape(
+            initial_date=initial_day,
+            until_date=until_day
+        ).main()
+    elif len(sys.argv) > 3:
+        print "Too many arguments. Enter a single date to scrape that one " + \
+            "day, enter two days to scrape that range of days, or do not " + \
+            "enter any days at all to scrape yesterday."
+    else:  # No arguments, default to yesterday date.
+        Scrape().main()
