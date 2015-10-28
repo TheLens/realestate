@@ -103,18 +103,28 @@ class DeleteDates(object):
         session.close()
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:
-        date = sys.argv[1]
+    if len(sys.argv) < 2:
+            print (
+                "No date(s) specified. Enter a single date to delete that " +
+                "one day or enter two days to delete a range of days. " +
+                "Use the format 'YYYY-MM-DD'.")
+    elif len(sys.argv) == 2:  # One argument
+        day = sys.argv[1]
 
         DeleteDates(
-            initial_date=date,
-            until_date=date
+            initial_date=day,
+            until_date=day
         ).main()
-    else:
-        initial_date = sys.argv[1]
-        until_date = sys.argv[2]
+    elif len(sys.argv) == 3:  # Two arguments
+        initial_day = sys.argv[1]
+        until_day = sys.argv[2]
 
         DeleteDates(
-            initial_date=initial_date,
-            until_date=until_date
+            initial_date=initial_day,
+            until_date=until_day
         ).main()
+    elif len(sys.argv) > 3:
+            print (
+                "Too many arguments. Enter a single date to delete that one " +
+                "day or enter two days to delete a range of days. " +
+                "Use the format 'YYYY-MM-DD'.")

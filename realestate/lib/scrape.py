@@ -476,7 +476,9 @@ class Scrape(object):
             log.info('Done!')
 
 if __name__ == '__main__':
-    if len(sys.argv) == 2:  # One argument
+    if len(sys.argv) < 2:  # No arguments, default to yesterday date.
+        Scrape().main()
+    elif len(sys.argv) == 2:  # One argument
         day = sys.argv[1]
 
         Scrape(
@@ -492,8 +494,8 @@ if __name__ == '__main__':
             until_date=until_day
         ).main()
     elif len(sys.argv) > 3:
-        print "Too many arguments. Enter a single date to scrape that one " + \
-            "day, enter two days to scrape that range of days, or do not " + \
-            "enter any days at all to scrape yesterday."
-    else:  # No arguments, default to yesterday date.
-        Scrape().main()
+        print (
+            "Too many arguments. Enter a single date to scrape that one " +
+            "day, enter two days to scrape a range of days, or do not " +
+            "enter any days at all to scrape yesterday. " +
+            "Use the format 'YYYY-MM-DD'.")

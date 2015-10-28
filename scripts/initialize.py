@@ -5,6 +5,8 @@ Calls on other classes to build, geocode, clean and publish records to the
 cleaned table. Can receive a date range or determine the dates on its own.
 '''
 
+import sys
+
 from realestate.lib.build import Build
 from realestate.lib.clean import Clean
 from realestate.lib.geocode import Geocode
@@ -85,38 +87,35 @@ class Initialize(object):
         #     until_date=self.until_date
         # ).check_permanent_status_of_temp_sales()
 
-        # Mail(
-        #     subject=EmailTemplate(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).generate_subject(),
-        #     body=EmailTemplate(
-        #         initial_date=self.initial_date,
-        #         until_date=self.until_date
-        #     ).generate_body(),
-        #     frm='tthoren@thelensnola.org',
-        #     to=['tthoren@thelensnola.org']
-        # ).send_as_html()
-
         # check_assessor_urls().check(
         #     initial_date=initial_date, until_date=until_date)
 
 
 if __name__ == '__main__':
     try:
-        # Default is to build and clean anything that needs it.
-        # Specify custom date range in 'YYYY-mm-dd' string format
-        # or use variables such as OPENING_DAY, YESTERDAY_DAY.
-        # e.g. Initialize(initial_date='2014-02-18', until_date=YESTERDAY_DAY)
-        # Initialize()
-        Initialize(initial_date='2015-07-05', until_date='2015-07-07')
+        if len(sys.argv) < 2:  # No arguments
+            # Default is to build and clean anything that needs it.
+            # Specify custom date range in 'YYYY-mm-dd' string format
+            # or use variables such as OPENING_DAY, YESTERDAY_DAY.
+            Initialize()
+        if len(sys.argv) == 2:  # One argument
+            day = sys.argv[1]
+
+            Initialize(
+                initial_date=day,
+                until_date=day)
+        elif len(sys.argv) == 3:  # Two arguments
+            initial_day = sys.argv[1]
+            until_day = sys.argv[2]
+
+            Initialize(
+                initial_date=initial_day,
+                until_date=until_day)
+        elif len(sys.argv) > 3:
+            print (
+                "Too many arguments. Enter a single date to build that one " +
+                "day, enter two days to build a range of days, or do not " +
+                "enter any days at all to build all days that need it. " +
+                "Use the format 'YYYY-MM-DD'.")
     except Exception, error:
         log.exception(error, exc_info=True)
-        # Mail(
-        #     subject="Error running realestate's initialize.py script",
-        #     body='Check log for more details.',
-        #     frm='tthoren@thelensnola.org',
-        #     to=['tthoren@thelensnola.org']
-        # ).send_with_attachment(
-        #     files=['%s/realestate.log' % LOG_DIR]
-        # )
