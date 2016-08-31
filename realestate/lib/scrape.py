@@ -25,7 +25,7 @@ from realestate import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
 
 # Uncomment for local development and testing:
 # from selenium.webdriver.common.desired_capabilities import (
-#   DesiredCapabilities)
+#     DesiredCapabilities)
 
 
 class Scrape(object):
@@ -94,7 +94,9 @@ class Scrape(object):
         password_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_PASSWORD'))
 
         log.info('Return')
-        password_elem.send_keys(Keys.RETURN)  # To trigger search function
+
+        # Trigger search function. Don't use RETURN because PhantomJS fails.
+        password_elem.send_keys(Keys.ENTER)
 
         log.debug(self.driver.title)
 
