@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 Package-wide script that is always run.
-Includes common variables, such as file names, file paths and dates.
 
+Includes common variables, such as file names, file paths and dates.
 Also includes logging, which can be accessed by any module like so:
 
 `log.debug('Description')`
@@ -15,7 +15,7 @@ Also includes logging, which can be accessed by any module like so:
 `log.exception(error, exc_info=True)`
 
 You can change the logging level to your choosing. The default is DEBUG.
-'''
+"""
 
 import logging
 import logging.handlers
@@ -96,19 +96,19 @@ S3_PATH = 's3://lensnola/realestate'
 
 # Logging
 LOG_DIR = '%s/logs' % PROJECT_DIR
+LOG_FILE = "{}/realestate.log".format(LOG_DIR)
 
-# if os.path.isfile('%s/realestate.log' % (LOG_DIR)):
-#     os.remove('%s/realestate.log' % (LOG_DIR))
+# if os.path.isfile('{0}/{1}'.format(LOG_DIR, LOG)):
+#     os.remove('{0}/{1}'.format(LOG_DIR, LOG))
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
 
 # Create file handler which logs debug messages or higher
 filehandler = logging.handlers.RotatingFileHandler(
-    '%s/realestate.log' % (LOG_DIR),
+    LOG_FILE,
     maxBytes=(5 * 1024 * 1024),  # 5 MB
-    backupCount=5
-)
+    backupCount=5)
 
 filehandler.setLevel(logging.DEBUG)
 
