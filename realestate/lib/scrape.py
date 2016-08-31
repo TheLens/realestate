@@ -110,7 +110,7 @@ class Scrape(object):
         time.sleep(2.0)
 
         self.enter_password()
-        time.sleep(4.0)
+        time.sleep(10.0)
 
     def is_logged_in(self):
         """Confirm that login was successful."""
