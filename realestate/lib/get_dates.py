@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-'''Gets date range for initialize script.'''
+"""Get date range for initialize script."""
 
 import os
 from datetime import timedelta
@@ -13,28 +13,23 @@ from realestate import log, YESTERDAY_DATE, OPENING_DATE, DATABASE_NAME
 
 
 class GetDates(object):
-
-    '''Gets date range for initialize script.'''
+    """Get date range for initialize script."""
 
     def __init__(self):
-        '''Initialize self variables and establish connection to database.'''
-
+        """Initialize self variables and establish connection to database."""
         base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
+
+        engine_string = 'postgresql://{0}:{1}@localhost/{2}'.format(
+            os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+            os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+            DATABASE_NAME)
+        self.engine = create_engine(engine_string)
+
         base.metadata.create_all(self.engine)
         self.sn = sessionmaker(bind=self.engine)
 
     def get_date_range(self):
-        '''
-        Checks which dates have not been entered into the database yet.
-        '''
-
+        """Check which dates have not been entered into the database yet."""
         existing_until_date = self.get_existing_until_date()
 
         # log.debug(type(existing_until_date))
@@ -59,8 +54,7 @@ class GetDates(object):
         return return_dict
 
     def get_existing_until_date(self):
-        '''docstring'''
-
+        """TODO: Docstring."""
         session = self.sn()
 
         query_until_date = session.query(
@@ -78,7 +72,7 @@ class GetDates(object):
         else:
             log.debug(len(query_until_date))
             for row in query_until_date:
-                # todo: will this fail w/o .one()?
+                # TODO: will this fail w/o .one()?
                 until_date = row.document_recorded
 
             # log.debug(until_date)

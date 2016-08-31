@@ -5,17 +5,10 @@
 import os
 import urllib
 # from flask.ext.cache import Cache
-from flask import (
-    Flask,
-    # render_template,
-    request,
-    Response
-)
+from flask import Flask, request, Response
 from functools import wraps
 
-from realestate import (
-    log, APP_ROUTING, DEBUG, RELOADER, PORT
-)
+from realestate import log, APP_ROUTING, DEBUG, RELOADER, PORT
 from realestate.models import Models
 from realestate.views import Views
 
@@ -27,9 +20,7 @@ app = Flask(__name__)
 # @cache.memoize(timeout=5000)
 @app.route("%s/" % (APP_ROUTING), methods=['GET'])
 def home():
-    '''
-    Receives a GET call for the homepage (/) and returns the view.
-    '''
+    '''Receives a GET call for the homepage (/) and returns the view.'''
 
     log.debug('home')
 
@@ -133,22 +124,17 @@ def check_auth(username, password):
 
 
 def authenticate():
-    """
-    Return error message.
-    """
+    """Return error message."""
 
     return Response(
         'Could not verify your access level for that URL.\n'
         'You have to login with proper credentials',
         401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'}
-    )
+        {'WWW-Authenticate': 'Basic realm="Login Required"'})
 
 
 def requires_auth(f):
-    """
-    Authorization process.
-    """
+    """Authorization process."""
 
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -169,9 +155,7 @@ def requires_auth(f):
 @app.route("%s/dashboard/" % (APP_ROUTING), methods=['GET', 'POST'])
 @requires_auth
 def dashboard():
-    """
-    The admin dashboard page for making adjustments to the database.
-    """
+    """The admin dashboard page for making adjustments to the database."""
 
     if request.method == 'GET':
         log.debug('GET dashboard')

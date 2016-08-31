@@ -10,6 +10,7 @@ either a dict of list of dicts.
 import os
 from bs4 import BeautifulSoup
 from realestate.lib.utils import Utils
+from realestate import log
 
 
 class AllPurposeParser(object):
@@ -136,7 +137,7 @@ class DetailParser(object):
         cond = (key.strip() == 'Document Date:' or
                 key.strip() == 'Date Recorded:')
 
-        if field == "None" or field == '' or field == "NONE":
+        if field.lower() == "none" or field == '':
             field = ""
             if cond:
                 field = None
@@ -149,6 +150,8 @@ class DetailParser(object):
 
         :returns: A dict containing all of the details table values.
         """
+
+        log.debug('form_dict')
 
         dict_output = self.__dict__
 
@@ -228,7 +231,7 @@ class VendorParser(object):
 
         if isinstance(cell, str) == 0:
             cell = str(cell.string)
-        if cell == "None" or cell == '' or cell == "NONE":
+        if cell.lower() == "none" or cell == '':
             cell = ""
         return cell
 
@@ -303,7 +306,7 @@ class VendeeParser(object):
 
         if isinstance(cell, str) == 0:
             cell = str(cell.string)
-        if cell == "None" or cell == '' or cell == "NONE":
+        if cell.lower() == "none" or cell == '':
             cell = ""
         return cell
 
@@ -400,7 +403,7 @@ class LocationParser(object):
 
         if isinstance(value, str) == 0:
             value = str(value.string)
-        if value == "None" or value == "NONE":
+        if value.lower() == "none":
             value = ""
         return value
 

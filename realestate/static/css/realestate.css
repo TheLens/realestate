@@ -50,7 +50,7 @@ input {
     transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
 }
 input:focus {
-    -webkit-box-shadow: 0 0 5px #b33125; 
+    -webkit-box-shadow: 0 0 5px #b33125;
     -moz-box-shadow: 0 0 5px #b33125;
     box-shadow: 0 0 5px #b33125;
     border:1px solid #b33125;
@@ -194,7 +194,7 @@ input[type=radio].leaflet-control-layers-selector {
     margin: 0 0 20px 0;
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
 }
-.has-tip, .has-tip:hover, .has-tip:focus { 
+.has-tip, .has-tip:hover, .has-tip:focus {
     border-bottom: none;
 }
 
@@ -321,7 +321,7 @@ input[type=radio].leaflet-control-layers-selector {
     color: #000;
     font-family: "minion-pro", Georgia, "Times New Roman", Times, serif;
     margin-bottom: 10px;
-    font-weight: normal; 
+    font-weight: normal;
     text-align: right;
     margin-left: 0;
 }
@@ -482,7 +482,7 @@ input[type=radio].leaflet-control-layers-selector {
 
  ***************/
 
-@media screen and (max-width: 600px) {  
+@media screen and (max-width: 600px) {
     .table-wrapper {
         max-height: none;
         height: auto;
@@ -541,7 +541,7 @@ input[type=radio].leaflet-control-layers-selector {
 
  ****************/
 
-@media screen and (min-width: 1025px) { 
+@media screen and (min-width: 1025px) {
     .map-wrapper {
         padding-right: 0;
     }

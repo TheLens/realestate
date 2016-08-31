@@ -1,37 +1,33 @@
 # -*- coding: utf-8 -*-
 
-"""
-A universal mail-sender, with methods for plain text, HTML and attachments.
-"""
+"""Send mail with methods for plain text, HTML and attachments."""
 
 import os
 import smtplib
 import mimetypes
+
 from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-
 from realestate import log
 
 
 class Mail(object):
-
-    '''Mail methods include test, HTML and add attachments.'''
+    """Mail methods include test, HTML and add attachments."""
 
     def __init__(self,
                  subject="Real Estate summary",
                  body="Here is your email",
-                 frm='tthoren@thelensnola.org',
+                 frm='lens.real.estate.scraper@gmail.com',
                  to=['tthoren@thelensnola.org']):
-
+        """Set up class variables."""
         self.subject = subject
         self.body = body
         self.frm = frm
         self.to = to
 
     def send_email(self, msg):
-        '''Initializes and sends the email.'''
-
+        """Initialize and send the email."""
         log.debug('Mail')
 
         s = smtplib.SMTP('smtp.gmail.com', 587)
@@ -44,8 +40,7 @@ class Mail(object):
         s.quit()
 
     def add_headers(self, msg):
-        '''Add email headers subject, from and to onto the message.'''
-
+        """Add email headers subject, from and to onto the message."""
         msg['Subject'] = self.subject
         msg['From'] = self.frm
         msg['To'] = ','.join(self.to)
@@ -53,20 +48,23 @@ class Mail(object):
         return msg
 
     def send_as_text(self):
-        '''Form plain text message.'''
-
+        """Form plain text message."""
         msg = MIMEText(self.body)
-
         msg = self.add_headers(msg)
 
         self.send_email(msg)
 
     def send_with_attachment(self, files=None):
-        '''Attach file to message.'''
+        """
+        Attach file(s) to message.
 
-        msg = MIMEMultipart(self.body)
-
+        :param files: A list of files to attach.
+        """
+        msg = MIMEMultipart()
         msg = self.add_headers(msg)
+
+        body = MIMEText(self.body)
+        msg.attach(body)
 
         for f in files:
             content_type, encoding = mimetypes.guess_type(f)
@@ -74,6 +72,7 @@ class Mail(object):
             if content_type is None or encoding is not None:
                 content_type = 'application/octet-stream'
             main_type, sub_type = content_type.split('/', 1)
+
             fp = open(f, 'rb')
             message = MIMEText(fp.read(), _subtype=sub_type)
             fp.close()
@@ -87,8 +86,7 @@ class Mail(object):
         self.send_email(msg)
 
     def send_as_html(self):
-        '''Form HTML message.'''
-
+        """Form HTML message."""
         msg = MIMEMultipart('alternative')
 
         msg = self.add_headers(msg)
@@ -107,6 +105,3 @@ class Mail(object):
         msg.attach(msg_html)
 
         self.send_email(msg)
-
-if __name__ == '__main__':
-    pass
