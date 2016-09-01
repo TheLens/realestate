@@ -112,7 +112,7 @@ class Scrape(object):
         time.sleep(2.0)
 
         self.enter_password()
-        time.sleep(10.0)
+        time.sleep(15.0)
 
     def is_logged_in(self):
         """Confirm that login was successful."""
@@ -288,7 +288,7 @@ class Scrape(object):
         time.sleep(1.0)
 
         self.click_search_button()
-        time.sleep(10.0)
+        time.sleep(15.0)
 
     # Parse results
     def parse_results(self, year, month, day):
@@ -318,7 +318,7 @@ class Scrape(object):
             log.debug('Page: %d', i)
 
             self.parse_page(i, year, month, day)
-            time.sleep(10.0)
+            time.sleep(15.0)
 
     def parse_page(self, i, year, month, day):
         """Parse results page for sale document IDs."""
@@ -483,9 +483,8 @@ class Scrape(object):
 
     def main(self):
         """The main scrape method."""
-        self.login()
+        self.login()  # Has built-in delay after
 
-        time.sleep(10.0)
         assert self.is_logged_in()
 
         try:
