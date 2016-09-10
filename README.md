@@ -24,7 +24,7 @@ This app scrapes the latest property sales in New Orleans, stores the records in
 Every day, these two commands are run to scrape and then build, geocode, clean and publish the previous day's sales. These are summarized in `scripts/main.sh`, which is run on a cron job every night.
 
 ```bash
-python realestate/lib/scrape.py
+python scripts/scrape.py
 python scripts/initialize.py
 ```
 
@@ -32,7 +32,7 @@ Occasionally, due to bugs or password expiration, you will need to scrape and bu
 
 ```bash
 # <starting_date> <ending_date>
-python realestate/lib/scrape.py 2016-05-01 2016-05-05
+python scripts/scrape.py 2016-05-01 2016-05-05
 python scripts/initialize.py 2016-05-01 2016-05-05
 ```
 
@@ -52,4 +52,38 @@ export REAL_ESTATE_LRD_USERNAME='MyLandRecordsDivisionUsername'
 export REAL_ESTATE_LRD_PASSWORD='MyLandRecordsDivisionPassword'
 export REAL_ESTATE_DATABASE_USERNAME='MyDatabaseUsername'
 export REAL_ESTATE_DATABASE_PASSWORD='MyDatabasePassword'
+```
+
+#### Tests
+
+```bash
+nosetests
+```
+
+```bash
+tox
+```
+
+Run the app using Python 3. Set this up when creating the virtual environment. This is because OpenSSL/urllib3 has security flaws in older versions.
+
+```bash
+mkvirtualenv TODO realestate
+```
+
+Run `nosetests tests` in the app's top-level directory. To show code coverage as well, run `nosetests tests --with-coverage`.
+
+__Different Python versions__
+
+The app uses `tox` for testing different Python versions. The app is compatible and tested for Python 2.7 and 3.5. The basic usage:
+
+```bash
+tox
+```
+
+You may need to first run `unset PYTHONPATH`.
+
+You can also run specific Python version tests like this:
+
+```bash
+tox -e py35
 ```

@@ -3,13 +3,14 @@ backups
 data
 logs
 misc
-realestate/static/pictures
+www/static/pictures
 tests/data
 tests/misc
 
 # Files
 scripts/phantomjs
 scripts/ngrok
+scripts/wires
 
 *.Python
 *.txt
@@ -20,5 +21,3 @@ scripts/ngrok
 *.bmml
 *.csv
 *.out
-
-fabfile.py

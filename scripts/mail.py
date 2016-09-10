@@ -9,7 +9,8 @@ import mimetypes
 from os.path import basename
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from realestate import log
+
+from www import log
 
 
 class Mail(object):
@@ -73,6 +74,7 @@ class Mail(object):
                 content_type = 'application/octet-stream'
             main_type, sub_type = content_type.split('/', 1)
 
+            # TODO: Problem here for .encode() on bytes obj
             fp = open(f, 'rb')
             message = MIMEText(fp.read(), _subtype=sub_type)
             fp.close()

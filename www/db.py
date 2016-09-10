@@ -17,12 +17,11 @@ from sqlalchemy import (
     Integer,
     BigInteger,
     String,
-    Numeric,
+    # Numeric,
     Date,
     Float,
     ForeignKey,
-    Boolean
-)
+    Boolean)
 from geoalchemy2 import Geometry
 
 Base = declarative_base()
@@ -68,8 +67,7 @@ class Location(Base):
     document_id = Column(
         String,
         ForeignKey("details.document_id", ondelete="CASCADE"),
-        nullable=False
-    )
+        nullable=False)
     street_number = Column(String)
     address = Column(String)
     district = Column(String)
@@ -175,8 +173,7 @@ class Location(Base):
             self.rating,
             self.zip_code,
             self.neighborhood,
-            self.location_publish
-        )
+            self.location_publish)
 
         return representation
 
@@ -305,8 +302,7 @@ class Dashboard(Base):
     instrument_no = Column(
         String,
         # ForeignKey("cleaned.instrument_no"),
-        nullable=False
-    )
+        nullable=False)
     latitude = Column(Float)
     longitude = Column(Float)
     zip_code = Column(String)
@@ -578,7 +574,7 @@ class Vendee(Base):
 
 class Neighborhood(Base):
     """
-    Fields for the `neighborhoods` table.
+    Table fields for the `neighborhoods` table.
 
     :param gid: Integer. Primary key ID.
     :param objectid: Integer. Not sure
@@ -594,31 +590,16 @@ class Neighborhood(Base):
     __tablename__ = 'neighborhoods'
 
     gid = Column(Integer, primary_key=True)
-    objectid = Column(Integer)
-    gnocdc_lab = Column(String)
-    lup_lab = Column(String)
-    neigh_id = Column(String)
-    shape_leng = Column(Numeric)
-    shape_area = Column(Numeric)
+    nbhd_name = Column(String)
     geom = Column(Geometry('MULTIPOLYGON'))
 
     def __init__(self,
                  gid,
-                 objectid,
-                 gnocdc_lab,
-                 lup_lab,
-                 neigh_id,
-                 shape_leng,
-                 shape_area,
+                 nbhd_name,
                  geom):
         self.gid = gid,
-        self.objectid = objectid,
-        self.gnocdc_lab = gnocdc_lab,
-        self.lup_lab = lup_lab,
-        self.neigh_id = neigh_id,
-        self.shape_leng = shape_leng,
-        self.shape_area = shape_area,
+        self.nbhd_name = nbhd_name,
         self.geom = geom
 
     def __repr__(self):
-        return "<Neighborhood(gnocdc_lab='%s')>" % (self.gnocdc_lab)
+        return "<Neighborhood(nbhd_name='{}')>".format(self.nbhd_name)

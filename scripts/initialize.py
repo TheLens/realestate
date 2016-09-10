@@ -1,121 +1,166 @@
 # -*- coding: utf-8 -*-
 
-'''
-Calls on other classes to build, geocode, clean and publish records to the
-cleaned table. Can receive a date range or determine the dates on its own.
-'''
+"""
+Build, geocode, clean and publish records to the cleaned table.
 
-import sys
+Use command-line arguments to specify a date range or use yesterday as default.
 
-from realestate.lib.build import Build
-from realestate.lib.clean import Clean
-from realestate.lib.geocode import Geocode
-from realestate.lib.get_dates import GetDates
-# from realestate.lib.mail import Mail
-from realestate.lib.publish import Publish
-# from realestate.lib.check_temp_status import CheckTemp
-# from realestate.lib.email_template import EmailTemplate
-from realestate import log  # LOG_DIR, OPENING_DAY
+Usage:
+    initialize.py
+    initialize.py <single_date>
+    initialize.py <early_date> <late_date>
+
+Options:
+    -h, --help  Show help screen.
+    --version   Show version number.
+
+Dates are in the format YYYY-MM-DD. Ex. 2016-12-31
+"""
+
+from datetime import datetime
+from docopt import docopt
+
+from scripts.build import Build
+from scripts.clean import Clean
+from scripts.geocode import Geocode
+from scripts.get_dates import GetDates
+# from scripts.mail import Mail
+from scripts.publish import Publish
+# from scripts.check_temp_status import CheckTemp
+# from scripts.email_template import EmailTemplate
+from www import log  # LOG_DIR, OPENING_DAY
 
 
-class Initialize(object):
+class BadDateRangeError(Exception):
+    """Error for when date range is backward."""
 
-    '''
-    Calls on other classes to build, geocode, clean and publish
-    records to the cleaned table.
-    '''
+    pass
 
-    def __init__(self, initial_date=None, until_date=None):
-        '''Runs through all classes.'''
 
-        if initial_date is not None and until_date is not None:
-            self.initial_date = initial_date
-            self.until_date = until_date
-        else:
-            date_range = GetDates().get_date_range()
-            self.initial_date = date_range['initial_date']
-            self.until_date = date_range['until_date']
+def initialize(initial_date=None, until_date=None):
+    """Build, geocode, clean and publish records to the cleaned table."""
+    if initial_date is None or until_date is None:
+        date_range = GetDates().get_date_range()
+        initial_date = date_range['initial_date']
+        until_date = date_range['until_date']
 
-        log.debug('self.initial_date: %s', self.initial_date)
-        log.debug('self.until_date: %s', self.until_date)
+    log.debug('self.initial_date: {}'.format(initial_date))
+    log.debug('self.until_date: {}'.format(until_date))
 
-        try:
-            Build(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).build_all()
+    # try:  # TODO
+    Build(initial_date=initial_date, until_date=until_date).build_all()
 
-        except Exception, error:
-            log.exception(error, exc_info=True)
+    # except Exception as error:
+    #     log.exception(error, exc_info=True)
 
-        Geocode(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).geocode()  # Geocoding takes over an hour
-        Geocode().update_locations_with_neighborhoods()
+    # Geocoding takes over an hour
+    Geocode(initial_date=initial_date, until_date=until_date).geocode()
+    Geocode().update_locations_with_neighborhoods()
 
-        try:
-            Publish(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).main()
-        except Exception, error:
-            log.exception(error, exc_info=True)
+    # try:  # TODO
+    Publish(initial_date=initial_date, until_date=until_date).main()
+    # except Exception as error:
+    #     log.exception(error, exc_info=True)
 
-        try:
-            Clean(
-                initial_date=self.initial_date,
-                until_date=self.until_date
-            ).main()
-        except Exception, error:
-            log.exception(error, exc_info=True)
+    # try:  # TODO
+    Clean(initial_date=initial_date, until_date=until_date).main()
+    # except Exception as error:
+    #     log.exception(error, exc_info=True)
 
-        # dashboard_sync.DashboardSync()  # todo
+    Clean(
+        initial_date=initial_date,
+        until_date=until_date
+    ).update_cleaned_geom()
 
-        Clean(
-            initial_date=self.initial_date,
-            until_date=self.until_date
-        ).update_cleaned_geom()
+    # TODO: Send email summary
 
-        # CheckTemp(
-        #     initial_date=self.initial_date,
-        #     until_date=self.until_date
-        # ).check_permanent_status_of_new_sales()
+    # CheckTemp(
+    #     initial_date=self.initial_date,
+    #     until_date=self.until_date
+    # ).check_permanent_status_of_new_sales()
 
-        # CheckTemp(
-        #     initial_date=self.initial_date,
-        #     until_date=self.until_date
-        # ).check_permanent_status_of_temp_sales()
+    # CheckTemp(
+    #     initial_date=self.initial_date,
+    #     until_date=self.until_date
+    # ).check_permanent_status_of_temp_sales()
 
-        # check_assessor_urls().check(
-        #     initial_date=initial_date, until_date=until_date)
+
+def cli_has_errors(arguments):
+    """Check for any CLI parsing errors."""
+    all_arguments = (
+        arguments['<single_date>'] is not None and
+        arguments['<early_date>'] is not None and
+        arguments['<late_date>'] is not None)
+
+    if all_arguments:
+        # print("Must use single date or date range, but not both.")
+        return True
+
+    single_and_other_arguments = (
+        (
+            arguments['<single_date>'] is not None and
+            arguments['<early_date>'] is not None
+        ) or
+        (
+            arguments['<single_date>'] is not None and
+            arguments['<late_date>'] is not None
+        ))
+
+    if single_and_other_arguments:
+        # print("Cannot use a single date and a date range bound.")
+        return True
+
+    one_date_bound_only = (
+        (
+            arguments['<early_date>'] is not None and
+            arguments['<late_date>'] is None
+        ) or
+        (
+            arguments['<early_date>'] is None and
+            arguments['<late_date>'] is not None
+        ))
+
+    if one_date_bound_only:
+        # print("Must pick both ends of a date range bound.")
+        return True
+
+    # All good
+    return False
+
+
+def cli(arguments):
+    """Parse command-line arguments."""
+    # Catch any missed errors
+    if cli_has_errors(arguments):
+        return
+
+    if arguments['<single_date>']:  # Single date
+        early_date = arguments['<single_date>']
+        late_date = arguments['<single_date>']
+
+        log.info('Initializing single date: {}.'.format(early_date))
+    elif arguments['<early_date>'] and arguments['<late_date>']:  # Date range
+        early_date = arguments['<early_date>']
+        late_date = arguments['<late_date>']
+
+        log.info('Initializing date range: {0} to {1}.'.format(
+            early_date, late_date))
+    else:  # No dates provided
+        log.info('Initializing all dates that need it.')
+
+        initialize()  # Default: initialize all in need.
+        return
+
+    # Check for errors
+    early_datetime = datetime.strptime(early_date, "%Y-%m-%d")
+    late_datetime = datetime.strptime(late_date, "%Y-%m-%d")
+
+    if early_datetime > late_datetime:
+        raise BadDateRangeError("The date range does not make sense.")
+
+    initialize(initial_date=early_date, until_date=late_date)
 
 
 if __name__ == '__main__':
-    try:
-        if len(sys.argv) < 2:  # No arguments
-            # Default is to build and clean anything that needs it.
-            # Specify custom date range in 'YYYY-mm-dd' string format
-            # or use variables such as OPENING_DAY, YESTERDAY_DAY.
-            Initialize()
-        if len(sys.argv) == 2:  # One argument
-            day = sys.argv[1]
-
-            Initialize(
-                initial_date=day,
-                until_date=day)
-        elif len(sys.argv) == 3:  # Two arguments
-            initial_day = sys.argv[1]
-            until_day = sys.argv[2]
-
-            Initialize(
-                initial_date=initial_day,
-                until_date=until_day)
-        elif len(sys.argv) > 3:
-            print (
-                "Too many arguments. Enter a single date to build that one " +
-                "day, enter two days to build a range of days, or do not " +
-                "enter any days at all to build all days that need it. " +
-                "Use the format 'YYYY-MM-DD'.")
-    except Exception, error:
-        log.exception(error, exc_info=True)
+    arguments = docopt(__doc__, version="0.0.1")
+    cli(arguments)

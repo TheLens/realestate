@@ -7,6 +7,7 @@ table) and running `VACUUM`.
 '''
 
 import os
+
 from subprocess import call
 from sqlalchemy.engine import reflection
 from sqlalchemy import create_engine
@@ -15,10 +16,9 @@ from sqlalchemy.schema import (
     Table,
     DropTable,
     ForeignKeyConstraint,
-    DropConstraint
-)
+    DropConstraint)
 
-from realestate import log, DATABASE_NAME, BACKUP_DIR, TODAY_DATE
+from www import log, ENGINE_STRING, BACKUP_DIR, TODAY_DATE
 
 
 class Delete(object):
@@ -28,13 +28,7 @@ class Delete(object):
     def __init__(self):
         '''Establish connection to the database.'''
 
-        engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
+        engine = create_engine(ENGINE_STRING)
         self.conn = engine.connect()
         self.trans = self.conn.begin()
         self.inspector = reflection.Inspector.from_engine(engine)
@@ -71,7 +65,7 @@ class Delete(object):
                 '{0}'.format(BACKUP_DIR) +
                 '/dashboard_table_{0}.sql'.format(TODAY_DATE)
             ])
-        except Exception, error:
+        except Exception as error:
             log.debug(error, exc_info=True)
 
     @staticmethod
@@ -87,7 +81,7 @@ class Delete(object):
                 'dropdb',
                 '%s' % DATABASE_NAME
             ])
-        except Exception, error:
+        except Exception as error:
             log.debug(error, exc_info=True)
 
     @staticmethod
@@ -104,7 +98,7 @@ class Delete(object):
                 '-c',
                 'VACUUM;'
             ])
-        except Exception, error:
+        except Exception as error:
             log.debug(error, exc_info=True)
 
     def drop_tables(self):

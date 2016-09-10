@@ -1,75 +1,42 @@
 # -*- coding: utf-8 -*-
 
-'''Gets the data.'''
+"""Get the data."""
 
-import os
 import math
 import urllib
 # from flask.ext.cache import Cache
-from flask import (
-    # request,
-    jsonify
-)
-from sqlalchemy import (
-    create_engine,
-    desc
-)
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from flask import jsonify
+from sqlalchemy import desc
 
-from realestate.db import (
-    Cleaned,
-    Neighborhood
-)
-# from realestate.lib.check_assessor_urls import Assessor
-from realestate.lib.results_language import ResultsLanguage
-from realestate.lib.utils import Utils
-from realestate import log, TODAY_DAY, DATABASE_NAME
+from www.db import Cleaned, Neighborhood
+from www.results_language import ResultsLanguage
+from www.utils import get_num_with_curr_sign, ymd_to_full_date
+from www import log, TODAY_DAY, SESSION
 
 
 class Models(object):
-
-    '''Gathers data from particular requests.'''
+    """Gather data from particular requests."""
 
     def __init__(self, initial_date=None, until_date=None):
-        '''
-        Initializes self variables and establishes connection to database.
+        """
+        Initialize self variables and establishes connection to database.
 
         :param initial_date: string. YYYY-MM-DD. Default is None.
         :type initial_date: string
         :param until_date: string. YYYY-MM-DD. Default is None.
         :type until_date: string
-        '''
-
+        """
         self.initial_date = initial_date
-
         self.until_date = until_date
 
-        base = declarative_base()
-
-        engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-
-        base.metadata.create_all(engine)
-
-        self.sn = sessionmaker(bind=engine)
-
     def get_home(self):
-        '''
-        Gets data for the homepage (/realestate/).
+        """
+        Get data for the homepage (/realestate/).
 
         :returns: Data for the homepage, such as date the app was last updated
         and a list of neighborhoods for the dropdown.
-        '''
-
+        """
         log.debug('get_home')
-
-        session = self.sn()
 
         update_date = self.get_last_updated_date()
         log.debug(update_date)
@@ -79,36 +46,33 @@ class Models(object):
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
 
-        session.close()
-
         return data
 
     def query_search_term_limit_3(self, table, term):
-        '''
-        Gets the top three results for autocomplete dropdown.
+        """
+        Get the top three results for autocomplete dropdown.
 
         :param table: string. The database to query.
         :type table: string
         :param term: string. The autocomplete term entered in search box.
         :type term: string
         :returns: A SQLAlchemy query result for three matches, at most.
-        '''
-
-        session = self.sn()
-
-        query = session.query(
+        """
+        query = SESSION.query(
             getattr(Cleaned, table)
         ).filter(
-            getattr(Cleaned, table).ilike('%%%s%%' % term)
+            getattr(Cleaned, table).ilike('%%{}%%'.format(term))
         ).distinct().limit(3).all()
 
-        session.close()
+        SESSION.close()
+
         return query
 
     def searchbar_input(self, term):
-        '''
-        Receives the autocomplete term from the search input and returns
-        a JSON with three suggestions for each of the following
+        """
+        Receive the autocomplete term from the search input.
+
+        Return a JSON with three suggestions for each of the following
         categories: neighborhoods, ZIP codes, locations, buyers and
         sellers.
 
@@ -116,11 +80,10 @@ class Models(object):
         :type term: string
         :returns: A JSON with at most three suggestions for each
         category.
-        '''
-
+        """
         log.debug('searchbar_input')
 
-        term = urllib.unquote(term).decode('utf8')
+        term = urllib.parse.unquote(term)  # .decode('utf8')
 
         query_neighborhoods = self.query_search_term_limit_3(
             'neighborhood', term)
@@ -158,19 +121,16 @@ class Models(object):
 
         log.debug(response)
 
-        return jsonify(
-            response=response
-        )
+        return jsonify(response=response)
 
     @staticmethod
     def parse_query_string(request):
-        '''
-        Receives URL query string parameters and returns as dict.
+        """
+        Receive URL query string parameters and returns as dict.
 
         :param request: A (Flask object?) containing query string.
         :returns: A dict with the query string parameters.
-        '''
-
+        """
         data = {}
         data['name_address'] = request.args.get('q')
         data['amount_low'] = request.args.get('a1')
@@ -188,17 +148,17 @@ class Models(object):
         return data
 
     def determine_pages(self, data):
-        '''
-        Receives data dict and returns with additional
-        information about pager (number of records, page length, number
-        of pages, current page and page offset) and URL query string
+        """
+        Receive data dict and return with additional information about pager.
+
+        Includes number of records, page length, number
+        of pages, current page and page offset and URL query string
         parameters and returns as dict.
 
         :param data: The response's data dict.
         :type data: dict
         :returns: The dict with additional pager information.
-        '''
-
+        """
         query = self.find_all_publishable_rows_fitting_criteria(data)
 
         data['number_of_records'] = len(query)
@@ -211,13 +171,12 @@ class Models(object):
         return data
 
     def get_search(self, request):
-        '''
+        """
         GET call for /realestate/search.
 
         :param request: The request object(?).
         :returns: A data dict, SQL query result and JS data.
-        '''
-
+        """
         data = self.parse_query_string(request)
         data = self.decode_data(data)
         data = self.convert_entries_to_db_friendly(data)
@@ -230,18 +189,16 @@ class Models(object):
         query = self.find_page_of_publishable_rows_fitting_criteria(data)
 
         for row in query:
-            row.amount = Utils().get_num_with_curr_sign(row.amount)
-            row.document_date = Utils().ymd_to_full_date(
-                (row.document_date).strftime('%Y-%m-%d'), no_day=True)
+            row.amount = get_num_with_curr_sign(row.amount)
+            row.document_date = ymd_to_full_date(
+                (row.document_date).strftime('%Y-%m-%d'),
+                no_day=True)
 
         features = self.build_features_json(query)
 
-        # newrows = query  # todo: remove?
-
         jsdata = {
             "type": "FeatureCollection",
-            "features": features
-        }
+            "features": features}
 
         data['results_css_display'] = 'none'
 
@@ -256,13 +213,11 @@ class Models(object):
         data['results_language'] = ResultsLanguage(data).main()
 
         log.debug('data')
-        # log.debug(data)
 
         return data, query, jsdata
 
     def post_search(self, data):
-        '''Process incoming POST data.'''
-
+        """Process incoming POST data."""
         log.debug('post_search')
 
         data = self.decode_data(data)
@@ -280,8 +235,7 @@ class Models(object):
 
     @staticmethod
     def update_pager(data):
-        '''docstring'''
-
+        """TODO."""
         cond = (data['direction'] == 'back' or
                 data['direction'] == 'forward')
 
@@ -308,8 +262,7 @@ class Models(object):
         return data
 
     def filter_by_map(self, data):
-        '''docstring'''
-
+        """Use map bounds to filter results."""
         query = self.map_query_length(data)
         data['number_of_records'] = len(query)  # number of records
         # total number of pages:
@@ -323,8 +276,7 @@ class Models(object):
         return query
 
     def do_not_filter_by_map(self, data):
-        '''docstring'''
-
+        """TODO."""
         query = self.find_all_publishable_rows_fitting_criteria(data)
         # data['page_length'] = self.PAGE_LENGTH
         data['number_of_records'] = len(query)  # number of records
@@ -341,8 +293,7 @@ class Models(object):
         return query
 
     def mapquery_db(self, data):
-        '''docstring'''
-
+        """TODO."""
         data['bounds'] = [
             data['bounds']['_northEast']['lat'],
             data['bounds']['_northEast']['lng'],
@@ -354,23 +305,21 @@ class Models(object):
 
         log.debug('map_button_state')
 
-        if data['map_button_state'] is True:  # map filtering is on
-            query = self.filter_by_map(data)  # todo: was defined elsewhere
-
-        if data['map_button_state'] is False:  # map filtering is off
+        if data['map_button_state']:  # map filtering is on
+            query = self.filter_by_map(data)  # TODO: was defined elsewhere
+        else:  # map filtering is off
             query = self.do_not_filter_by_map(data)
 
         for row in query:
-            row.amount = Utils().get_num_with_curr_sign(row.amount)
-            row.document_date = Utils().ymd_to_full_date(
+            row.amount = get_num_with_curr_sign(row.amount)
+            row.document_date = ymd_to_full_date(
                 (row.document_date).strftime('%Y-%m-%d'), no_day=True)
 
         features = self.build_features_json(query)
 
         jsdata = {
             "type": "FeatureCollection",
-            "features": features
-        }
+            "features": features}
 
         if data['number_of_records'] == 0:
             data['current_page'] = 0
@@ -385,21 +334,14 @@ class Models(object):
         log.debug('data returned:')
         log.debug(data)
 
-        # newrows = q
-        # todo: remove?
-        # Or necessary because it might change when the session is closed
-
         return data, query, jsdata
 
     def get_sale(self, instrument_no):
-        '''docstring'''
-
-        session = self.sn()
-
+        """TODO."""
         data = {}
         data['update_date'] = self.get_last_updated_date()
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.instrument_no == '%s' % (instrument_no)
@@ -408,8 +350,8 @@ class Models(object):
         ).all()
 
         for row in query:
-            row.amount = Utils().get_num_with_curr_sign(row.amount)
-            row.document_date = Utils().ymd_to_full_date(
+            row.amount = get_num_with_curr_sign(row.amount)
+            row.document_date = ymd_to_full_date(
                 (row.document_date).strftime('%Y-%m-%d'), no_day=True)
             # address = row.address
             # location_info = row.location_info
@@ -424,39 +366,16 @@ class Models(object):
             "features": features
         }
 
-        # conds = (data['assessor_publish'] is False or
-        #          data['assessor_publish'] is None or
-        #          data['assessor_publish'] == '')
-
-        # if conds:
-        #     data['assessor'] = (
-        #         "Could not find this property on the Orleans Parish" +
-        #         "Assessor's Office site. <a href='http://www.qpublic" +
-        #         ".net/la/orleans/search1.html' target='_blank'>" +
-        #         "Search based on other criteria.</a>")
-        # else:
-        #     url_param = Assessor().form_assessor_url(
-        #         address, location_info)
-        #     data['assessor_url'] = "http://qpublic9.qpublic.net/" + \
-        #         "la_orleans_display" + \
-        #         ".php?KEY=%s" % (url_param)
-        #     data['assessor'] = "<a href='%s' target='_blank'>Read more " + \
-        #         "about this property on the Assessor's Office's" + \
-        #         "website.</a>" % (data['assessor_url'])
+        SESSION.close()
 
         if len(query) == 0:
-            session.close()
             return None, None, None
         else:
-            session.close()
             return data, jsdata, query
 
     def map_query_length(self, data):
-        '''docstring'''
-
-        session = self.sn()
-
-        query = session.query(
+        """TODO."""
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -484,17 +403,14 @@ class Models(object):
             (Cleaned.longitude >= data['bounds'][3])
         ).all()
 
-        session.close()
+        SESSION.close()
 
         return query
 
     # For when map filtering is turned on
     def query_with_map_boundaries(self, data):
-        '''docstring'''
-
-        session = self.sn()
-
-        query = session.query(
+        """TODO."""
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -528,18 +444,15 @@ class Models(object):
             '%d' % data['page_length']
         ).all()
 
-        session.close()
+        SESSION.close()
 
         return query
 
     def find_all_publishable_rows_fitting_criteria(self, data):
-        '''docstring'''
-
-        session = self.sn()
-
+        """TODO."""
         # log.debug(data)
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -564,18 +477,15 @@ class Models(object):
 
         # log.debug(query)
 
-        session.close()
+        SESSION.close()
 
         return query
 
     def find_page_of_publishable_rows_fitting_criteria(self, data):
-        '''docstring'''
-
-        session = self.sn()
-
+        """TODO."""
         # log.debug(data)
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -606,14 +516,13 @@ class Models(object):
 
         # log.debug(query)
 
-        session.close()
+        SESSION.close()
 
         return query
 
     @staticmethod
     def convert_entries_to_db_friendly(data):
-        '''docstring'''
-
+        """Convert front-end format to database format."""
         if data['amount_low'] == '':
             data['amount_low'] = 0
         if data['amount_high'] == '':
@@ -627,8 +536,7 @@ class Models(object):
 
     @staticmethod
     def revert_entries(data):
-        '''docstring'''
-
+        """Convert database-friendly data back to front-end."""
         if data['amount_low'] == 0:
             data['amount_low'] = ''
         if data['amount_high'] == 9999999999999:
@@ -642,17 +550,18 @@ class Models(object):
 
     @staticmethod
     def build_features_json(query):
-        '''docstring'''
-
+        """TODO."""
         log.debug(len(query))
         features = []
         features_dict = {}
         for row in query:
             # log.debug(row.buyers)
-            if row.location_publish is False:
+            if not row.location_publish:
                 row.document_date = row.document_date + "*"
-            if row.permanent_flag is False:
+
+            if not row.permanent_flag:
                 row.document_date = row.document_date + u"\u2020"
+
             features_dict = {
                 "type": "Feature",
                 "properties": {
@@ -677,24 +586,22 @@ class Models(object):
 
     @staticmethod
     def decode_data(data):
-        '''docstring'''
-
+        """TODO."""
         search_term = data['name_address']
-        data['name_address'] = urllib.unquote(search_term).decode('utf8')
+        data['name_address'] = urllib.parse.unquote(search_term)
+        # .decode('utf8')
 
         neighborhood = data['neighborhood']
-        data['neighborhood'] = urllib.unquote(neighborhood).decode('utf8')
+        data['neighborhood'] = urllib.parse.unquote(neighborhood)
+        # .decode('utf8')
 
         return data
 
     def get_last_updated_date(self):
-        '''docstring'''
-
+        """TODO."""
         log.debug('get_last_updated_date')
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -705,34 +612,27 @@ class Models(object):
         updated_date = ''
 
         for row in query:
-            updated_date = Utils().ymd_to_full_date(
+            updated_date = ymd_to_full_date(
                 (row.document_recorded).strftime('%Y-%m-%d'), no_day=True)
 
         log.debug(updated_date)
 
-        session.close()
+        SESSION.close()
 
         return updated_date
 
     def get_neighborhoods(self):
-        '''docstring'''
-
-        session = self.sn()
-
-        query = session.query(Neighborhood.gnocdc_lab).all()
+        """TODO."""
+        query = SESSION.query(Neighborhood.nbhd_name).all()
 
         neighborhoods = []
 
-        for hood in query:
+        for neighborhood in query:
             neighborhoods.append(
-                (hood.gnocdc_lab).title().replace('Mcd', 'McD'))
+                (neighborhood.nbhd_name).title().replace('Mcd', 'McD'))
 
         neighborhoods.sort()
 
-        session.close()
+        SESSION.close()
 
         return neighborhoods
-
-
-if __name__ == '__main__':
-    pass

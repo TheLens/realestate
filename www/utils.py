@@ -31,8 +31,7 @@ def get_number_with_commas(value):
 
 def get_num_with_curr_sign(value):
     """Convert integer to formatted currency string."""
-    value = int(value)
-    return "${:,}".format(value)
+    return "${:,}".format(int(value))
 
 
 def ymd_to_mdy(value):

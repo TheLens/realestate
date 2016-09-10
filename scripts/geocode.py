@@ -13,57 +13,34 @@ from [data.nola.gov](http://data.nola.gov).
 
 import os
 import googlemaps
-from sqlalchemy import create_engine, func, cast, Float, update
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
-from realestate.db import (
-    Detail,
-    Location,
-    Neighborhood
-)
-from realestate import log, DATABASE_NAME
+from sqlalchemy import func, cast, Float, update
+
+from www.db import Detail, Location, Neighborhood
+from www import log, SESSION
 
 
 class Geocode(object):
-
-    '''Geocode class that needs no input.'''
+    """Geocode class that needs no input."""
 
     def __init__(self, initial_date=None, until_date=None):
-        '''Generates connections to PostgreSQL and SQLAlchemy.'''
-
+        """Generate connections to PostgreSQL and SQLAlchemy."""
         self.initial_date = initial_date
         self.until_date = until_date
 
         self.gmaps = googlemaps.Client(
             key=os.environ.get('GOOGLE_GEOCODING_API_KEY'))
 
-        base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
-
     def update_locations_with_neighborhoods(self):
-        '''Finds neighborhoods and handles if none found.'''
-
+        """Find neighborhoods and handles if none found."""
         self.neighborhood_found()
         self.no_neighborhood_found()
 
     def neighborhood_found(self):
-        '''Use PostGIS to find which neighborhood a long/lat pair is in.'''
-
+        """Use PostGIS to find which neighborhood a long/lat pair is in."""
         log.debug('neighborhood_found')
 
-        session = self.sn()
-
-        session.query(
-            # Neighborhood,
+        SESSION.query(
             Location
         ).filter(
             func.ST_Contains(
@@ -77,21 +54,17 @@ class Geocode(object):
                 )
             )
         ).update(
-            {Location.neighborhood: Neighborhood.gnocdc_lab},
+            {Location.neighborhood: Neighborhood.nbhd_name},
             synchronize_session='fetch'
         )
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def no_neighborhood_found(self):
-        '''If no neighborhood is found, update with "None" in nbhd field.'''
-
+        """If no neighborhood is found, update with "None" in nbhd field."""
         log.debug('no_neighborhood_found')
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Location
         ).filter(
             Location.neighborhood.is_(None)
@@ -100,20 +73,16 @@ class Geocode(object):
             synchronize_session='fetch'
         )
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def get_rows_with_null_rating(self):
-        '''
-        Returns query result for locations with rating IS NULL, between dates
+        """
+        Return query result for locations with rating IS NULL, between dates
         defined in self.initial_date and self.until_date.
 
         :returns: SQLAlchemy query result.
-        '''
-
-        session = self.sn()
-
-        query = session.query(
+        """
+        query = SESSION.query(
             Location.rating,
             Location.document_id,
             Location.street_number,
@@ -123,27 +92,26 @@ class Geocode(object):
         ).filter(
             Location.rating.is_(None)
         ).filter(
-            Detail.document_recorded >= '%s' % self.initial_date
+            Detail.document_recorded >= '{}'.format(self.initial_date)
         ).filter(
-            Detail.document_recorded <= '%s' % self.until_date
+            Detail.document_recorded <= '{}'.format(self.until_date)
         ).all()
 
-        log.debug('Rows with rating is NULL: %d', len(query))
+        log.debug('Rows with rating is NULL: {}'.format(len(query)))
 
-        session.close()
+        SESSION.close()
 
         return query
 
     def process_google_results(self, result):
-        '''
-        Returns a dict of the returned geocoding results.
+        """
+        Return a dict of the returned geocoding results.
 
         :param result: The returned results from Google.
         :type result: JSON
         :returns: A dict with rating, latitude, longitude and ZIP code.
         :rtype: dict
-        '''
-
+        """
         log.debug('process_google_results')
 
         dict_output = {}
@@ -158,7 +126,7 @@ class Geocode(object):
 
         try:
             dict_output['zip_code'] = address_components[7]['short_name']
-        except Exception, error:
+        except Exception as error:
             log.exception(error, exc_info=True)
             dict_output['zip_code'] = "None"
 
@@ -167,52 +135,44 @@ class Geocode(object):
         return dict_output
 
     def geocode(self):
-        '''
-        Updates latitude, longitude, rating and zip_code fields in the
+        """
+        Update latitude, longitude, rating and zip_code fields in the
         locations table using the Google Geocoding API.
-        '''
-
-        session = self.sn()
-
+        """
         log.debug('Geocode')
-        print '\nGeocoding...'
+        print('\nGeocoding...')
 
         null_query = self.get_rows_with_null_rating()
 
         for row in null_query:
-            full_address = row.street_number + ' ' + row.address + \
-                ', New Orleans, LA'
+            full_address = "{0} {1}, New Orleans, LA".format(
+                row.street_number, row.address)
 
             # Let it fail on any errors so API doesn't continue to get hit.
             geocode_result = self.gmaps.geocode(full_address)
             dict_output = self.process_google_results(geocode_result)
 
             try:
-                with session.begin_nested():
+                with SESSION.begin_nested():
                     u = update(Location)
                     u = u.values(dict_output)
                     u = u.where(Location.document_id == row.document_id)
-                    session.execute(u)
-                    session.flush()
-            except Exception, error:
+                    SESSION.execute(u)
+                    SESSION.flush()
+            except Exception as error:
                 log.exception(error, exc_info=True)
-                session.rollback()
+                SESSION.rollback()
 
-            session.commit()
-
-            # break
-
-        session.close()
+            SESSION.commit()
 
         log.debug('Done geocoding')
 
 if __name__ == '__main__':
-    try:
-        Geocode(
-            initial_date='2014-02-18',
-            until_date='2014-05-08'
-        ).get_rows_with_null_rating()
-    except Exception, error:
-        log.exception(error, exc_info=True)
-
-    pass
+    # TODO: Why was it like this?
+    # try:
+    Geocode(
+        initial_date='2014-02-18',
+        until_date='2014-05-08'
+    ).get_rows_with_null_rating()
+    # except Exception as error:
+    #     log.exception(error, exc_info=True)
