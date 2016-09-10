@@ -17,7 +17,7 @@ from sqlalchemy import (
     Integer,
     BigInteger,
     String,
-    # Numeric,
+    Numeric,
     Date,
     Float,
     ForeignKey,
@@ -590,16 +590,31 @@ class Neighborhood(Base):
     __tablename__ = 'neighborhoods'
 
     gid = Column(Integer, primary_key=True)
-    nbhd_name = Column(String)
+    objectid = Column(Integer)
+    gnocdc_lab = Column(String)
+    lup_lab = Column(String)
+    neigh_id = Column(String)
+    shape_leng = Column(Numeric)
+    shape_area = Column(Numeric)
     geom = Column(Geometry('MULTIPOLYGON'))
 
     def __init__(self,
                  gid,
-                 nbhd_name,
+                 objectid,
+                 gnocdc_lab,
+                 lup_lab,
+                 neigh_id,
+                 shape_leng,
+                 shape_area,
                  geom):
         self.gid = gid,
-        self.nbhd_name = nbhd_name,
+        self.objectid = objectid,
+        self.gnocdc_lab = gnocdc_lab,
+        self.lup_lab = lup_lab,
+        self.neigh_id = neigh_id,
+        self.shape_leng = shape_leng,
+        self.shape_area = shape_area,
         self.geom = geom
 
     def __repr__(self):
-        return "<Neighborhood(nbhd_name='{}')>".format(self.nbhd_name)
+        return "<Neighborhood(gnocdc_lab='%s')>" % (self.gnocdc_lab)

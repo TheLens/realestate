@@ -623,13 +623,13 @@ class Models(object):
 
     def get_neighborhoods(self):
         """TODO."""
-        query = SESSION.query(Neighborhood.nbhd_name).all()
+        query = SESSION.query(Neighborhood.gnocdc_lab).all()
 
         neighborhoods = []
 
         for neighborhood in query:
             neighborhoods.append(
-                (neighborhood.nbhd_name).title().replace('Mcd', 'McD'))
+                (neighborhood.gnocdc_lab).title().replace('Mcd', 'McD'))
 
         neighborhoods.sort()
 
