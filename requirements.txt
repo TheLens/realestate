@@ -49,7 +49,6 @@ python-coveralls==2.7.0
 python-dateutil==2.5.3
 pytz==2016.6.1
 PyYAML==3.12
-realestate==0.0.1
 requests==2.11.1
 requests-oauthlib==0.6.2
 rsa==3.4.2
