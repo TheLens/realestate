@@ -73,7 +73,9 @@ class MakeDB(object):
                 'shp2pgsql',
                 '-I',
                 '-a',  # Append data to existing table. Don't create.
-                '{}/new-orleans-neighborhoods'.format(GEO_DIR),
+                (
+                    '{}/neighborhoods/shapefile/Neighborhood_Statistical_Areas'
+                ).format(GEO_DIR),
                 'neighborhoods'
             ],
             stdout=PIPE)
