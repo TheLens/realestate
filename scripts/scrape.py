@@ -348,7 +348,7 @@ class Scrape(object):
         # Save table page
         log.info('Parse results page table HTML')
         html_out = open((
-            "{0}/data/raw/{1}-{2}-{3}/page-html/page{5}.html").format(
+            "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html").format(
                 PROJECT_DIR, year, month, day, i),
             "wb")
         html_out.write((self.driver.page_source).encode('utf-8'))
