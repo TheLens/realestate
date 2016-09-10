@@ -15,15 +15,12 @@ appear at all.
 
 import os
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 from realestate.db import (
     Detail,
     Location
 )
-from realestate import log, DATABASE_NAME
+from realestate import log, SESSION
 
 
 class Publish(object):
@@ -32,17 +29,6 @@ class Publish(object):
 
     def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
-
-        base = declarative_base()
-        engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(engine)
-        self.sn = sessionmaker(bind=engine)
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -56,31 +42,26 @@ class Publish(object):
         Then set to 0 if something questionable is found.
         '''
 
-        session = self.sn()
-
         # Assume publishable, then check for reasons not to publish.
-        session.query(
+        SESSION.query(
             Location.location_publish
         ).update({
             "location_publish": True
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_geocoder_good_rating(self):
         '''Check if PostGIS Geocoder rating scored 3 or lower: good.'''
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Location.rating,
             Location.location_publish
         ).filter(
@@ -89,21 +70,18 @@ class Publish(object):
         ).update({"location_publish": True})
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_geocoder_bad_rating(self):
         '''Check if PostGIS Geocoder rating scored higher than 3: bad.'''
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Location.rating,
             Location.location_publish
         ).filter(
@@ -113,24 +91,21 @@ class Publish(object):
         ).update({"location_publish": False})
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_west_of_new_orleans(self):
         '''
         Check if geocoded lat/long found is within west border of New Orleans.
         '''
 
-        session = self.sn()
-
         # Long less than -90.140388 is west of New Orleans:
-        session.query(
+        SESSION.query(
             Location.longitude,
             Location.location_publish
         ).filter(
@@ -140,24 +115,21 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_east_of_new_orleans(self):
         '''
         Check if geocoded lat/long found is within east border of New Orleans.
         '''
 
-        session = self.sn()
-
         # Long greater than -89 is east of New Orleans:
-        session.query(
+        SESSION.query(
             Location.longitude,
             Location.location_publish
         ).filter(
@@ -167,24 +139,21 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_south_of_new_orleans(self):
         '''
         Check if geocoded lat/long found is within south border of New Orleans.
         '''
 
-        session = self.sn()
-
         # Lat less than 29.864543 is south of New Orleans:
-        session.query(
+        SESSION.query(
             Location.latitude,
             Location.location_publish
         ).filter(
@@ -194,24 +163,21 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_north_of_new_orleans(self):
         '''
         Check if geocoded lat/long found is within north border of New Orleans.
         '''
 
-        session = self.sn()
-
         # Lat less than 29.864543 is north of New Orleans:
-        session.query(
+        SESSION.query(
             Location.latitude,
             Location.location_publish
         ).filter(
@@ -221,14 +187,13 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def make_all_details_publishable(self):
         '''
@@ -236,31 +201,26 @@ class Publish(object):
         Then set to 0 if something questionable is found.
         '''
 
-        session = self.sn()
-
         # Assume publishable, then check for reasons not to publish.
-        session.query(
+        SESSION.query(
             Detail.detail_publish
         ).update({
             "detail_publish": True
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_if_no_date(self):
         '''Check if sale has a date.'''
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Detail.document_date,
             Detail.document_recorded,
             Detail.detail_publish
@@ -272,22 +232,19 @@ class Publish(object):
         )
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_relative_date(self):
         '''
         Check if the sale date is more than 6 months prior to the date the
         sale was recorded.
         '''
-
-        session = self.sn()
 
         # Convert date strings to date format
         new_initial_date = datetime.strptime(
@@ -311,8 +268,8 @@ class Publish(object):
             # date is unbelievable (too old or in the future)
 
             try:
-                with session.begin_nested():
-                    session.query(
+                with SESSION.begin_nested():
+                    SESSION.query(
                         Detail.document_recorded,
                         Detail.document_date,
                         Detail.detail_publish
@@ -322,14 +279,14 @@ class Publish(object):
                         Detail.document_date < '%s' % old_date_string
                     ).update({"detail_publish": False})
 
-                    session.flush()
+                    SESSION.flush()
             except Exception, error:
                 log.exception(error, exc_info=True)
-                session.rollback()
+                SESSION.rollback()
 
             try:
-                with session.begin_nested():
-                    session.query(
+                with SESSION.begin_nested():
+                    SESSION.query(
                         Detail.document_recorded,
                         Detail.document_date,
                         Detail.detail_publish
@@ -341,24 +298,22 @@ class Publish(object):
                         "detail_publish": False
                     })
 
-                    session.flush()
+                    SESSION.flush()
             except Exception, error:
                 log.exception(error, exc_info=True)
-                session.rollback()
+                SESSION.rollback()
 
-            session.commit()
+            SESSION.commit()
 
             current_date = current_date + timedelta(days=1)
 
-        session.close()
+        # session.close()
 
     def check_low_amount(self):
         '''Check if sale amount is unreasonably low (<= $0).'''
 
-        session = self.sn()
-
         # Not sure about these, so check them all for now to be safe
-        session.query(
+        SESSION.query(
             Detail.amount,
             Detail.detail_publish
         ).filter(
@@ -368,22 +323,19 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def check_high_amount(self):
         '''Check if sale amount is unreasonably high (>= $20,000,000).'''
 
-        session = self.sn()
-
         # Anything over $20,000,000 wouldn't be impossible, but is rare
-        session.query(
+        SESSION.query(
             Detail.amount,
             Detail.detail_publish
         ).filter(
@@ -393,14 +345,13 @@ class Publish(object):
         })
 
         try:
-            with session.begin_nested():
-                session.flush()
+            with SESSION.begin_nested():
+                SESSION.flush()
         except Exception, error:
             log.exception(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def main(self):
         '''Runs through each check method.'''

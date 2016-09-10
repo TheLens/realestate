@@ -13,15 +13,12 @@ python delete_dates.py '2014-02-18' '2014-02-19' # Deletes range
 import os
 import sys
 import psycopg2
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 from realestate.db import (
     Cleaned,
     Detail
 )
-from realestate import log, DATABASE_NAME
+from realestate import log, SESSION, DATABASE_NAME
 
 
 class DeleteDates(object):
@@ -30,17 +27,6 @@ class DeleteDates(object):
 
     def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
-
-        base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
 
         self.conn = psycopg2.connect(
             'host=localhost dbname=%s user=%s password=%s' % (
@@ -75,9 +61,7 @@ class DeleteDates(object):
         self.conn.set_isolation_level(old_isolation_level)
 
     def delete_details(self):
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Detail
         ).filter(
             Detail.document_recorded >= self.initial_date
@@ -85,13 +69,10 @@ class DeleteDates(object):
             Detail.document_recorded <= self.until_date
         ).delete()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def delete_cleaned(self):
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Cleaned
         ).filter(
             Cleaned.document_recorded >= self.initial_date
@@ -99,8 +80,7 @@ class DeleteDates(object):
             Cleaned.document_recorded <= self.until_date
         ).delete()
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:

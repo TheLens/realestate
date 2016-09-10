@@ -13,16 +13,14 @@ from [data.nola.gov](http://data.nola.gov).
 
 import os
 import googlemaps
-from sqlalchemy import create_engine, func, cast, Float, update
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import func, cast, Float, update
 
 from realestate.db import (
     Detail,
     Location,
     Neighborhood
 )
-from realestate import log, DATABASE_NAME
+from realestate import log, SESSION
 
 
 class Geocode(object):
@@ -38,17 +36,6 @@ class Geocode(object):
         self.gmaps = googlemaps.Client(
             key=os.environ.get('GOOGLE_GEOCODING_API_KEY'))
 
-        base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
-
     def update_locations_with_neighborhoods(self):
         '''Finds neighborhoods and handles if none found.'''
 
@@ -60,9 +47,7 @@ class Geocode(object):
 
         log.debug('neighborhood_found')
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             # Neighborhood,
             Location
         ).filter(
@@ -81,17 +66,14 @@ class Geocode(object):
             synchronize_session='fetch'
         )
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def no_neighborhood_found(self):
         '''If no neighborhood is found, update with "None" in nbhd field.'''
 
         log.debug('no_neighborhood_found')
 
-        session = self.sn()
-
-        session.query(
+        SESSION.query(
             Location
         ).filter(
             Location.neighborhood.is_(None)
@@ -100,8 +82,7 @@ class Geocode(object):
             synchronize_session='fetch'
         )
 
-        session.commit()
-        session.close()
+        SESSION.commit()
 
     def get_rows_with_null_rating(self):
         '''
@@ -111,9 +92,7 @@ class Geocode(object):
         :returns: SQLAlchemy query result.
         '''
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             Location.rating,
             Location.document_id,
             Location.street_number,
@@ -130,7 +109,7 @@ class Geocode(object):
 
         log.debug('Rows with rating is NULL: %d', len(query))
 
-        session.close()
+        SESSION.close()
 
         return query
 
@@ -172,8 +151,6 @@ class Geocode(object):
         locations table using the Google Geocoding API.
         '''
 
-        session = self.sn()
-
         log.debug('Geocode')
         print '\nGeocoding...'
 
@@ -188,21 +165,21 @@ class Geocode(object):
             dict_output = self.process_google_results(geocode_result)
 
             try:
-                with session.begin_nested():
+                with SESSION.begin_nested():
                     u = update(Location)
                     u = u.values(dict_output)
                     u = u.where(Location.document_id == row.document_id)
-                    session.execute(u)
-                    session.flush()
+                    SESSION.execute(u)
+                    SESSION.flush()
             except Exception, error:
                 log.exception(error, exc_info=True)
-                session.rollback()
+                SESSION.rollback()
 
-            session.commit()
+            SESSION.commit()
 
             # break
 
-        session.close()
+        # session.close()
 
         log.debug('Done geocoding')
 

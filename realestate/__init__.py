@@ -20,8 +20,11 @@ You can change the logging level to your choosing. The default is DEBUG.
 import logging
 import logging.handlers
 import os
-from datetime import date, timedelta
 import getpass
+
+from datetime import date, timedelta
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
 
 USER = getpass.getuser()
 PROJECT_DIR = os.path.abspath(
@@ -93,6 +96,15 @@ TODAY_DATE = date.today()
 TODAY_DAY = TODAY_DATE.strftime('%Y-%m-%d')
 
 S3_PATH = 's3://lensnola/realestate'
+
+# SQLAlchemy session
+ENGINE_STRING = 'postgresql://{0}:{1}@localhost/{2}'.format(
+    os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
+    os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
+    DATABASE_NAME)
+engine = create_engine(ENGINE_STRING)
+sn = sessionmaker(bind=engine)
+SESSION = sn()  # Import this to any files that need database
 
 # Logging
 LOG_DIR = '%s/logs' % PROJECT_DIR

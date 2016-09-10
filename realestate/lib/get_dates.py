@@ -4,12 +4,9 @@
 
 import os
 from datetime import timedelta
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 
 from realestate.db import Detail
-from realestate import log, YESTERDAY_DATE, OPENING_DATE, DATABASE_NAME
+from realestate import log, YESTERDAY_DATE, OPENING_DATE, SESSION
 
 
 class GetDates(object):
@@ -17,16 +14,7 @@ class GetDates(object):
 
     def __init__(self):
         """Initialize self variables and establish connection to database."""
-        base = declarative_base()
-
-        engine_string = 'postgresql://{0}:{1}@localhost/{2}'.format(
-            os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-            os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-            DATABASE_NAME)
-        self.engine = create_engine(engine_string)
-
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
+        pass
 
     def get_date_range(self):
         """Check which dates have not been entered into the database yet."""
@@ -55,9 +43,7 @@ class GetDates(object):
 
     def get_existing_until_date(self):
         """TODO: Docstring."""
-        session = self.sn()
-
-        query_until_date = session.query(
+        query_until_date = SESSION.query(
             Detail.document_recorded
         ).order_by(
             Detail.document_recorded.desc()
@@ -80,7 +66,7 @@ class GetDates(object):
 
         # log.debug(until_date)
 
-        session.close()
+        SESSION.close()
 
         return until_date
 

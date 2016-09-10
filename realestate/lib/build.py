@@ -8,13 +8,11 @@ This then commits the returned structured data.
 import os
 import glob
 from datetime import datetime, timedelta
-from sqlalchemy import create_engine, insert
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import insert
 
 from realestate import db
 from realestate.lib import parse
-from realestate import log, PROJECT_DIR, DATABASE_NAME
+from realestate import log, PROJECT_DIR, SESSION
 
 
 class Build(object):
@@ -26,17 +24,6 @@ class Build(object):
         Create self variables for date range and establish connections to
         the database.
         '''
-
-        base = declarative_base()
-        engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(engine)
-        self.sn = sessionmaker(bind=engine)
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -96,21 +83,17 @@ class Build(object):
     def commit_to_database(self, table, output):
         '''Commits to database using nested transactions and exceptions.'''
 
-        session = self.sn()
-
         try:
-            with session.begin_nested():
+            with SESSION.begin_nested():
                 i = insert(getattr(db, table))
                 vals = i.values(output)
-                session.execute(vals)
-                session.flush()
+                SESSION.execute(vals)
+                SESSION.flush()
         except Exception, error:
             log.debug(error, exc_info=True)
-            session.rollback()
+            SESSION.rollback()
 
-        session.commit()
-
-        session.close()
+        SESSION.commit()
 
     def list_parse(self, parser_name, table):
         '''

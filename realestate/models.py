@@ -10,12 +10,7 @@ from flask import (
     # request,
     jsonify
 )
-from sqlalchemy import (
-    create_engine,
-    desc
-)
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import desc
 
 from realestate.db import (
     Cleaned,
@@ -24,7 +19,7 @@ from realestate.db import (
 # from realestate.lib.check_assessor_urls import Assessor
 from realestate.lib.results_language import ResultsLanguage
 from realestate.lib.utils import Utils
-from realestate import log, TODAY_DAY, DATABASE_NAME
+from realestate import log, TODAY_DAY, SESSION
 
 
 class Models(object):
@@ -42,22 +37,7 @@ class Models(object):
         '''
 
         self.initial_date = initial_date
-
         self.until_date = until_date
-
-        base = declarative_base()
-
-        engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-
-        base.metadata.create_all(engine)
-
-        self.sn = sessionmaker(bind=engine)
 
     def get_home(self):
         '''
@@ -69,8 +49,6 @@ class Models(object):
 
         log.debug('get_home')
 
-        session = self.sn()
-
         update_date = self.get_last_updated_date()
         log.debug(update_date)
 
@@ -78,8 +56,6 @@ class Models(object):
 
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
-
-        session.close()
 
         return data
 
@@ -94,15 +70,13 @@ class Models(object):
         :returns: A SQLAlchemy query result for three matches, at most.
         '''
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             getattr(Cleaned, table)
         ).filter(
             getattr(Cleaned, table).ilike('%%%s%%' % term)
         ).distinct().limit(3).all()
 
-        session.close()
+        SESSION.close()
         return query
 
     def searchbar_input(self, term):
@@ -394,12 +368,10 @@ class Models(object):
     def get_sale(self, instrument_no):
         '''docstring'''
 
-        session = self.sn()
-
         data = {}
         data['update_date'] = self.get_last_updated_date()
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.instrument_no == '%s' % (instrument_no)
@@ -445,18 +417,16 @@ class Models(object):
         #         "website.</a>" % (data['assessor_url'])
 
         if len(query) == 0:
-            session.close()
+            SESSION.close()
             return None, None, None
         else:
-            session.close()
+            SESSION.close()
             return data, jsdata, query
 
     def map_query_length(self, data):
         '''docstring'''
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -484,7 +454,7 @@ class Models(object):
             (Cleaned.longitude >= data['bounds'][3])
         ).all()
 
-        session.close()
+        SESSION.close()
 
         return query
 
@@ -492,9 +462,7 @@ class Models(object):
     def query_with_map_boundaries(self, data):
         '''docstring'''
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -528,18 +496,16 @@ class Models(object):
             '%d' % data['page_length']
         ).all()
 
-        session.close()
+        SESSION.close()
 
         return query
 
     def find_all_publishable_rows_fitting_criteria(self, data):
         '''docstring'''
 
-        session = self.sn()
-
         # log.debug(data)
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -564,18 +530,16 @@ class Models(object):
 
         # log.debug(query)
 
-        session.close()
+        SESSION.close()
 
         return query
 
     def find_page_of_publishable_rows_fitting_criteria(self, data):
         '''docstring'''
 
-        session = self.sn()
-
         # log.debug(data)
 
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -606,7 +570,7 @@ class Models(object):
 
         # log.debug(query)
 
-        session.close()
+        SESSION.close()
 
         return query
 
@@ -692,9 +656,7 @@ class Models(object):
 
         log.debug('get_last_updated_date')
 
-        session = self.sn()
-
-        query = session.query(
+        query = SESSION.query(
             Cleaned
         ).filter(
             Cleaned.detail_publish.is_(True)
@@ -710,16 +672,14 @@ class Models(object):
 
         log.debug(updated_date)
 
-        session.close()
+        SESSION.close()
 
         return updated_date
 
     def get_neighborhoods(self):
         '''docstring'''
 
-        session = self.sn()
-
-        query = session.query(Neighborhood.gnocdc_lab).all()
+        query = SESSION.query(Neighborhood.gnocdc_lab).all()
 
         neighborhoods = []
 
@@ -729,7 +689,7 @@ class Models(object):
 
         neighborhoods.sort()
 
-        session.close()
+        SESSION.close()
 
         return neighborhoods
 

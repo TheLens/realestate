@@ -11,9 +11,8 @@ utilizes `libraries.py`, a collection of items to check for.
 
 import os
 import re
-from sqlalchemy import create_engine, insert, func, cast, Text
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import insert, func, cast, Text
+
 from realestate.db import (
     Cleaned,
     Detail,
@@ -35,23 +34,10 @@ class Join(object):
         self.initial_date = initial_date
         self.until_date = until_date
 
-        base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
-
     def get_details(self):
         '''Returns SQL query of details table for given date range.'''
 
-        session = self.sn()
-
-        subquery = session.query(
+        subquery = SESSION.query(
             Detail
         ).filter(
             Detail.document_recorded >= '%s' % self.initial_date
@@ -61,7 +47,7 @@ class Join(object):
 
         log.debug(subquery)
 
-        session.close()
+        SESSION.close()
 
         return subquery
 
@@ -70,9 +56,7 @@ class Join(object):
 
         log.debug('get_vendees')
 
-        session = self.sn()
-
-        subquery = session.query(
+        subquery = SESSION.query(
             Vendee.document_id,
             func.string_agg(
                 cast(Vendee.vendee_firstname, Text) + ' ' +
@@ -85,7 +69,7 @@ class Join(object):
 
         # log.debug(subquery)
 
-        session.close()
+        SESSION.close()
 
         return subquery
 
@@ -94,9 +78,7 @@ class Join(object):
 
         log.debug('get_vendors')
 
-        session = self.sn()
-
-        subquery = session.query(
+        subquery = SESSION.query(
             Vendor.document_id,
             func.string_agg(
                 cast(Vendor.vendor_firstname, Text) + ' ' +
@@ -109,7 +91,7 @@ class Join(object):
 
         # log.debug(subquery)
 
-        session.close()
+        SESSION.close()
 
         return subquery
 
@@ -118,9 +100,7 @@ class Join(object):
 
         log.debug('get_locations')
 
-        session = self.sn()
-
-        subquery = session.query(
+        subquery = SESSION.query(
             Location.document_id,
             func.bool_and(Location.location_publish).label('location_publish'),
             func.string_agg(
@@ -151,7 +131,7 @@ class Join(object):
 
         # log.debug(subquery)
 
-        session.close()
+        SESSION.close()
 
         return subquery
 
@@ -164,10 +144,9 @@ class Join(object):
         subq_vendors = self.get_vendors()
         subq_location = self.get_locations()
 
-        session = self.sn()
-
         log.debug('query...')
-        query = session.query(
+
+        query = SESSION.query(
             Detail.document_id,
             Detail.amount,
             Detail.document_date,
@@ -199,7 +178,7 @@ class Join(object):
 
         log.debug('len(query): %d', len(query))
 
-        session.close()
+        SESSION.close()
 
         return query
 
@@ -291,17 +270,6 @@ class Clean(object):
 
     def __init__(self, initial_date=None, until_date=None):
         '''Initialize self variables and establish connection to database.'''
-
-        base = declarative_base()
-        self.engine = create_engine(
-            'postgresql://%s:%s@localhost/%s' % (
-                os.environ.get('REAL_ESTATE_DATABASE_USERNAME'),
-                os.environ.get('REAL_ESTATE_DATABASE_PASSWORD'),
-                DATABASE_NAME
-            )
-        )
-        base.metadata.create_all(self.engine)
-        self.sn = sessionmaker(bind=self.engine)
 
         self.initial_date = initial_date
         self.until_date = until_date
@@ -646,26 +614,24 @@ class Clean(object):
 
         log.debug('Committing %d rows', len(rows))
 
-        session = self.sn()
-
         for count, row in enumerate(rows):
             log.debug("Row %d", count)
             try:
-                with session.begin_nested():
+                with SESSION.begin_nested():
                     i = insert(Cleaned)
                     i = i.values(row)
-                    session.execute(i)
-                    session.flush()
+                    SESSION.execute(i)
+                    SESSION.flush()
             except Exception, error:
                 log.debug('count: %s', count)
                 log.exception(error, exc_info=True)
-                session.rollback()
+                SESSION.rollback()
 
-            session.commit()
+            SESSION.commit()
 
         log.debug('%d rows committed', len(rows))
 
-        session.close()
+        # session.close()
 
     def main(self):
         '''Run Join() and Clean() scripts.'''
