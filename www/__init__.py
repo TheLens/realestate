@@ -41,6 +41,8 @@ if USER == 'ubuntu':  # Server
     RELOADER = False
     DEBUG = False
     PORT = 5004
+
+    LOGGING_LEVEL = logging.INFO
 else:  # Local
     BACKUP_DIR = '{}/backups'.format(PROJECT_DIR)
 
@@ -63,6 +65,8 @@ else:  # Local
     RELOADER = True
     DEBUG = True
     PORT = 5000
+
+    LOGGING_LEVEL = logging.DEBUG
 
 APP_ROUTING = '/realestate'
 JS_APP_ROUTING = '/realestate'
@@ -95,7 +99,7 @@ LOG_DIR = '{}/logs'.format(PROJECT_DIR)
 LOG_FILE = "{}/realestate.log".format(LOG_DIR)
 
 log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+log.setLevel(LOGGING_LEVEL)
 
 # Create file handler which logs debug messages or higher
 filehandler = logging.handlers.RotatingFileHandler(
@@ -103,7 +107,7 @@ filehandler = logging.handlers.RotatingFileHandler(
     maxBytes=(5 * 1024 * 1024),  # 5 MB
     backupCount=5)
 
-filehandler.setLevel(logging.DEBUG)
+filehandler.setLevel(LOGGING_LEVEL)
 
 # Create formatter and add it to the handlers
 formatter = logging.Formatter(
