@@ -57,10 +57,8 @@ class Join(object):
         subquery = SESSION.query(
             Vendee.document_id,
             func.string_agg(
-                "{0} {1}".format(
-                    cast(Vendee.vendee_firstname, Text),
-                    cast(Vendee.vendee_lastname, Text)
-                ),
+                cast(Vendee.vendee_firstname, Text) + " " +
+                cast(Vendee.vendee_lastname, Text),
                 ', '
             ).label('buyers')
         ).group_by(
@@ -80,10 +78,8 @@ class Join(object):
         subquery = SESSION.query(
             Vendor.document_id,
             func.string_agg(
-                "{0} {1}".format(
-                    cast(Vendor.vendor_firstname, Text),
-                    cast(Vendor.vendor_lastname, Text)
-                ),
+                cast(Vendor.vendor_firstname, Text) + " " +
+                cast(Vendor.vendor_lastname, Text),
                 ', '
             ).label('sellers')
         ).group_by(
@@ -188,15 +184,11 @@ class Join(object):
         query = self.join_subqueries()
 
         rows = []
+
         for row in query:
-            # print(row)
-            # print(type(row))
+            # dict_val = row.__dict__  # Old
+            dict_val = dict(zip(row.keys(), row))  # New. TODO: Check it works.
 
-            # TODO: Check new method works
-            # dict_val = row.__dict__
-            dict_val = dict(zip(row.keys(), row))
-
-            # del dict_val['_labels']  # TODO: necessary?
             rows.append(dict_val)
 
         log.debug('len(rows): {}'.format(len(rows)))
@@ -665,3 +657,14 @@ class Clean(object):
 
 if __name__ == '__main__':
     Clean().main()
+
+    # TODO
+    # rows = Join(
+    #     initial_date="2016-07-13",
+    #     until_date="2016-07-13"
+    # ).get_rows_from_query()
+
+    # rows2 = Join(
+    #     initial_date="2016-07-13",
+    #     until_date="2016-07-13"
+    # ).add_location_fields_temp_hack(rows)
