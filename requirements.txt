@@ -61,6 +61,7 @@ Sphinx==1.4.6
 sphinx-rtd-theme==0.1.9
 SQLAlchemy==1.0.15
 tox==2.3.1
+uWSGI==2.0.13.1
 virtualenv==15.0.3
 Werkzeug==0.11.11
 wrapt==1.10.8
