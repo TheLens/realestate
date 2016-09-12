@@ -1,0 +1,3 @@
+# Real estate
+*/5 * * * * cd /home/ubuntu/realestate && git fetch origin master && git reset --hard FETCH_HEAD  # Sync with GitHub master branch
+0 3 * * * /home/ubuntu/realestate/scripts/main.sh  # Scrapes and builds yesterday's sales

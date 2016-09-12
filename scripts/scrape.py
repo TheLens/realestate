@@ -1,31 +1,49 @@
 # -*- coding: utf-8 -*-
 
 """
-The daily scraper that checks for the previous day's sales.
+Scrape land record data.
 
 It uses [Selenium](http://github.com/SeleniumHQ/selenium/tree/master/py) and
 [PhantomJS](http://phantomjs.org/) to save the HTML.
 This also makes a note of when each date was scraped and what the Land Records
 Division's permanent date range was at the time of that scrape (see
 `check_temp_status.py` for details).
+
+Usage:
+    scrape.py
+    scrape.py <single_date>
+    scrape.py <early_date> <late_date>
+
+Options:
+    -h, --help  Show help screen.
+    --version   Show version number.
+
+Dates are in the format YYYY-MM-DD. Ex. 2016-12-31
 """
 
 import os
 import re
-import sys
-import time
 import glob
+import time
 
 from bs4 import BeautifulSoup
+from datetime import timedelta, datetime
+from docopt import docopt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from datetime import timedelta, datetime
-from realestate.lib.mail import Mail
-from realestate import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
+
+from scripts.mail import Mail
+from www import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
 
 # Uncomment for local development and testing:
 # from selenium.webdriver.common.desired_capabilities import (
 #     DesiredCapabilities)
+
+
+class BadDateRangeError(Exception):
+    """Error for when date range is backward."""
+
+    pass
 
 
 class Scrape(object):
@@ -46,7 +64,7 @@ class Scrape(object):
 
         # PhantomJS for headless browser in production
         self.driver = webdriver.PhantomJS(
-            executable_path='%s/scripts/phantomjs' % PROJECT_DIR,
+            executable_path='{}/scripts/phantomjs'.format(PROJECT_DIR),
             service_log_path=LOG_FILE,
             port=0)
 
@@ -59,7 +77,7 @@ class Scrape(object):
         # firefox_capabilities = DesiredCapabilities.FIREFOX
         # firefox_capabilities['marionette'] = True
         # self.driver = webdriver.Firefox(
-        #     executable_path='%s/scripts/wires' % PROJECT_DIR,
+        #     executable_path='{}/scripts/wires'.format(PROJECT_DIR),
         #     capabilities=firefox_capabilities,
         #     timeout=60)
 
@@ -120,7 +138,7 @@ class Scrape(object):
             self.driver.find_element_by_id("Header1_lnkLogout")
             log.debug("Login successful.")
             return True
-        except Exception, error:
+        except Exception as error:
             log.debug("Login failed.")
             log.error(error, exc_info=True)
             return False
@@ -155,18 +173,19 @@ class Scrape(object):
 
     def get_date_range_html(self):
         """Get search page HTML."""
-        date_range_html = self.driver.page_source
-
-        return date_range_html
+        return self.driver.page_source
 
     @staticmethod
     def delete_permanent_date_range_when_scraped_file(year, month, day):
         """Delete old permanent-date-range-when-scraped*.html."""
         log.info('Delete old permanent-date-range-when-scraped*.html')
 
-        for file_path in glob.glob("%s/data/raw/" % (PROJECT_DIR) +
-                                   "%s-%s-%s/" % (year, month, day) +
-                                   "permanent-date-range-when-scraped*.html"):
+        string = (
+            "{0}/data/raw/{1}-{2}-{3}/" +
+            "permanent-date-range-when-scraped*.html").format(
+            PROJECT_DIR, year, month, day)
+
+        for file_path in glob.glob(string):
             os.remove(file_path)
 
     @staticmethod
@@ -177,10 +196,12 @@ class Scrape(object):
         # Save permanent date range for this individual sale.
         log.info('Save new permanent-date-range-when-scraped*.html file')
         individual_html_out = open(
-            "%s/data/raw/" % PROJECT_DIR +
-            "%s-%s-%s/permanent-date-range-when-scraped" % (year, month, day) +
-            "_%s-%s.html" % (first_date, second_date),
-            "w")
+            (
+                "{0}/data/raw/{1}-{2}-{3}/" +
+                "permanent-date-range-when-scraped_{4}-{5}.html").format(
+                PROJECT_DIR, year, month, day, first_date, second_date
+            ),
+            "wb")
         individual_html_out.write(date_range_html.encode('utf-8'))
         individual_html_out.close()
 
@@ -191,7 +212,7 @@ class Scrape(object):
         log.info(
             'Delete old most-recent-permanent-date-range/*.html file')
 
-        file_string = "%s/data/most-recent-permanent-date-range/*.html" % (
+        file_string = "{}/data/most-recent-permanent-date-range/*.html".format(
             PROJECT_DIR)
         for file_path in glob.glob(file_string):
             os.remove(file_path)
@@ -202,10 +223,10 @@ class Scrape(object):
                                        second_date):
         """Save new most-recent-permanent-date-range/*.html."""
         log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open("%s/data/" % (PROJECT_DIR) +
-                                "most-recent-permanent-date-range/" +
-                                "%s-%s.html" % (first_date, second_date),
-                                "w")
+        overall_html_out = open(
+            "{0}/data/most-recent-permanent-date-range/{1}-{2}.html".format(
+                PROJECT_DIR, first_date, second_date),
+            "wb")
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
@@ -300,22 +321,24 @@ class Scrape(object):
                 "cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
             log.info('Find option')
             options = item_list_elem.find_elements_by_tag_name("option")
-        except Exception, error:
+        except Exception as error:
             # Save table page
             log.error(error, exc_info=True)
             log.info('No sales for this day')
-            html_out = open("%s/data/raw/%s-%s-%s/page-html/page1.html"
-                            % (PROJECT_DIR, year, month, day), "w")
+            html_out = open(
+                "{0}/data/raw/{1}-{2}-{3}/page-html/page1.html".format(
+                    PROJECT_DIR, year, month, day
+                ), "wb")
             html_out.write((self.driver.page_source).encode('utf-8'))
             html_out.close()
             return
 
         total_pages = int(options[-1].get_attribute('value'))
-        log.debug('%d pages to parse for %s-%s-%s',
-                  total_pages, year, month, day)
+        log.debug('{0} pages to parse for {1}-{2}-{3}'.format(
+                  total_pages, year, month, day))
 
         for i in range(1, total_pages + 1):
-            log.debug('Page: %d', i)
+            log.debug('Page: {}'.format(i))
 
             self.parse_page(i, year, month, day)
             time.sleep(15.0)
@@ -324,12 +347,14 @@ class Scrape(object):
         """Parse results page for sale document IDs."""
         # Save table page
         log.info('Parse results page table HTML')
-        html_out = open("%s/data/raw/%s-%s-%s/page-html/page%d.html"
-                        % (PROJECT_DIR, year, month, day, i), "w")
+        html_out = open((
+            "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html").format(
+                PROJECT_DIR, year, month, day, i),
+            "wb")
         html_out.write((self.driver.page_source).encode('utf-8'))
         html_out.close()
 
-        bs_file = "%s/data/raw/%s-%s-%s/page-html/page%d.html" % (
+        bs_file = "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html".format(
             PROJECT_DIR, year, month, day, i)
         soup = BeautifulSoup(open(bs_file), "html.parser")
 
@@ -338,12 +363,13 @@ class Scrape(object):
         # For this one page
         rows = soup.find_all('td', class_="igede12b9e")  # List of Object IDs
 
-        log.debug('There are %d rows for this page', len(rows))
+        log.debug('There are {} rows for this page'.format(len(rows)))
 
         for j in range(1, len(rows)):
+            overall_row = (i - 1) * 20 + j
             log.debug(
-                'Analyzing overall row %d for %s-%s-%s',
-                (i - 1) * 20 + j, year, month, day)
+                'Analyzing overall row {0} for {1}-{2}-{3}'.format(
+                    overall_row, year, month, day))
 
             self.parse_sale(j, rows, year, month, day)
             time.sleep(5.0)
@@ -372,37 +398,37 @@ class Scrape(object):
         document_id = rows[j].string
 
         log.debug(
-            'Saving HTML for %s on %s-%s-%s', document_id, year, month, day)
+            'Saving HTML for {0} on {1}-{2}-{3}'.format(
+                document_id, year, month, day))
 
         single_sale_url = (
             "http://onlinerecords.orleanscivilclerk.com/" +
             "RealEstate/SearchResults.aspx?" +
             "global_id={}" +
             "&type=dtl").format(document_id)
-        log.debug('Sale URL: %s', single_sale_url)
+        log.debug('Sale URL: {}'.format(single_sale_url))
 
         try:
-            log.info('Loading %s', single_sale_url)
+            log.info('Loading {}'.format(single_sale_url))
             self.load_url(single_sale_url)
-        except Exception, error:
+        except Exception as error:
             log.error(error, exc_info=True)
 
         html = self.driver.page_source
 
         log.info('Save this sale HTML')
 
-        html_file = "%s/data/raw/" % (PROJECT_DIR) + \
-                    "%s-%s-%s/" % (year, month, day) + \
-                    "form-html/%s.html" % (document_id)
+        html_file = "{0}/data/raw/{1}-{2}-{3}/form-html/{4}.html".format(
+            PROJECT_DIR, year, month, day, document_id)
 
-        html_out = open(html_file, "w")
+        html_out = open(html_file, "wb")
         html_out.write(html.encode('utf-8'))
         html_out.close()
 
         try:
-            assert not self.check_if_error(html_file)
-        except Exception, error:
-            log.debug('Deleting error page: %s', html_file)
+            assert not self.is_error_page(html_file)
+        except Exception as error:
+            log.debug('Deleting error page: {}'.format(html_file))
             log.error(error, exc_info=True)
 
             os.remove(html_file)
@@ -410,17 +436,13 @@ class Scrape(object):
             return
 
     @staticmethod
-    def check_if_error(html):
+    def is_error_page(html):
         """Check if the downloaded single sale HTML is an error page."""
         soup = BeautifulSoup(open(html), "html.parser")
-
         title = soup.find_all('title')[0].string
 
-        if title == 'Error':
-            log.debug('Error page was downloaded.')
-            return True
-        else:
-            return False
+        # log.debug('Error page was downloaded.')
+        return title == 'Error'
 
     # Logout
     def logout(self):
@@ -455,19 +477,19 @@ class Scrape(object):
             log.debug(year + '-' + month + '-' + day)
 
             # Check if folder for this day exists. If not, then make one.
-            pagedir = "%s/data/raw/%s-%s-%s/page-html" % (
+            pagedir = "{0}/data/raw/{1}-{2}-{3}/page-html".format(
                 PROJECT_DIR, year, month, day)
             log.debug(pagedir)
 
-            formdir = "%s/data/raw/%s-%s-%s/form-html" % (
+            formdir = "{0}/data/raw/{1}-{2}-{3}/form-html".format(
                 PROJECT_DIR, year, month, day)
             log.debug(formdir)
 
             if not os.path.exists(pagedir):
-                log.info('Making %s', pagedir)
+                log.info('Making {}'.format(pagedir))
                 os.makedirs(pagedir)
             if not os.path.exists(formdir):
-                log.info('Making %s', formdir)
+                log.info('Making {}'.format(formdir))
                 os.makedirs(formdir)
 
             search_date = month + day + year
@@ -489,7 +511,7 @@ class Scrape(object):
 
         try:
             self.cycle_through_dates()
-        except Exception, error:
+        except Exception as error:
             log.error(error, exc_info=True)
 
             m = Mail(
@@ -505,23 +527,82 @@ class Scrape(object):
 
             log.info('Done!')
 
+
+def cli_has_errors(arguments):
+    """Check for any CLI parsing errors."""
+    all_arguments = (
+        arguments['<single_date>'] is not None and
+        arguments['<early_date>'] is not None and
+        arguments['<late_date>'] is not None)
+
+    if all_arguments:
+        # print("Must use single date or date range, but not both.")
+        return True
+
+    single_and_other_arguments = (
+        (
+            arguments['<single_date>'] is not None and
+            arguments['<early_date>'] is not None
+        ) or
+        (
+            arguments['<single_date>'] is not None and
+            arguments['<late_date>'] is not None
+        ))
+
+    if single_and_other_arguments:
+        # print("Cannot use a single date and a date range bound.")
+        return True
+
+    one_date_bound_only = (
+        (
+            arguments['<early_date>'] is not None and
+            arguments['<late_date>'] is None
+        ) or
+        (
+            arguments['<early_date>'] is None and
+            arguments['<late_date>'] is not None
+        ))
+
+    if one_date_bound_only:
+        # print("Must pick both ends of a date range bound.")
+        return True
+
+    # All good
+    return False
+
+
+def cli(arguments):
+    """Parse command-line arguments."""
+    # Catch any missed errors
+    if cli_has_errors(arguments):
+        return
+
+    if arguments['<single_date>']:  # Single date
+        early_date = arguments['<single_date>']
+        late_date = arguments['<single_date>']
+
+        log.info('Scraping single date: {}.'.format(early_date))
+    elif arguments['<early_date>'] and arguments['<late_date>']:  # Date range
+        early_date = arguments['<early_date>']
+        late_date = arguments['<late_date>']
+
+        log.info('Scraping date range: {0} to {1}.'.format(
+            early_date, late_date))
+    else:  # No dates provided
+        log.info('Scraping yesterday.')
+
+        Scrape().main()  # Default: scrape yesterday.
+        return
+
+    # Check for errors
+    early_datetime = datetime.strptime(early_date, "%Y-%m-%d")
+    late_datetime = datetime.strptime(late_date, "%Y-%m-%d")
+
+    if early_datetime > late_datetime:
+        raise BadDateRangeError("The date range does not make sense.")
+
+    Scrape(initial_date=early_date, until_date=late_date).main()
+
 if __name__ == '__main__':
-    if len(sys.argv) < 2:  # No arguments, default to yesterday date.
-        Scrape().main()
-    elif len(sys.argv) == 2:  # One argument
-        day = sys.argv[1]
-
-        s = Scrape(initial_date=day, until_date=day)
-        s.main()
-    elif len(sys.argv) == 3:  # Two arguments
-        initial_day = sys.argv[1]
-        until_day = sys.argv[2]
-
-        s = Scrape(initial_date=initial_day, until_date=until_day)
-        s.main()
-    elif len(sys.argv) > 3:
-        print(
-            "Too many arguments. Enter a single date to scrape that one " +
-            "day, enter two days to scrape a range of days, or do not " +
-            "enter any days at all to scrape yesterday. " +
-            "Use the format 'YYYY-MM-DD'.")
+    arguments = docopt(__doc__, version="0.0.1")
+    cli(arguments)

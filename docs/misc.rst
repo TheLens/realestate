@@ -12,32 +12,32 @@ Misc.
 .. automodule:: realestate.views
     :members:
 
-.. automodule:: realestate.lib.delete_dates
+.. automodule:: scripts.delete_dates
     :members:
 
-.. automodule:: realestate.lib.email_template
+.. automodule:: scripts.email_template
     :members:
 
-.. automodule:: realestate.lib.form_tweet
+.. automodule:: scripts.form_tweet
     :members:
 
-.. automodule:: realestate.lib.get_dates
+.. automodule:: scripts.get_dates
     :members:
 
-.. automodule:: realestate.lib.libraries
+.. automodule:: scripts.libraries
     :members:
 
-.. automodule:: realestate.lib.mail
+.. automodule:: scripts.mail
     :members:
 
-.. automodule:: realestate.lib.results_language
+.. automodule:: scripts.results_language
     :members:
 
-.. automodule:: realestate.lib.stat_analysis
+.. automodule:: scripts.stat_analysis
     :members:
 
-.. automodule:: realestate.lib.twitter
+.. automodule:: scripts.twitter
     :members:
 
-.. automodule:: realestate.lib.utils
+.. automodule:: scripts.utils
     :members:

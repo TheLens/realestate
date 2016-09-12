@@ -1,51 +1,55 @@
 # -*- coding: utf-8 -*-
 
-# todo: everything
+"""Test that all Python files in project pass pylint tests."""
 
-'''Tests that all Python files in project pass pylint tests.'''
-
-from unittest import TestCase
 import os
 import fnmatch
+
 from subprocess import call
-from realestate import PROJECT_DIR
 
-# ignore stuff in virtualenvs or version control directories
-ignore_patterns = ('scripts', 'tests', 'misc')
+from www import PROJECT_DIR
+
+# Ignore stuff in virtualenvs or version control directories
+ignore_patterns = [
+    '.egg-info', '.git', '.tox',
+    'backups', 'confs', 'data', 'docs', 'logs', 'misc']
 
 
-def ignore(dir):
-    '''Should the directory be ignored?'''
-
+def ignore(directory):
+    """Check if the directory should be ignored."""
     for pattern in ignore_patterns:
-        if pattern in dir:
+        if pattern in directory:
             return True
+
     return False
 
 
-class TestPylint(TestCase):
+class RunPylint(object):
+    """Run pylint on all Python files."""
 
-    '''Test that all Python files pass pylint tests.'''
-
-    def test_pep8(self):
-        '''Test that all Python files pass pylint tests.'''
-
-        # pep8style = pep8.StyleGuide(quiet=False)
-
-        # Find all .py files
+    def test_pylint(self):
+        """Run pylint on all Python files."""
         files_list = []
-        for root, dirnames, filenames in os.walk('%s' % PROJECT_DIR):
+
+        for root, dirnames, filenames in os.walk(PROJECT_DIR):
             if ignore(root):
                 continue
 
             for filename in fnmatch.filter(filenames, '*.py'):
                 files_list.append(os.path.join(root, filename))
 
-        for f in files_list:
+        for file in files_list:
+            # (pylint_stdout, pylint_stderr) = epylint.py_run(
+            #     command_options="{} --errors-only".format(file),
+            #     return_std=True)
+
+            # print(pylint_stdout.getvalue())
+            # print(pylint_stderr.getvalue())
+
             call([
                 'pylint',
                 '--errors-only',
-                # '--ignore=check_assessor_urls.py',  # todo: not working
-                # --disable=invalid-name,
-                f
-            ])
+                file])
+
+if __name__ == '__main__':
+    RunPylint().test_pylint()

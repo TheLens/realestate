@@ -1,18 +1,15 @@
 # -*- coding: utf-8 -*-
 
-'''
-A collection of useful data, such as abbreviations, acronyms, neighborhood
-names and noteworthy names (needs more work).
-'''
+"""A collection of abbreviations, acronyms and neighborhoods."""
 
 
 class Library(object):
-
-    '''The items.'''
+    """Common items to translate or clean."""
 
     def __init__(self):
+        """The library items."""
         # http://en.wikipedia.org/wiki/Street_or_road_name
-        # #Street_type_designations
+        # Street_type_designations
         self.assessor_abbreviations = [
             # Major roads
             ['HIGHWAY', 'HW'],
@@ -176,12 +173,12 @@ class Library(object):
             ['9Th', '9th'],
             ['0Th', '0th']
         ]
-        '''
+        """
         Not sure what to do for "St.". This --> [' St', ' St.'] would also
         pick up something such as 123 Straight Road. The same could
         conceivably happen with "Ave". "Dr" needs to become "Drive", but have
         the same problem
-        '''
+        """
         self.middle_initials = [
             [' A ', ' A. '],
             [' B ', ' B. '],
@@ -224,47 +221,3 @@ class Library(object):
             ['6th', '6'],
             ['7th', '7'],
         ]
-        # todo: json with government offices: mayor, council, judges, etc
-        self.politicians = [
-            "Mitch Landrieu",
-            "Andy Kopplin",
-            "Andrew Kopplin"
-        ]
-        self.council_members = [
-            "Nadine Ramsey",
-            "Jason Williams",
-            "LaToya Cantrell",
-            "Stacy Head",
-            "Susan Guidry",
-            "Jared Brossett",
-            "James Gray",
-            "Jacquelyn Clarkson",
-            "Jackie Clarkson",
-            "Kristin Palmer",
-            "Cynthia Hedge-Morrell",
-            "Diana Bajoie",
-            "Ernest Charbonnet",
-            "Jon Johnson",
-            "Eric Granderson",
-            "Arnie Fielkow",
-            "James Carter",
-            "Cynthia Willard-Lewis",
-            "Shelley Midura"
-        ]
-        self.athletes = [
-            "Drew Brees",
-            "Anthony Davis",
-            "Tyreke Evans",
-            "Eric Gordon"
-        ]
-
-        # todo: get list from imdb or similar
-        self.celebrities = [
-            "Sandra Bullock",
-            "Brad Pitt",
-            "Matthew McCaunaghey",
-            "David Simon"
-        ]
-
-if __name__ == '__main__':
-    pass

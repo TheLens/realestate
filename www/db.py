@@ -21,8 +21,7 @@ from sqlalchemy import (
     Date,
     Float,
     ForeignKey,
-    Boolean
-)
+    Boolean)
 from geoalchemy2 import Geometry
 
 Base = declarative_base()
@@ -68,8 +67,7 @@ class Location(Base):
     document_id = Column(
         String,
         ForeignKey("details.document_id", ondelete="CASCADE"),
-        nullable=False
-    )
+        nullable=False)
     street_number = Column(String)
     address = Column(String)
     district = Column(String)
@@ -175,8 +173,7 @@ class Location(Base):
             self.rating,
             self.zip_code,
             self.neighborhood,
-            self.location_publish
-        )
+            self.location_publish)
 
         return representation
 
@@ -305,8 +302,7 @@ class Dashboard(Base):
     instrument_no = Column(
         String,
         # ForeignKey("cleaned.instrument_no"),
-        nullable=False
-    )
+        nullable=False)
     latitude = Column(Float)
     longitude = Column(Float)
     zip_code = Column(String)
@@ -578,7 +574,7 @@ class Vendee(Base):
 
 class Neighborhood(Base):
     """
-    Fields for the `neighborhoods` table.
+    Table fields for the `neighborhoods` table.
 
     :param gid: Integer. Primary key ID.
     :param objectid: Integer. Not sure

@@ -1,15 +1,14 @@
 language: python
 sudo: false
 python:
-- '2.7'
+- '3.5'
 install:
 - pip install -r requirements.txt
-before_script:
-- export PYTHONPATH=$PYTHONPATH:$(pwd)
+script:
 - mkdir logs
 - touch logs/realestate.log
-script:
-- coverage run tests/test*.py
+- nosetests tests --with-coverage
+- tox
 after_success:
 - coveralls
 deploy:
@@ -18,23 +17,8 @@ deploy:
   secret_access_key:
     secure: Dh/dAklShJFyeh8jMTMe05BM20r///zb66k6f1VbwN26OrbWV1V6p4Ue83N1jTpFvBFc2C/XTHi/r42jRJU5H+zlJBc3Rwsly7aqHPXxee207Zi3Kgo62cqaZSLV4mnNlineFAkdjM82OhV1TKnT843F5L6gaSPJJHVRtz5Vrbk=
   bucket: lensnola
-  local-dir: realestate/static
+  local-dir: www/static
   upload-dir: realestate
   acl: public_read
   on:
     repo: TheLens/realestate
-env:
-  global:
-  - secure: B43D3wsqZ/+a/1OA6T0Cqevr96bUs3iqqMilZNyiZnwjdu+j2qKQ0JFMhiaUDvnSW41xhkQR00Yi5q6G1rWJ95eM67k/hFVCabIo0nbqKgHVtTOvofV443al9svZW70gaKFdWfHmwizaGFEshdddoUd/Q4Ic30mNiL3/yiGZ9fk=
-  - secure: jEGWFRamEnNgYHUFgMXapDq2uyE8oBUrfbo/G/wQlzGAdOrZwdMd2fxdJ9QgNrGT91C1Wn+oYGM1yVUMP1A+u/4znS4h9uvu7XuDpjaJ0DkptcELuFo+LNNM+q8V7E9vu8EnVyNVpZm2nxRXHHE82pObWSCZ8JoQAFUAoru0cso=
-  - secure: u2u6Acr+P2Acjipu2E6BUP/ApkhEFXOFlxn7L/tbR1U1zh7sdce4FsK8oJM92XQzofe003n+liPiPSMi/gdVoxlW6r8XQ/HVQ/9ghJyZMV/H1M88B8Vn4Ql3THKODyJESITgnHM9gtUbXKdGxEqSLO/EJXaDw2GKKfLdMTb8ENM=
-  - secure: HxaMVE5UJhdLJRMvp0kHq4RTYMv3jLTBqGZZCCUcRfwGKDIo/ReBDyU4BpqMOD0iKkYljT1Z1lfllYq446qHHpTDTK+CgfqFq8Wly9PquaWbR8OxD7LbPs83B5NdyLvViMspheW7mqEyyEttXvoG2JhQjdq7LAUaVvypC1Zuf7I=
-  - secure: nqHuQttTrZE9tTfMN8kq69YOwDRIWnCspSCcgJshLFnPqKgRb9dKVsh6LbsQBlkyU4KoSBOr5JHKQrd8fZ4MCSKl8fSDHrlw5ras1AaUlFvqRHLW5GHJw/rctY9sLrvNVroa1qV7SUNtLHSWo4FHu97C1OEhDkqQ4vMrqHFoxSc=
-  - secure: qiAzbRqyI4lx7OaMkAzCLKczJruVnOYqj2t9vbWMojwxWYBXe+WEVknrS50cAq0Cf3gvMrBFL7roNtGmf9Q8YUlyYcMEI2ZyJQWI8JSC7+EztKXKmPGbvUHd144IplT7nQSNLgkxgEfo6zQsrZYloeZZLmo4FTwRRAUpPBJ/Srk=
-  - secure: EbEABi1NpNV3Uj4wpZ0S//d1n5DFQJQXHp2Po/aqzt5eoFI1Ox0BtSe6RZSaw2DDWbayfMuX61L4kiEX1m9ln9rENCp6xPxOKZOa4pgMjxRXax7m5aWRbXb1DxBUwf7ez+WHP+tnIMZUD9axZlxsfQmyeJowx4lgTzbtuN0qFBM=
-  - secure: WpmIBdrctRpFXwH5wAeSIt1jjlzGLzQ4xK67P2htdq5oJ318tJIN2nOMCMEkyeB/xiyK95c8C/40IHYNfzg69b68rBiVZwOQ+e6O9fkP0rJlHAQeCg7kAw5IBfvNfVtRHi7q+Yp0MGYXRVZg1x+5g4Z1lGJGst4JtpvXhTGoj+Q=
-  - secure: peQZ/79gBOnPqG0UZ62enI+Ny823uion0V3bOyGKlqeypXcA7VyMM2AKGr/F5Yz4wyDH1Ayt3eEY7KNm2Ud44R/FpGvJ5h+Wr1GxHnmVFtLewSyLHHB+qS6AHKPsmKzJr48z9OGlDuhYhUACoV3qL61lMRSq/DKGEWvUaSVBrJ0=
-  - secure: g33NRFXX+QZ+33RJWFhAB5DKrhN0xokH51TS7THYVxdAmXtT9FTnjpg8BWjt8jFslIeFele6yskw1mZ+GaCbCswo/u/Mj6ph+1dNc0uJ81NWL5jTh+vNhkRG/DVuxFMZajHQ+PT+ntYpGsb7hkA0u4bURnakn30NKFUt2fZSEH8=
-  - secure: TB6eW60s2F4a2HP4rackGgxPUIgdpucSRAJj6c6WERWdUysB2T75/VzKQE3JvYG+L5IKfl60C5hcxdERjPIC5bhIG+Xyo5OV9x5fuYPIgPqsoC0TZqImOn0hUZZAqyrtN8GF91sIIT26UbBbYtYE2RfNJ3nnDB596QSVrKkS8Js=
-  - secure: IHSrXacYVRnqTqJSKQQIwWfGHD/XYXNH0547V2i/AeM7nK3fdU5xLBoe9+rDWB+tWlB7UiIqqlKUw3erx6VmD8iIxw458mCY/EeYnOJK63AWKldPw41/z0+IUnzyahtOoYNlH9t08x75OVRyCkhrtfAujKUDkO4HSJti56Inbdk=
-  - secure: sLpFpxbiQAxFwcu/PUoJfYv0qVqHpUHU8KY2qeCfDLbcCSnk5R0u/B0VQKckqplwrd26Myfksqu8OqBuUUk/0fjqFyxplSMpbAPf7fjsCmeIDBM8F1DGANEFP75fhysXwP5cI0N+4mN82pNWuEvXp2OGNF2x/n/AnxghneUO7gk=

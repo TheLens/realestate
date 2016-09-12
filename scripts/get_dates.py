@@ -2,11 +2,10 @@
 
 """Get date range for initialize script."""
 
-import os
 from datetime import timedelta
 
-from realestate.db import Detail
-from realestate import log, YESTERDAY_DATE, OPENING_DATE, SESSION
+from www.db import Detail
+from www import log, YESTERDAY_DATE, OPENING_DATE, SESSION
 
 
 class GetDates(object):

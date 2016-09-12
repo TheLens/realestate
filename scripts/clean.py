@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 """
-Has two classes: `Join` and `Clean`.
+This has two classes: `Join` and `Clean`.
+
 `Join` joins each of the four sale tables (details, vendors, vendees and
 locations) on their document ID and commits each sale to the `cleaned` table.
 
@@ -9,40 +10,38 @@ locations) on their document ID and commits each sale to the `cleaned` table.
 utilizes `libraries.py`, a collection of items to check for.
 """
 
-import os
 import re
-from sqlalchemy import insert, func, cast, Text
 
-from realestate.db import (
+from sqlalchemy import insert, func, cast, Text, create_engine
+
+from scripts.libraries import Library
+from www import log, USER, SESSION, ENGINE_STRING
+from www.db import (
     Cleaned,
     Detail,
     Location,
     Vendee,
-    Vendor
-)
-from realestate.lib.libraries import Library
-from realestate import log, USER, DATABASE_NAME
+    Vendor)
 
 
 class Join(object):
-
-    '''JOIN the four individual tables.'''
+    """JOIN the four individual tables."""
 
     def __init__(self, initial_date=None, until_date=None):
-        '''Initialize self variables and establish connection to database.'''
-
+        """Initialize self variables and establish connection to database."""
         self.initial_date = initial_date
         self.until_date = until_date
 
-    def get_details(self):
-        '''Returns SQL query of details table for given date range.'''
+        self.engine = create_engine(ENGINE_STRING)
 
+    def get_details(self):
+        """Return SQL query of details table for given date range."""
         subquery = SESSION.query(
             Detail
         ).filter(
-            Detail.document_recorded >= '%s' % self.initial_date
+            Detail.document_recorded >= '{}'.format(self.initial_date)
         ).filter(
-            Detail.document_recorded <= '%s' % self.until_date
+            Detail.document_recorded <= '{}'.format(self.until_date)
         ).subquery()
 
         log.debug(subquery)
@@ -52,14 +51,13 @@ class Join(object):
         return subquery
 
     def get_vendees(self):
-        '''Returns SQL query of vendees table for given date range.'''
-
+        """Return SQL query of vendees table for given date range."""
         log.debug('get_vendees')
 
         subquery = SESSION.query(
             Vendee.document_id,
             func.string_agg(
-                cast(Vendee.vendee_firstname, Text) + ' ' +
+                cast(Vendee.vendee_firstname, Text) + " " +
                 cast(Vendee.vendee_lastname, Text),
                 ', '
             ).label('buyers')
@@ -74,14 +72,13 @@ class Join(object):
         return subquery
 
     def get_vendors(self):
-        '''Returns SQL query of vendors table for given date range.'''
-
+        """Return SQL query of vendors table for given date range."""
         log.debug('get_vendors')
 
         subquery = SESSION.query(
             Vendor.document_id,
             func.string_agg(
-                cast(Vendor.vendor_firstname, Text) + ' ' +
+                cast(Vendor.vendor_firstname, Text) + " " +
                 cast(Vendor.vendor_lastname, Text),
                 ', '
             ).label('sellers')
@@ -96,8 +93,7 @@ class Join(object):
         return subquery
 
     def get_locations(self):
-        '''Returns SQL query of locations table for given date range.'''
-
+        """Return SQL query of locations table for given date range."""
         log.debug('get_locations')
 
         subquery = SESSION.query(
@@ -136,8 +132,7 @@ class Join(object):
         return subquery
 
     def join_subqueries(self):
-        '''Runs a JOIN on subqueries.'''
-
+        """Run a JOIN on subqueries."""
         log.debug('join_subqueries')
 
         subq_vendees = self.get_vendees()
@@ -159,7 +154,7 @@ class Join(object):
             subq_location.c.location_publish,
             subq_location.c.address,
             subq_location.c.location_info
-            # todo: Once SQLAlchemy supports WITHIN GROUP, uncomment these.
+            # TODO: Once SQLAlchemy supports WITHIN GROUP, uncomment these.
             # subq_location.c.zip_code,
             # subq_location.c.latitude,
             # subq_location.c.longitude,
@@ -171,9 +166,9 @@ class Join(object):
         ).join(
             subq_location
         ).filter(
-            Detail.document_recorded >= '%s' % self.initial_date
+            Detail.document_recorded >= '{}'.format(self.initial_date)
         ).filter(
-            Detail.document_recorded <= '%s' % self.until_date
+            Detail.document_recorded <= '{}'.format(self.until_date)
         ).all()
 
         log.debug('len(query): %d', len(query))
@@ -183,33 +178,38 @@ class Join(object):
         return query
 
     def get_rows_from_query(self):
-        '''Convert query result to row of dicts.'''
-
+        """Convert query result to row of dicts."""
         log.debug('get_rows_from_query')
 
         query = self.join_subqueries()
 
         rows = []
+
         for row in query:
-            dict_val = row.__dict__
-            del dict_val['_labels']  # todo: necessary?
-            # del dict_val['document_id']  # leave for now bc of ___ todo
+            # dict_val = row.__dict__  # Old
+            dict_val = dict(zip(row.keys(), row))  # New. TODO: Check it works.
+
             rows.append(dict_val)
 
-        log.debug('len(rows): %d', len(rows))
+        log.debug('len(rows): {}'.format(len(rows)))
 
         return rows
 
     def add_location_fields_temp_hack(self, incoming_rows):
-        '''
-        SQLAlchemy doesn't yet support WITHIN GROUP, which is necessary for
+        """
+        The SQLAlchemy doesn't yet support WITHIN GROUP.
+
+        This is necessary for
         using mode() aggregate function in PostgreSQL 9.4 (see get_locations()
         for normal use). So instead, this hack will temporary do that job.
-        '''
+        """
+        # TODO: SQLAlchemy 1.1
+        # func.mode(zip_code).within_group(zip_code),
 
-        if USER == 'thomasthoren':
-            sql = """SELECT
-                document_id,
+        # TODO: Remove hack.
+        if USER == 'tom':
+            sql = """
+            SELECT document_id,
                 -- mode(zip_code) AS zip_code,
                 -- mode(latitude) AS latitude,
                 -- mode(longitude) AS longitude,
@@ -233,6 +233,19 @@ class Join(object):
                 -- mode() WITHIN GROUP (ORDER BY neighborhood) AS neighborhood
             FROM locations
             GROUP BY document_id"""
+
+        # sql = """
+        #     SELECT document_id,
+        #         mode(zip_code) AS zip_code,
+        #         mode(latitude) AS latitude,
+        #         mode(longitude) AS longitude,
+        #         mode(neighborhood) AS neighborhood
+        #         -- mode() WITHIN GROUP (ORDER BY zip_code) AS zip_code,
+        #         -- mode() WITHIN GROUP (ORDER BY latitude) AS latitude,
+        #         -- mode() WITHIN GROUP (ORDER BY longitude) AS longitude,
+        #         -- mode() WITHIN GROUP (ORDERBY neighborhood) AS neighborhood
+        #     FROM locations
+        #     GROUP BY document_id"""
 
         result = self.engine.execute(sql)
 
@@ -265,21 +278,20 @@ class Join(object):
 
 
 class Clean(object):
-
-    '''Clean the joined tables and commit to cleaned.'''
+    """Clean the joined tables and commit to cleaned."""
 
     def __init__(self, initial_date=None, until_date=None):
-        '''Initialize self variables and establish connection to database.'''
+        """Initialize self variables and establish connection to database."""
+        self.engine = create_engine(ENGINE_STRING)
 
         self.initial_date = initial_date
         self.until_date = until_date
 
-        log.debug('self.initial_date: %s', self.initial_date)
-        log.debug('self.until_date: %s', self.until_date)
+        log.debug('self.initial_date: {}'.format(self.initial_date))
+        log.debug('self.until_date: {}'.format(self.until_date))
 
     def update_cleaned_geom(self):
-        '''Update the PostGIS geom field in the cleaned table.'''
-
+        """Update the PostGIS geom field in the cleaned table."""
         log.debug('Update Cleaned geometry')
 
         sql = """UPDATE cleaned
@@ -289,14 +301,12 @@ class Clean(object):
 
     @staticmethod
     def prep_rows(rows):
-        '''Returns all rows in Titlecase.'''
-
+        """Return all rows in Titlecase."""
         # This loop returns text that is not all-caps, but is still flawed:
         # to standardize upper and lowercases
         for row in rows:
             # Capitalizes the first letter in each word.
             # Results in words like Llc, Xiv, etc
-
             row['sellers'] = row['sellers'].title()
             row['buyers'] = row['buyers'].title()
             row['address'] = row['address'].title()
@@ -307,8 +317,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_acronyms(rows):
-        '''Corrects acronyms.'''
-
+        """Correct acronyms."""
         # This loop scans for the above problem words and replaces them with
         # their substitutes:
         for row in rows:
@@ -336,8 +345,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_mcnames(rows):
-        '''Corrects Mc___ names.'''
-
+        """Correct Mc___ names."""
         for row in rows:
             # Check for occurences of problematic "Mc" names. Corrections
             # assume that the letter after should be capitalized:
@@ -354,8 +362,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_abbreviations(rows):
-        '''Corrects abbreviations.'''
-
+        """Correct abbreviations."""
         for row in rows:
             # Check for problematic abbreviations:
             for abbreviation in Library().abbreviations:
@@ -374,8 +381,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_adress_abbreviations(rows):
-        '''Corrects address abbreviations.'''
-
+        """Correct address abbreviations."""
         for row in rows:
             # Fix address abbreviations (for AP style purposes)
             for address_abbreviation in Library().streets:
@@ -393,8 +399,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_middle_initials(rows):
-        '''Corrects middle initials.'''
-
+        """Correct middle initials."""
         for row in rows:
             for middle_initial in Library().middle_initials:
                 middle_initial0 = middle_initial[0]
@@ -416,8 +421,7 @@ class Clean(object):
 
     @staticmethod
     def check_for_neighborhood_names(rows):
-        '''Corrects neighborhood names.'''
-
+        """Correct neighborhood names."""
         for row in rows:
             for neighborhood_name in Library().neighborhood_names:
                 name0 = neighborhood_name[0]
@@ -429,8 +433,7 @@ class Clean(object):
 
     @staticmethod
     def regex_subs(rows):
-        '''More than simple find-and-replace tasks.'''
-
+        """More than simple find-and-replace tasks."""
         for row in rows:
             # Must do regex for "St" and others. Imagine "123 Star St".
             # Scanning for " St" in the above loop would catch the start of
@@ -446,8 +449,7 @@ class Clean(object):
 
     @staticmethod
     def convert_amounts(rows):
-        '''Convert string, with or without $ and commas, to rounded int.'''
-
+        """Convert string, with or without $ and commas, to rounded int."""
         for row in rows:
             row['amount'] = str(row['amount'])
             row['amount'] = re.sub(r'\$', r'', row['amount'])  # remove the $
@@ -459,8 +461,7 @@ class Clean(object):
         return rows
 
     def clean_rows(self, rows):
-        '''Run rows through all cleaning methods.'''
-
+        """Run rows through all cleaning methods."""
         rows = self.check_for_acronyms(rows)
         rows = self.check_for_mcnames(rows)
         rows = self.check_for_abbreviations(rows)
@@ -487,8 +488,7 @@ class Clean(object):
 
     @staticmethod
     def clean_punctuation(rows):
-        '''Fix punctuation (leading/trailing spaces or commas).'''
-
+        """Fix punctuation (leading/trailing spaces or commas)."""
         for row in rows:
             row['sellers'] = row['sellers'].strip(
                 ' ,'
@@ -514,8 +514,7 @@ class Clean(object):
 
     @staticmethod
     def other_stuff_addresses(rows):
-        '''Runs checks for addresses.'''
-
+        """Run checks for addresses."""
         # log.debug(rows)
 
         for row in rows:
@@ -538,7 +537,7 @@ class Clean(object):
                                 individual_address_text +
                                 ', ' +
                                 j.strip())
-                    except Exception, error:
+                    except Exception as error:
                         log.exception(error, exc_info=True)
                         continue
 
@@ -559,8 +558,7 @@ class Clean(object):
 
     @staticmethod
     def other_stuff_location_info(rows):
-        '''Runs checks for location_info.'''
-
+        """Run checks for location_info."""
         for row in rows:
             # To remove district ordinal
             row['location_info'] = row['location_info'].replace('1st', '1')
@@ -591,7 +589,7 @@ class Clean(object):
                                     individiual_location_text +
                                     ', ' +
                                     j.strip())
-                    except Exception, error:
+                    except Exception as error:
                         log.exception(error, exc_info=True)
                         continue
 
@@ -610,8 +608,7 @@ class Clean(object):
         return rows
 
     def commit_rows(self, rows):
-        '''Commits JOIN-ed rows to the cleaned table.'''
-
+        """Commit JOIN-ed rows to the cleaned table."""
         log.debug('Committing %d rows', len(rows))
 
         for count, row in enumerate(rows):
@@ -622,7 +619,7 @@ class Clean(object):
                     i = i.values(row)
                     SESSION.execute(i)
                     SESSION.flush()
-            except Exception, error:
+            except Exception as error:
                 log.debug('count: %s', count)
                 log.exception(error, exc_info=True)
                 SESSION.rollback()
@@ -634,10 +631,9 @@ class Clean(object):
         # session.close()
 
     def main(self):
-        '''Run Join() and Clean() scripts.'''
-
+        """Run Join() and Clean() scripts."""
         log.info('Clean')
-        print 'Cleaning...'
+        print('Cleaning...')
 
         log.debug('get_rows_from_query')
         rows = Join(
@@ -661,3 +657,14 @@ class Clean(object):
 
 if __name__ == '__main__':
     Clean().main()
+
+    # TODO
+    # rows = Join(
+    #     initial_date="2016-07-13",
+    #     until_date="2016-07-13"
+    # ).get_rows_from_query()
+
+    # rows2 = Join(
+    #     initial_date="2016-07-13",
+    #     until_date="2016-07-13"
+    # ).add_location_fields_temp_hack(rows)
