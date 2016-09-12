@@ -1,23 +1,25 @@
 # Directories
-backups
-data
-logs
-misc
-www/static/pictures
-tests/data
-tests/misc
+.tox/
+backups/
+data/
+logs/
+misc/
+www/static/pictures/
+tests/data/
+tests/misc/
 
 # Files
 scripts/phantomjs
 scripts/ngrok
 scripts/wires
 
-*.Python
-*.txt
-*.log
-*.pyc
 *.DS_Store
-*.sql
+*.Python
 *.bmml
+*.coverage
 *.csv
+*.log
 *.out
+*.pyc
+*.sql
+*.txt
