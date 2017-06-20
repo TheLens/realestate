@@ -15,28 +15,28 @@ USER = getpass.getuser()
 PROJECT_DIR = os.path.abspath(
     os.path.join(os.path.dirname(__file__), '..'))
 
-GEO_DIR = "{}/data/geo".format(PROJECT_DIR)
+GEO_DIR = '{}/data/geo'.format(PROJECT_DIR)
 
 if USER == 'ubuntu':  # Server
     BACKUP_DIR = '/backups/realestate'
 
-    S3_URL = "https://s3-us-west-2.amazonaws.com/lensnola/realestate"
+    S3_URL = 'https://s3-us-west-2.amazonaws.com/lensnola/realestate'
 
     # JavaScript
-    LENS_JS = "{}/js/lens.js".format(S3_URL)
-    INDEX_JS = "{}/js/index.js".format(S3_URL)
-    SEARCH_AREA_JS = "{}/js/search-area.js".format(S3_URL)
-    SEARCH_JS = "{}/js/search.js".format(S3_URL)
-    MAP_JS = "{}/js/map.js".format(S3_URL)
-    SALE_JS = "{}/js/sale.js".format(S3_URL)
-    DASHBOARD_JS = "{}/js/dashboard.js".format(S3_URL)
-    NEIGHBORHOODS_TOPO = "{}/js/neighborhoods-topo.js".format(S3_URL)
+    LENS_JS = '{}/js/lens.js'.format(S3_URL)
+    INDEX_JS = '{}/js/index.js'.format(S3_URL)
+    SEARCH_AREA_JS = '{}/js/search-area.js'.format(S3_URL)
+    SEARCH_JS = '{}/js/search.js'.format(S3_URL)
+    MAP_JS = '{}/js/map.js'.format(S3_URL)
+    SALE_JS = '{}/js/sale.js'.format(S3_URL)
+    DASHBOARD_JS = '{}/js/dashboard.js'.format(S3_URL)
+    NEIGHBORHOODS_TOPO = '{}/js/neighborhoods-topo.js'.format(S3_URL)
 
     # CSS
-    LENS_CSS = "{}/css/lens.css".format(S3_URL)
-    REALESTATE_CSS = "{}/css/realestate.css".format(S3_URL)
-    BANNER_CSS = "{}/css/banner.css".format(S3_URL)
-    TABLE_CSS = "{}/css/table.css".format(S3_URL)
+    LENS_CSS = '{}/css/lens.css'.format(S3_URL)
+    REALESTATE_CSS = '{}/css/realestate.css'.format(S3_URL)
+    BANNER_CSS = '{}/css/banner.css'.format(S3_URL)
+    TABLE_CSS = '{}/css/table.css'.format(S3_URL)
 
     RELOADER = False
     DEBUG = False
@@ -48,19 +48,19 @@ else:  # Local
 
     # JavaScript
     LENS_JS = '/static/js/lens.js'
-    INDEX_JS = "/static/js/index.js"
+    INDEX_JS = '/static/js/index.js'
     SEARCH_AREA_JS = '/static/js/search-area.js'
-    SEARCH_JS = "/static/js/search.js"
-    MAP_JS = "/static/js/map.js"
-    SALE_JS = "/static/js/sale.js"
-    DASHBOARD_JS = "/static/js/dashboard.js"
-    NEIGHBORHOODS_TOPO = "/static/js/neighborhoods-topo.min.js"
+    SEARCH_JS = '/static/js/search.js'
+    MAP_JS = '/static/js/map.js'
+    SALE_JS = '/static/js/sale.js'
+    DASHBOARD_JS = '/static/js/dashboard.js'
+    NEIGHBORHOODS_TOPO = '/static/js/neighborhoods-topo.min.js'
 
     # CSS
-    LENS_CSS = "/static/css/lens.css"
-    REALESTATE_CSS = "/static/css/realestate.css"
-    BANNER_CSS = "/static/css/banner.css"
-    TABLE_CSS = "/static/css/table.css"
+    LENS_CSS = '/static/css/lens.css'
+    REALESTATE_CSS = '/static/css/realestate.css'
+    BANNER_CSS = '/static/css/banner.css'
+    TABLE_CSS = '/static/css/table.css'
 
     RELOADER = True
     DEBUG = True
@@ -101,7 +101,13 @@ SESSION = sn()  # Import this to any files that need database
 
 # Logging
 LOG_DIR = '{}/logs'.format(PROJECT_DIR)
-LOG_FILE = "{}/realestate.log".format(LOG_DIR)
+LOG_FILE = '{}/realestate.log'.format(LOG_DIR)
+
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+if not os.path.isfile(LOG_FILE):
+    open(LOG_FILE, 'a').close()
 
 log = logging.getLogger(__name__)
 log.setLevel(LOGGING_LEVEL)
