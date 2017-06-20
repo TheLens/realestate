@@ -1,5 +1,5 @@
 
-"""Unit tests for www/utils.py."""
+"""Unit tests for www/results_language.py."""
 
 import copy
 import mock

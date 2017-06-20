@@ -1,5 +1,5 @@
 
-"""Unit tests for www/utils.py."""
+"""Unit tests for scripts/initialize.py."""
 
 import mock
 import unittest
