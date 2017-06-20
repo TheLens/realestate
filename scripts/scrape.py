@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Scrape land record data.
+Scrape property sales records from the Land Records Division.
 
 It uses [Selenium](http://github.com/SeleniumHQ/selenium/tree/master/py) and
 [PhantomJS](http://phantomjs.org/) to save the HTML.
@@ -32,7 +32,7 @@ from docopt import docopt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-from scripts.mail import Mail
+# from scripts.mail import Mail
 from www import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
 
 # Uncomment for local development and testing:
@@ -514,12 +514,13 @@ class Scrape(object):
         except Exception as error:
             log.error(error, exc_info=True)
 
-            m = Mail(
-                subject="Error running Land Record's scrape.py script",
-                body='Check the log for more details.',
-                frm='lens.real.estate.scraper@gmail.com',
-                to=['tthoren@thelensnola.org'])
-            m.send_with_attachment(files=[LOG_FILE])
+            # TODO: Switch to Slack
+            # m = Mail(
+            #     subject="Error running Land Record's scrape.py script",
+            #     body='Check the log for more details.',
+            #     frm='lens.real.estate.scraper@gmail.com',
+            #     to=['tthoren@thelensnola.org'])
+            # m.send_with_attachment(files=[LOG_FILE])
         finally:
             self.logout()
             self.driver.close()
@@ -567,7 +568,6 @@ def cli_has_errors(arguments):
         # print("Must pick both ends of a date range bound.")
         return True
 
-    # All good
     return False
 
 

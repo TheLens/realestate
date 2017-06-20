@@ -27,7 +27,6 @@ from scripts.get_dates import GetDates
 # from scripts.mail import Mail
 from scripts.publish import Publish
 # from scripts.check_temp_status import CheckTemp
-# from scripts.email_template import EmailTemplate
 from www import log  # LOG_DIR, OPENING_DAY
 
 

@@ -6,7 +6,6 @@ Receive sale HTML, hands off to parse.py, which returns structured data.
 This then commits the returned structured data.
 """
 
-# import os
 import glob
 from datetime import datetime, timedelta
 from sqlalchemy import insert
@@ -49,7 +48,12 @@ class Build(object):
         self.list_parse('LocationParser', 'Location')
 
     def dict_parse(self, parser_name, table):
-        """Parse data structured in a dict, which is how `details` returns."""
+        """Parse data structured in a dict, which is how `details` returns.
+
+        Args:
+            parsername: [description]
+            table: [description]
+        """
         initial_datetime = datetime.strptime(
             self.initial_date, '%Y-%m-%d').date()
         until_datetime = datetime.strptime(self.until_date, '%Y-%m-%d').date()

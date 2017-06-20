@@ -11,17 +11,17 @@ from bs4 import BeautifulSoup
 
 from www.utils import (
     convert_amount)
-from www import log
+# from www import log
 
 
 class AllPurposeParser(object):
     """Parsing that is not specific to any table."""
 
     def __init__(self, html_path):
-        """
-        Receive path to HTML file.
+        """Initialize the class.
 
-        :param html_path: A path to a sale file. Ex. '/path/OPR123456789.html'
+        Args:
+            html_path (str): The file path to a property sale HTML file.
         """
         self.document_id = self.get_document_id(html_path)
 
@@ -30,9 +30,11 @@ class AllPurposeParser(object):
         """
         Parse HTML and return the document ID.
 
-        :param html_path: A path to a sale HTML. Ex. '/path/OPR123456789.html'
-        :type html_path: string
-        :returns: A string containing the document ID. Ex. 'OPR123456789'
+        Args:
+            html_path (str): The file path to a property sale HTML file.
+
+        Returns:
+            str: The document ID. Ex. 'OPR123456789'
         """
         doc_id = os.path.basename(html_path).split('.')[0]
 
@@ -97,17 +99,17 @@ class DetailParser(object):
 
     @staticmethod
     def parse_rows(soup):
-        """
-        Receive BeautifulSoup object for details table and returns the <tr>
-        rows.
+        """Return the HTML details table's rows (`<tr>`).
 
-        :param soup: A BeautifulSoup object for the details table.
-        :type soup: object
-        :returns: A list of the details table's <tr> rows.
+        Args:
+            soup (class:`BeautifulSoup`): The HTML details table.
+
+        Returns:
+            list: The details HTML table's rows (`<tr>`).
         """
         rows = soup.find(
             'table',
-            id="ctl00_cphNoMargin_f_oprTab_tmpl0_documentInfoList"
+            id='ctl00_cphNoMargin_f_oprTab_tmpl0_documentInfoList'
         ).find_all('tr')
 
         return rows
@@ -141,10 +143,7 @@ class DetailParser(object):
 
         :returns: A dict containing all of the details table values.
         """
-        log.debug('form_dict')
-
         dict_output = self.__dict__
-
         del dict_output['rows']
 
         return dict_output
@@ -172,12 +171,13 @@ class VendorParser(object):
 
     @staticmethod
     def parse_rows(soup):
-        """
-        Receive BS object for vendors table and returns the <tr> rows.
+        """Return the HTML vendors table's rows (`<tr>`).
 
-        :param soup: A BeautifulSoup object for the vendors table.
-        :type soup: object
-        :returns: A list of the vendors table's <tr> rows.
+        Args:
+            soup (class:`BeautifulSoup`): The HTML vendors table.
+
+        Returns:
+            list: The vendors HTML table's rows (`<tr>`).
         """
         rows = soup.find(
             'table',
@@ -187,7 +187,11 @@ class VendorParser(object):
         return rows
 
     def form_list(self):
-        """Form list of dicts for vendors HTML."""
+        """Form list of dicts for vendors HTML. TODO.
+
+        Returns:
+            list: TODO
+        """
         list_output = []
 
         for i, row in enumerate(self.rows):
@@ -207,7 +211,15 @@ class VendorParser(object):
 
     @staticmethod
     def get_field(row, cell_id):
-        """Make corrections to dict values."""
+        """Make corrections to dict values. TODO.
+
+        Args:
+            row (class:`BeautifulSoup`): An HTML table row (`<tr>`).
+            cell_id (int? str?): TODO.
+
+        Returns:
+            list: TODO.
+        """
         cells = row.find_all('span')
         cell = cells[cell_id]
 
@@ -242,17 +254,17 @@ class VendeeParser(object):
 
     @staticmethod
     def parse_rows(soup):
-        """
-        Receives BeautifulSoup object for vendees table and returns the <tr>
-        rows.
+        """Return the HTML vendees table's rows (`<tr>`).
 
-        :param soup: A BeautifulSoup object for the vendees table.
-        :type soup: object
-        :returns: A list of the vendees table's <tr> rows.
+        Args:
+            soup (class:`BeautifulSoup`): The HTML vendees table.
+
+        Returns:
+            list: The vendee HTML table's rows (`<tr>`).
         """
         rows = soup.find(
             'table',
-            id="ctl00_cphNoMargin_f_oprTab_tmpl0_Datalist1"
+            id='ctl00_cphNoMargin_f_oprTab_tmpl0_Datalist1'  # TODO: Extract.
         ).find_all('tr')
 
         return rows
@@ -313,21 +325,18 @@ class LocationParser(object):
 
     @staticmethod
     def parse_rows(soup):
-        """
-        Receive BeautifulSoup object for locations table and returns the <tr>
-        rows.
+        """Return the HTML locations table's rows (`<tr>`).
 
-        :param soup: A BeautifulSoup object for the locations table.
-        :type soup: object
-        :returns: A list of the locations table's <tr> rows.
+        Args:
+            soup (class:`BeautifulSoup`): The HTML locations table.
+
+        Returns:
+            list: The locations HTML table's rows (`<tr>`).
         """
         rows = soup.find(
             'table',
             id="ctl00_cphNoMargin_f_oprTab_tmpl1_ComboLegals"
         ).find_all('tr')
-
-        # log.debug('rows:')
-        # log.debug(rows)
 
         return rows
 
@@ -358,8 +367,7 @@ class LocationParser(object):
                 'cancel_status_unit': self.get_cancel_status_unit(table_no),
                 'freeform_legal': self.get_freeform_legal(table_no),
                 'document_id': self.document_id}
-            # log.debug('dict_output:')
-            # log.debug(dict_output)
+
             list_output.append(dict_output)
 
         return list_output
@@ -372,7 +380,7 @@ class LocationParser(object):
         :param value: str. The value to convert.
         :type value: str
         :returns: str. The value as a string, and maybe an empty string if it
-        matches certain criteria.
+            matches certain criteria.
         """
         if not isinstance(value, str):
             value = str(value.string)
@@ -384,13 +392,14 @@ class LocationParser(object):
 
     def get_field(self, row_index, cell_index, table_no):
         """
-        Receive the table number and row and cell indeces. Return the field
-        value for that location.
+        Receive the table number and row and cell indeces.
+
+        Return the field value for that location.
 
         :param row_index: Int. Which row in this particular table in the HTML.
         :type row_index: int
         :param cell_index: Int. Which cell in this particular row in this
-        particular table in the HTML.
+            particular table in the HTML.
         :type cell_index: int
         :param table_notable_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -434,7 +443,7 @@ class LocationParser(object):
 
     def get_district(self, table_no):
         """
-        Receives the table number and returns the district field value.
+        Receive the table number and returns the district field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -449,7 +458,7 @@ class LocationParser(object):
 
     def get_square(self, table_no):
         """
-        Receives the table number and returns the square field value.
+        Receive the table number and returns the square field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -464,7 +473,7 @@ class LocationParser(object):
 
     def get_street_number(self, table_no):
         """
-        Receives the table number and returns the street number field value.
+        Receive the table number and returns the street number field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -479,7 +488,7 @@ class LocationParser(object):
 
     def get_address(self, table_no):
         """
-        Receives the table number and returns the address field value.
+        Receive the table number and returns the address field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -490,13 +499,11 @@ class LocationParser(object):
 
         address = self.get_field(row_index, cell_index, table_no)
 
-        # log.debug(address)
-
         return address
 
     def get_unit(self, table_no):
         """
-        Receives the table number and returns the unit field value.
+        Receive the table number and returns the unit field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -511,7 +518,7 @@ class LocationParser(object):
 
     def get_weeks(self, table_no):
         """
-        Receives the table number and returns the weeks field value.
+        Receive the table number and returns the weeks field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -525,14 +532,13 @@ class LocationParser(object):
         return weeks
 
     def get_cancel_status_unit(self, table_no):
-        """
-        Receives the table number and returns the first cancel status field
-        value.
+        """Get the first cancel status field value.
 
-        :param table_no: Int. Which locations table in the HTML.
-        :type table_no: int
-        :returns: String. The first cancel status listed in this particular
-        table.
+        Args:
+            table_no (int): The specific locations table in the HTML.
+
+        Returns:
+            str: The first cancel status listed in this particular table.
         """
         row_index = 6
         cell_index = 5
@@ -543,7 +549,7 @@ class LocationParser(object):
 
     def get_freeform_legal(self, table_no):
         """
-        Receives the table number and returns the freeform legal field value.
+        Receive the table number and returns the freeform legal field value.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -557,14 +563,13 @@ class LocationParser(object):
         return freeform_legal
 
     def get_cancel_status_lot(self, table_no):
-        """
-        Receives the table number and returns the second cancel status field
-        value.
+        """Get the second cancel status field value.
 
-        :param table_no: Int. Which locations table in the HTML.
-        :type table_no: int
-        :returns: String. The second cancel status listed in this particular
-        table.
+        Args:
+            table_no (int): The specific locations table in the HTML.
+
+        Returns:
+            str: The second cancel status listed in this particular table.
         """
         row_index = 3
         overall_index = table_no * 10 + row_index
@@ -582,9 +587,10 @@ class LocationParser(object):
 
     def get_lot(self, table_no):
         """
-        Receives the table number and returns the lot field value. Includes
-        checks for when there are "Lot from" and "Lot to" fields, or just a
-        single "Lot" field.
+        Receive the table number and returns the lot field value.
+
+        Includes checks for when there are "Lot from" and "Lot to" fields,
+        or just a single "Lot" field.
 
         :param table_no: Int. Which locations table in the HTML.
         :type table_no: int
@@ -611,10 +617,3 @@ class LocationParser(object):
                 lot = ""
 
         return lot
-
-# if __name__ == '__main__':
-#     # html_path = (
-#     #     '%s/' % DATA_DIR +
-#     #     'raw/2014-02-18/form-html/OPR288694480.html')
-#     # print(LocationParser(html_path).form_list())
-#     pass
