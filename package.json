@@ -1,0 +1,29 @@
+{
+  "name": "realestate",
+  "version": "1.0.0",
+  "description": "https://vault.thelensnola.org/realestate",
+  "main": "",
+  "directories": {},
+  "scripts": {
+    "coverage": "coverage report",
+    "coverage:watch": "watch 'npm run coverage' scripts/ tests/ www/",
+    "docs": "cd ~/projects/realestate/docs/ && make html",
+    "docs:watch": "watch 'npm run docs' docs/ scripts/ tests/ www/ --ignoreDirectoryPattern=/docs\/build\/i",
+    "tests": "coverage run --source=scripts,tests,www -m unittest",
+    "tests:watch": "watch 'npm run tests' scripts/ tests/ www/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheLens/realestate.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TheLens/realestate/issues"
+  },
+  "homepage": "https://github.com/TheLens/realestate#readme",
+  "devDependencies": {
+    "watch": "^1.0.2"
+  }
+}
