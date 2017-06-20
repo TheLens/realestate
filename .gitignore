@@ -21,5 +21,9 @@ scripts/wires
 *.log
 *.out
 *.pyc
+*.scpt
 *.sql
 *.txt
+
+.python-version
+package-lock.json
