@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>realestate &#8212; Real estate 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Real estate 0.0.1 documentation" href="#" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="realestate">
+<h1>realestate<a class="headerlink" href="#realestate" title="Permalink to this headline">¶</a></h1>
+<p>A web application to scrape, store and search through New Orleans property sales.</p>
+<p><a class="reference external" href="https://vault.thelensnola.org/realestate/">https://vault.thelensnola.org/realestate/</a></p>
+<a class="reference external image-reference" href="https://travis-ci.org/TheLens/realestate"><img alt="https://travis-ci.org/TheLens/realestate.svg?branch=master" src="https://travis-ci.org/TheLens/realestate.svg?branch=master" /></a>
+<a class="reference external image-reference" href="https://coveralls.io/github/TheLens/realestate?branch=master"><img alt="https://coveralls.io/repos/github/TheLens/realestate/badge.svg?branch=master" src="https://coveralls.io/repos/github/TheLens/realestate/badge.svg?branch=master" /></a>
+<ul class="simple">
+<li><a class="reference external" href="https://thelens.github.io/realestate/build/html/">Documentation</a></li>
+<li><a class="reference external" href="https://github.com/TheLens/realestate/issues">Issues</a></li>
+<li><a class="reference external" href="https://coveralls.io/r/TheLens/realestate">Test coverage</a></li>
+<li><a class="reference external" href="https://travis-ci.org/TheLens/realestate">Travis CI builds</a></li>
+</ul>
+<div class="section" id="usage">
+<h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="daily-usage">
+<span id="id1"></span><h3>Daily usage<a class="headerlink" href="#daily-usage" title="Permalink to this headline">¶</a></h3>
+<p>Every day, these two files are run to scrape, clean, geocode and store the previous day&#8217;s property sales. These two lines are summarized in <code class="docutils literal"><span class="pre">scripts/main.sh</span></code>, which is run on a cron job every night.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python scripts/scrape.py
+python scripts/initialize.py
+</pre></div>
+</div>
+</div>
+<div class="section" id="periodic-usage">
+<h3>Periodic usage<a class="headerlink" href="#periodic-usage" title="Permalink to this headline">¶</a></h3>
+<p>Occasionally, due to bugs, password expiration or changes in the Land Records Division website, you will need to scrape and prepare data older than the previous day. You can specify the date range for either command by using command-line arguments.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>python scripts/scrape.py 2016-05-01 2016-05-05      <span class="c1"># &lt;start_date&gt; &lt;end_date&gt; (YYYY-MM-DD)</span>
+python scripts/initialize.py 2016-05-01 2016-05-05  <span class="c1"># &lt;start_date&gt; &lt;end_date&gt; (YYYY-MM-DD)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="setup">
+<h2>Setup<a class="headerlink" href="#setup" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="dependencies">
+<span id="id2"></span><h3>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Python 3.4+</li>
+<li>PostgreSQL 9.3+</li>
+<li>PostGIS 2.1+</li>
+<li>Flask</li>
+<li>SQLAlchemy</li>
+</ul>
+</div>
+<div class="section" id="id3">
+<h3>Setup<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h3>
+<p>When creating a virtual environment for this project, make sure to use Python 3.4 or later.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>mkvirtualenv --python<span class="o">=</span><span class="sb">`</span>which python3<span class="sb">`</span> realestate
+</pre></div>
+</div>
+<p>Install the Python dependencies.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>pip install -r requirements.txt
+</pre></div>
+</div>
+<p>Install the npm dependencies.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>npm install
+</pre></div>
+</div>
+<p>Set these environment variables, either in <code class="docutils literal"><span class="pre">~/.env</span></code>, <code class="docutils literal"><span class="pre">~/.virtualenvs/realestate/bin/postactivate</span></code> or another file that gets sourced.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span><span class="nb">export</span> <span class="nv">REAL_ESTATE_LRD_USERNAME</span><span class="o">=</span>LandRecordsDivisionUsername
+<span class="nb">export</span> <span class="nv">REAL_ESTATE_LRD_PASSWORD</span><span class="o">=</span>LandRecordsDivisionPassword
+<span class="nb">export</span> <span class="nv">REAL_ESTATE_DATABASE_USERNAME</span><span class="o">=</span>DatabaseUsername
+<span class="nb">export</span> <span class="nv">REAL_ESTATE_DATABASE_PASSWORD</span><span class="o">=</span>DatabasePassword
+<span class="nb">export</span> <span class="nv">REAL_ESTATE_GMAIL_USERNAME</span><span class="o">=</span>GmailUsername
+<span class="nb">export</span> <span class="nv">REAL_ESTATE_GMAIL_PASSWORD</span><span class="o">=</span>GmailPassword
+</pre></div>
+</div>
+</div>
+<div class="section" id="tests">
+<h3>Tests<a class="headerlink" href="#tests" title="Permalink to this headline">¶</a></h3>
+<p>Run all back-end (Python) tests.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>npm run tests
+</pre></div>
+</div>
+<p>Determine the code coverage.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>npm run coverage
+</pre></div>
+</div>
+<p>Use <code class="docutils literal"><span class="pre">tox</span></code> to run tests with Python 3.4, which our server uses since it is Ubuntu 14.</p>
+<div class="highlight-bash"><div class="highlight"><pre><span></span>tox
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="modules">
+<h2>Modules<a class="headerlink" href="#modules" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">realestate</a><ul>
+<li><a class="reference internal" href="#usage">Usage</a><ul>
+<li><a class="reference internal" href="#daily-usage">Daily usage</a></li>
+<li><a class="reference internal" href="#periodic-usage">Periodic usage</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#setup">Setup</a><ul>
+<li><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li><a class="reference internal" href="#id3">Setup</a></li>
+<li><a class="reference internal" href="#tests">Tests</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modules">Modules</a></li>
+</ul>
+</li>
+</ul>
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="#">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/index.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, The Lens.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.6</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.9</a>
+      
+      |
+      <a href="_sources/index.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
