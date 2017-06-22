@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Scrape land record data.
+Scrape property sales records from the Land Records Division.
 
 It uses [Selenium](http://github.com/SeleniumHQ/selenium/tree/master/py) and
 [PhantomJS](http://phantomjs.org/) to save the HTML.
@@ -32,7 +32,7 @@ from docopt import docopt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-from scripts.mail import Mail
+# from scripts.mail import Mail
 from www import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
 
 # Uncomment for local development and testing:
@@ -80,6 +80,11 @@ class Scrape(object):
         #     executable_path='{}/scripts/wires'.format(PROJECT_DIR),
         #     capabilities=firefox_capabilities,
         #     timeout=60)
+
+        # Chrome
+        # self.driver = webdriver.Chrome(
+        #     '{}/scripts/chromedriver'.format(PROJECT_DIR),
+        #     service_log_path=LOG_FILE)
 
     # Login page
     def load_homepage(self):
@@ -223,10 +228,14 @@ class Scrape(object):
                                        second_date):
         """Save new most-recent-permanent-date-range/*.html."""
         log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open(
-            "{0}/data/most-recent-permanent-date-range/{1}-{2}.html".format(
-                PROJECT_DIR, first_date, second_date),
-            "wb")
+
+        fn = "{0}/data/most-recent-permanent-date-range/{1}-{2}.html".format(
+            PROJECT_DIR, first_date, second_date)
+
+        if not os.path.exists(os.path.dirname(fn)):
+            os.makedirs(os.path.dirname(fn))
+
+        overall_html_out = open(fn, "wb")
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
@@ -283,8 +292,10 @@ class Scrape(object):
 
     def select_document_type(self):
         """Select SALE document type in dropdown."""
+        # TODO: Assert text is SALE
         document_type_elem = self.driver.find_element_by_id(
-            "cphNoMargin_f_dclDocType_292")
+            "cphNoMargin_f_dclDocType_296")  # SALE
+
         log.info('Select SALE document type')
         document_type_elem.click()
 
@@ -514,12 +525,13 @@ class Scrape(object):
         except Exception as error:
             log.error(error, exc_info=True)
 
-            m = Mail(
-                subject="Error running Land Record's scrape.py script",
-                body='Check the log for more details.',
-                frm='lens.real.estate.scraper@gmail.com',
-                to=['tthoren@thelensnola.org'])
-            m.send_with_attachment(files=[LOG_FILE])
+            # TODO: Switch to Slack
+            # m = Mail(
+            #     subject="Error running Land Record's scrape.py script",
+            #     body='Check the log for more details.',
+            #     frm='lens.real.estate.scraper@gmail.com',
+            #     to=['tthoren@thelensnola.org'])
+            # m.send_with_attachment(files=[LOG_FILE])
         finally:
             self.logout()
             self.driver.close()
@@ -567,7 +579,6 @@ def cli_has_errors(arguments):
         # print("Must pick both ends of a date range bound.")
         return True
 
-    # All good
     return False
 
 
