@@ -81,6 +81,11 @@ class Scrape(object):
         #     capabilities=firefox_capabilities,
         #     timeout=60)
 
+        # Chrome
+        # self.driver = webdriver.Chrome(
+        #     '{}/scripts/chromedriver'.format(PROJECT_DIR),
+        #     service_log_path=LOG_FILE)
+
     # Login page
     def load_homepage(self):
         """Load homepage."""
@@ -223,10 +228,14 @@ class Scrape(object):
                                        second_date):
         """Save new most-recent-permanent-date-range/*.html."""
         log.info('Save new most-recent-permanent-date-range/*.html file')
-        overall_html_out = open(
-            "{0}/data/most-recent-permanent-date-range/{1}-{2}.html".format(
-                PROJECT_DIR, first_date, second_date),
-            "wb")
+
+        fn = "{0}/data/most-recent-permanent-date-range/{1}-{2}.html".format(
+            PROJECT_DIR, first_date, second_date)
+
+        if not os.path.exists(os.path.dirname(fn)):
+            os.makedirs(os.path.dirname(fn))
+
+        overall_html_out = open(fn, "wb")
         overall_html_out.write(date_range_html.encode('utf-8'))
         overall_html_out.close()
 
@@ -283,8 +292,10 @@ class Scrape(object):
 
     def select_document_type(self):
         """Select SALE document type in dropdown."""
+        # TODO: Assert text is SALE
         document_type_elem = self.driver.find_element_by_id(
-            "cphNoMargin_f_dclDocType_292")
+            "cphNoMargin_f_dclDocType_296")  # SALE
+
         log.info('Select SALE document type')
         document_type_elem.click()
 
