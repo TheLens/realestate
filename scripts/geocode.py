@@ -115,7 +115,12 @@ class Geocode(object):
 
         dict_output = {}
 
-        geometry = result[0]['geometry']
+        try:
+            geometry = result[0]['geometry']
+        except IndexError:
+            log.debug(result)
+            raise
+
         address_components = result[0]['address_components']
 
         # TODO: result[1] or more?
