@@ -104,62 +104,69 @@ class Geocode(object):
 
     def process_google_results(self, result):
         """
-        Return a dict of the returned geocoding results.
+        Get values from the geocoding results.
 
-        :param result: The returned results from Google.
-        :type result: JSON
-        :returns: A dict with rating, latitude, longitude and ZIP code.
+        https://developers.google.com/maps/documentation/geocoding/
+            intro#GeocodingResponses
+
+        :param result: Results from Google Geocoding API ("results" list only).
+        :type result: list
+        :returns: This location's rating, latitude, longitude and ZIP code.
         :rtype: dict
         """
-        log.debug('process_google_results')
+        # TODO: Handle more than one returned location in result.
+        #   Could compare accuracies and use that to decide which to store.
+        loc = result[0]
 
-        dict_output = {}
-
-        geometry = result[0]['geometry']
-        address_components = result[0]['address_components']
-
-        # TODO: result[1] or more?
-        dict_output['latitude'] = geometry['location']['lat']
-        dict_output['longitude'] = geometry['location']['lng']
-        dict_output['rating'] = geometry['location_type']
+        values = {
+            'latitude': loc['geometry']['location']['lat'],
+            'longitude': loc['geometry']['location']['lng'],
+            'rating': loc['geometry']['location_type']}
 
         try:
-            dict_output['zip_code'] = address_components[7]['short_name']
-        except Exception:
+            values['zip_code'] = loc['address_components'][7]['short_name']
+        except Exception:  # TODO: More specific error.
             log.info("No zip code.")
-            dict_output['zip_code'] = "None"
+            values['zip_code'] = "None"  # TODO: Leave blank instead?
 
-        return dict_output
+        return values
 
     def geocode(self):
-        """Update latitude, longitude, rating & zip in the locations table."""
-        log.debug('Geocode')
+        """Update latitude, longitude, rating and ZIP in Locations table."""
         print('\nGeocoding...')
 
-        null_query = self.get_rows_with_null_rating()
+        null_rating_rows = self.get_rows_with_null_rating()
 
-        for row in null_query:
+        for row in null_rating_rows:
             full_address = "{0} {1}, New Orleans, LA".format(
                 row.street_number, row.address)
 
-            # Let it fail on any errors so API doesn't continue to get hit.
-            geocode_result = self.gmaps.geocode(full_address)
-            dict_output = self.process_google_results(geocode_result)
+            result = self.gmaps.geocode(full_address)
+
+            if len(result) == 0:
+                log.info('No geocoding results for: {}'.format(full_address))
+
+                # TODO: Need to also note failure so future geocoding scripts
+                #   don't keep trying and failing on the same addresses.
+                #   Possibly update Location's `rating` and/or Cleaned's
+                #   `location_publish` fields.
+                continue
+
+            details = self.process_google_results(result)
 
             try:
                 with SESSION.begin_nested():
                     u = update(Location)
-                    u = u.values(dict_output)
+                    u = u.values(details)
                     u = u.where(Location.document_id == row.document_id)
                     SESSION.execute(u)
                     SESSION.flush()
-            except Exception as error:
+            except Exception as error:  # TODO: Handle specific errors.
                 log.exception(error, exc_info=True)
                 SESSION.rollback()
 
             SESSION.commit()
 
-        log.debug('Done geocoding')
 
 if __name__ == '__main__':
     pass
