@@ -35,7 +35,7 @@ class Publish(object):
         """
         Assume all sales are publishable.
 
-        Set location_publish = 1. Then set to 0 if questionable data is  found.
+        Set location_publish = 1. Then set to 0 if questionable data is found.
         """
         # Assume publishable, then check for reasons not to publish.
         SESSION.query(
