@@ -18,8 +18,6 @@ class TestGeocode(unittest.TestCase):
 
     def test_init(self):
         """Test __init__()."""
-        self.gmaps_patcher.stop()
-
         g = Geocode()
 
         self.assertIsNone(g.initial_date)
@@ -27,7 +25,14 @@ class TestGeocode(unittest.TestCase):
 
         assert g._gmaps
 
-        self.gmaps_patcher.start()  # So addCleanup won't fail
+    def test_init_with_args(self):
+        """Test __init__() when supplied with arguments."""
+        g = Geocode(initial_date='2017-01-01', until_date='2017-01-31')
+
+        self.assertEqual(g.initial_date, '2017-01-01')
+        self.assertEqual(g.until_date, '2017-01-31')
+
+        assert g._gmaps
 
     @patch('scripts.geocode.Geocode.neighborhood_found')
     @patch('scripts.geocode.Geocode.no_neighborhood_found')
