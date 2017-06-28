@@ -1,14 +1,13 @@
 language: python
 sudo: false
 python:
+- '3.4'
 - '3.5'
+- '3.6'
 install:
 - pip install -r requirements.txt
 script:
-- mkdir logs
-- touch logs/realestate.log
-- nosetests tests --with-coverage
-- tox
+- coverage run --source=scripts,www -m unittest
 after_success:
 - coveralls
 deploy:
@@ -22,3 +21,4 @@ deploy:
   acl: public_read
   on:
     repo: TheLens/realestate
+    branch: master
