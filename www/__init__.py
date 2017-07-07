@@ -12,14 +12,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 USER = getpass.getuser()
-PROJECT_DIR = os.path.abspath(
-    os.path.join(os.path.dirname(__file__), '..'))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 GEO_DIR = '{}/data/geo'.format(PROJECT_DIR)
 
-if USER == 'ubuntu':  # Server
-    BACKUP_DIR = '/backups/realestate'
-
+if os.getenv('REALESTATE_ENVIRONMENT') == 'production':  # TODO
     S3_URL = 'https://s3-us-west-2.amazonaws.com/lensnola/realestate'
 
     # JavaScript
@@ -44,8 +41,6 @@ if USER == 'ubuntu':  # Server
 
     LOGGING_LEVEL = logging.INFO
 else:  # Local
-    BACKUP_DIR = '{}/backups'.format(PROJECT_DIR)
-
     # JavaScript
     LENS_JS = '/static/js/lens.js'
     INDEX_JS = '/static/js/index.js'
@@ -101,7 +96,7 @@ SESSION = sn()  # Import this to any files that need database
 
 # Logging
 LOG_DIR = '{}/logs'.format(PROJECT_DIR)
-LOG_FILE = '{}/realestate.log'.format(LOG_DIR)
+LOG_FILE = '{}/www.log'.format(LOG_DIR)
 
 if not os.path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)

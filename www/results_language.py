@@ -8,10 +8,7 @@ the price was between $10,000 and $200,000 between Feb. 18, 2014, and
 Feb. 20, 2014.'
 """
 
-from www.utils import (
-    get_number_with_commas,
-    get_num_with_curr_sign,
-    ymd_to_full_date)
+import utils
 
 
 class ResultsLanguage(object):
@@ -24,22 +21,16 @@ class ResultsLanguage(object):
     def plural_or_not(self):
         """Check if more than one result."""
         if self.data['number_of_records'] == 1:
-            plural_or_not = "sale"
-        else:
-            plural_or_not = "sales"
+            return "sale"
 
-        return plural_or_not
+        return "sales"
 
     def add_initial_language(self, plural_or_not):
         """Create initial sentence language."""
-        number_of_sales = get_number_with_commas(
+        number_of_sales = utils.get_number_with_commas(
             self.data['number_of_records'])
 
-        final_sentence = "{0} {1} found".format(
-            str(number_of_sales),
-            plural_or_not)
-
-        return final_sentence
+        return "{0} {1} found".format(str(number_of_sales), plural_or_not)
 
     def add_keyword_language(self, final_sentence):
         """Add keyword or key phrase language."""
@@ -76,15 +67,15 @@ class ResultsLanguage(object):
             if self.data['amount_high'] != '':
                 final_sentence += (
                     " where the price was between {0} and {1}").format(
-                        get_num_with_curr_sign(self.data['amount_low']),
-                        get_num_with_curr_sign(self.data['amount_high']))
+                        utils.get_num_with_curr_sign(self.data['amount_low']),
+                        utils.get_num_with_curr_sign(self.data['amount_high']))
             else:
                 final_sentence += (
                     " where the price was greater than {}").format(
-                        get_num_with_curr_sign(self.data['amount_low']))
+                        utils.get_num_with_curr_sign(self.data['amount_low']))
         elif self.data['amount_high'] != '':
             final_sentence += " where the price was less than {}".format(
-                get_num_with_curr_sign(self.data['amount_high']))
+                utils.get_num_with_curr_sign(self.data['amount_high']))
 
         return final_sentence
 
@@ -97,14 +88,16 @@ class ResultsLanguage(object):
         if self.data['begin_date'] != '':
             if self.data['end_date'] != '':
                 final_sentence += " between {0}, and {1},".format(
-                    ymd_to_full_date(self.data['begin_date'], no_day=True),
-                    ymd_to_full_date(self.data['end_date'], no_day=True))
+                    utils.ymd_to_full_date(
+                        self.data['begin_date'], no_day=True),
+                    utils.ymd_to_full_date(self.data['end_date'], no_day=True))
             else:
                 final_sentence += " after {},".format(
-                    ymd_to_full_date(self.data['begin_date'], no_day=True))
+                    utils.ymd_to_full_date(
+                        self.data['begin_date'], no_day=True))
         elif self.data['end_date'] != '':
             final_sentence += " before {},".format(
-                ymd_to_full_date(self.data['end_date'], no_day=True))
+                utils.ymd_to_full_date(self.data['end_date'], no_day=True))
 
         return final_sentence
 
