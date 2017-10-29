@@ -294,7 +294,7 @@ class Scrape(object):
         """Select SALE document type in dropdown."""
         # TODO: Assert text is SALE
         document_type_elem = self.driver.find_element_by_id(
-            "cphNoMargin_f_dclDocType_296")  # SALE
+            "cphNoMargin_f_dclDocType_298")  # SALE
 
         log.info('Select SALE document type')
         document_type_elem.click()
