@@ -128,17 +128,17 @@ class Scrape(object):
 
         self.find_login_link()
 
-        self.debug('Sleeping 1.0 second')
+        log.debug('Sleeping 1.0 second')
         time.sleep(1.0)
 
         self.enter_username()
 
-        self.debug('Sleeping 1.0 second')
+        log.debug('Sleeping 1.0 second')
         time.sleep(1.0)
 
         self.enter_password()
 
-        self.debug('Sleeping 5.0 seconds')
+        log.debug('Sleeping 5.0 seconds')
         time.sleep(5.0)
 
     def is_logged_in(self):
@@ -249,7 +249,7 @@ class Scrape(object):
         """
         self.load_search_page()
 
-        self.debug('Sleeping 2.0 seconds')
+        log.debug('Sleeping 2.0 seconds')
         time.sleep(2.0)
 
         first_date, second_date = self.find_permanent_date_range()
@@ -323,7 +323,7 @@ class Scrape(object):
 
         self.click_search_button()
 
-        self.debug('Sleeping 5.0 seconds')
+        log.debug('Sleeping 5.0 seconds')
         time.sleep(5.0)
 
     # Parse results
