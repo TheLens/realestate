@@ -124,7 +124,7 @@ class Scrape(object):
     def login(self):
         """Load homepage, find login, enter credentials."""
         self.load_homepage()
-        # time.sleep(1.0)
+        time.sleep(1.0)
 
         self.find_login_link()
 
@@ -266,7 +266,7 @@ class Scrape(object):
         self.save_permanent_date_range_file(
             date_range_html, first_date, second_date)
 
-        # time.sleep(1.0)
+        time.sleep(1.0)
 
     # Search parameters
     def click_advanced_tab(self):
@@ -313,13 +313,13 @@ class Scrape(object):
     def search_parameters(self, search_date):
         """Enter search parameters."""
         self.click_advanced_tab()
-        # time.sleep(2.0)
+        time.sleep(2.0)
 
         self.enter_date_filed_from(search_date)
         self.enter_date_filed_to(search_date)
 
         self.select_document_type()
-        # time.sleep(1.0)
+        time.sleep(1.0)
 
         self.click_search_button()
 
@@ -354,7 +354,7 @@ class Scrape(object):
 
         for i in range(1, total_pages + 1):
             self.parse_page(i, year, month, day)
-            # time.sleep(15.0)
+            time.sleep(15.0)
 
     def parse_page(self, i, year, month, day):
         """Parse results page for sale document IDs."""
@@ -386,7 +386,7 @@ class Scrape(object):
                     overall_row, year, month, day))
 
             self.parse_sale(j, rows, year, month, day)
-            # time.sleep(5.0)
+            time.sleep(5.0)
 
         log.info(
             'Go to http://onlinerecords.orleanscivilclerk.com/' +
@@ -405,7 +405,7 @@ class Scrape(object):
     def load_url(self, url):
         """Load a new URL and give enough time to load."""
         self.driver.get(url)
-        # time.sleep(5.0)
+        time.sleep(5.0)
 
     def parse_sale(self, j, rows, year, month, day):
         """Parse single sale page and save HTML."""
