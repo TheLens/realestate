@@ -102,6 +102,7 @@ SESSION = sn()  # Import this to any files that need database
 # Logging
 LOG_DIR = '{}/logs'.format(PROJECT_DIR)
 LOG_FILE = "{}/realestate.log".format(LOG_DIR)
+WEBDRIVER_LOG = "{}/webdriver.log".format(LOG_DIR)
 
 log = logging.getLogger(__name__)
 log.setLevel(LOGGING_LEVEL)
@@ -117,7 +118,7 @@ filehandler.setLevel(LOGGING_LEVEL)
 # Create formatter and add it to the handlers
 formatter = logging.Formatter(
     '%(asctime)s - %(filename)s - %(funcName)s - ' +
-    '%(levelname)s - %(lineno)d - %(message)s')
+    '%(lineno)d - %(levelname)s - %(message)s')
 filehandler.setFormatter(formatter)
 
 # Add the handlers to the logger

@@ -32,8 +32,7 @@ from docopt import docopt
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-# from scripts.mail import Mail
-from www import log, YESTERDAY_DAY, PROJECT_DIR, LOG_FILE
+from www import log, YESTERDAY_DAY, PROJECT_DIR, WEBDRIVER_LOG
 
 # Uncomment for local development and testing:
 # from selenium.webdriver.common.desired_capabilities import (
@@ -65,7 +64,7 @@ class Scrape(object):
         # PhantomJS for headless browser in production
         self.driver = webdriver.PhantomJS(
             executable_path='{}/scripts/phantomjs'.format(PROJECT_DIR),
-            service_log_path=LOG_FILE,
+            service_log_path=WEBDRIVER_LOG,
             port=0)
 
         # Firefox for visible browser during local development.
@@ -104,38 +103,43 @@ class Scrape(object):
         """Type in username."""
         log.info('Find username field')
         username_elem = self.driver.find_element_by_id("Header1_txtLogonName")
-        log.info('Enter username')
 
+        log.info('Enter username')
         username_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_USERNAME'))
 
     def enter_password(self):
         """Type in password."""
         log.info('Find password field')
         password_elem = self.driver.find_element_by_id("Header1_txtPassword")
-        log.info('Enter password')
 
+        log.info('Enter password')
         password_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_PASSWORD'))
 
         log.info('Return')
-
         # Trigger search function. Don't use RETURN because PhantomJS fails.
         password_elem.send_keys(Keys.ENTER)
 
-        log.debug(self.driver.title)
+        log.debug('Page title:', self.driver.title)
 
     def login(self):
         """Load homepage, find login, enter credentials."""
         self.load_homepage()
-        time.sleep(1.0)
+        # time.sleep(1.0)
 
         self.find_login_link()
-        time.sleep(4.0)
+
+        self.debug('Sleeping 1.0 second')
+        time.sleep(1.0)
 
         self.enter_username()
-        time.sleep(2.0)
+
+        self.debug('Sleeping 1.0 second')
+        time.sleep(1.0)
 
         self.enter_password()
-        time.sleep(15.0)
+
+        self.debug('Sleeping 5.0 seconds')
+        time.sleep(5.0)
 
     def is_logged_in(self):
         """Confirm that login was successful."""
@@ -162,17 +166,16 @@ class Scrape(object):
             "cphNoMargin_lblSearchSummary")
 
         date_range = date_range_elem.text
-        log.debug(date_range)
 
         first_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
                               date_range).group(1)  # 02/18/2014
         first_date = first_date.replace('/', '')
-        log.debug(first_date)
 
         second_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
                                date_range).group(2)  # 02/25/2015
         second_date = second_date.replace('/', '')
-        log.debug(second_date)
+
+        log.info('Scraping dates: {0} to {1}'.format(first_date, second_date))
 
         return first_date, second_date
 
@@ -214,8 +217,7 @@ class Scrape(object):
     def delete_permanent_date_range_file():
         """Delete old most-recent-permanent-date-range/*.html."""
         # Delete old file first
-        log.info(
-            'Delete old most-recent-permanent-date-range/*.html file')
+        log.info('Delete old most-recent-permanent-date-range/*.html file')
 
         file_string = "{}/data/most-recent-permanent-date-range/*.html".format(
             PROJECT_DIR)
@@ -246,7 +248,9 @@ class Scrape(object):
         Update local date range files.
         """
         self.load_search_page()
-        time.sleep(5.0)
+
+        self.debug('Sleeping 2.0 seconds')
+        time.sleep(2.0)
 
         first_date, second_date = self.find_permanent_date_range()
 
@@ -262,17 +266,15 @@ class Scrape(object):
         self.save_permanent_date_range_file(
             date_range_html, first_date, second_date)
 
-        time.sleep(1.0)
+        # time.sleep(1.0)
 
     # Search parameters
     def click_advanced_tab(self):
         """Click on the advanced tab."""
-        log.info('click_advanced_tab')
-
-        # Advanced tab
         log.info('Find advanced tab')
         advanced_tab_elem = self.driver.find_element_by_id(
             "x:2130005445.2:mkr:ti1")
+
         log.info('Click on advanced tab')
         advanced_tab_elem.click()
 
@@ -296,7 +298,7 @@ class Scrape(object):
         document_type_elem = self.driver.find_element_by_id(
             "cphNoMargin_f_dclDocType_298")  # SALE
 
-        log.info('Select SALE document type')
+        log.info('Select document type:', document_type_elem.text)
         document_type_elem.click()
 
     def click_search_button(self):
@@ -311,16 +313,18 @@ class Scrape(object):
     def search_parameters(self, search_date):
         """Enter search parameters."""
         self.click_advanced_tab()
-        time.sleep(2.0)
+        # time.sleep(2.0)
 
         self.enter_date_filed_from(search_date)
         self.enter_date_filed_to(search_date)
 
         self.select_document_type()
-        time.sleep(1.0)
+        # time.sleep(1.0)
 
         self.click_search_button()
-        time.sleep(15.0)
+
+        self.debug('Sleeping 5.0 seconds')
+        time.sleep(5.0)
 
     # Parse results
     def parse_results(self, year, month, day):
@@ -349,15 +353,14 @@ class Scrape(object):
                   total_pages, year, month, day))
 
         for i in range(1, total_pages + 1):
-            log.debug('Page: {}'.format(i))
-
             self.parse_page(i, year, month, day)
-            time.sleep(15.0)
+            # time.sleep(15.0)
 
     def parse_page(self, i, year, month, day):
         """Parse results page for sale document IDs."""
         # Save table page
-        log.info('Parse results page table HTML')
+        log.info('Parse page {0} for {1}-{2}-{3}'.format(i, year, month, day,))
+
         html_out = open((
             "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html").format(
                 PROJECT_DIR, year, month, day, i),
@@ -383,7 +386,7 @@ class Scrape(object):
                     overall_row, year, month, day))
 
             self.parse_sale(j, rows, year, month, day)
-            time.sleep(5.0)
+            # time.sleep(5.0)
 
         log.info(
             'Go to http://onlinerecords.orleanscivilclerk.com/' +
@@ -402,7 +405,7 @@ class Scrape(object):
     def load_url(self, url):
         """Load a new URL and give enough time to load."""
         self.driver.get(url)
-        time.sleep(10.0)
+        # time.sleep(5.0)
 
     def parse_sale(self, j, rows, year, month, day):
         """Parse single sale page and save HTML."""
@@ -468,6 +471,7 @@ class Scrape(object):
 
         log.info('Find logout button')
         logout_elem = self.driver.find_element_by_id("Header1_lnkLogout")
+
         log.info('Click logout button')
         logout_elem.click()
 
@@ -485,7 +489,7 @@ class Scrape(object):
             month = current_date.strftime('%m')  # "09"
             day = current_date.strftime('%d')  # "09"
 
-            log.debug(year + '-' + month + '-' + day)
+            log.debug('{0}-{1}-{2}'.format(year, month, day))
 
             # Check if folder for this day exists. If not, then make one.
             pagedir = "{0}/data/raw/{1}-{2}-{3}/page-html".format(
