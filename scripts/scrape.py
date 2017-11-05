@@ -25,6 +25,7 @@ import os
 import re
 import glob
 import time
+import pdb
 
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
@@ -88,67 +89,72 @@ class Scrape(object):
     # Login page
     def load_homepage(self):
         """Load homepage."""
-        log.info('Load homepage')
-        self.load_url("http://onlinerecords.orleanscivilclerk.com/")
+        url = 'http://onlinerecords.orleanscivilclerk.com/'
+        log.info('Load homepage {}'.format(url))
+        self.driver.get(url)
 
     def find_login_link(self):
         """Find and click on login link."""
-        log.info('Find login link')
-        login_link_elem = self.driver.find_element_by_id("Header1_lnkLogin")
+        html_id = 'Header1_lnkLogin'
+
+        log.info('Find login link at HTML ID {}'.format(html_id))
+        login_link_elem = self.driver.find_element_by_id(html_id)
 
         log.info('Click login link')
         login_link_elem.click()
 
     def enter_username(self):
         """Type in username."""
-        log.info('Find username field')
-        username_elem = self.driver.find_element_by_id("Header1_txtLogonName")
+        html_id = 'Header1_txtLogonName'
 
-        log.info('Enter username')
+        log.info('Find username field at HTML ID {}'.format(html_id))
+        username_elem = self.driver.find_element_by_id(html_id)
+
+        log.info('Enter username from environment variable')
         username_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_USERNAME'))
 
     def enter_password(self):
         """Type in password."""
-        log.info('Find password field')
-        password_elem = self.driver.find_element_by_id("Header1_txtPassword")
+        html_id = 'Header1_txtPassword'
 
-        log.info('Enter password')
+        log.info('Find password field at HTML ID {}'.format(html_id))
+        password_elem = self.driver.find_element_by_id(html_id)
+
+        log.info('Enter password from environment variable')
         password_elem.send_keys(os.environ.get('REAL_ESTATE_LRD_PASSWORD'))
 
-        log.info('Return')
+        log.info('Press enter to submit credentials and log in')
         # Trigger search function. Don't use RETURN because PhantomJS fails.
         password_elem.send_keys(Keys.ENTER)
-
-        log.debug('Page title:', self.driver.title)
 
     def login(self):
         """Load homepage, find login, enter credentials."""
         self.load_homepage()
-        time.sleep(1.0)
+        # time.sleep(1.0)
 
         self.find_login_link()
 
-        log.debug('Sleeping 1.0 second')
+        log.info('Sleep 1.0 second')
         time.sleep(1.0)
 
         self.enter_username()
 
-        log.debug('Sleeping 1.0 second')
+        log.info('Sleep 1.0 second')
         time.sleep(1.0)
 
         self.enter_password()
 
-        log.debug('Sleeping 5.0 seconds')
+        log.info('Sleep 5.0 seconds')
         time.sleep(5.0)
 
     def is_logged_in(self):
         """Confirm that login was successful."""
         try:
             self.driver.find_element_by_id("Header1_lnkLogout")
-            log.debug("Login successful.")
+            log.info("Login successful")
             return True
         except Exception as error:
-            log.debug("Login failed.")
+            log.info("Login failed")
             log.error(error, exc_info=True)
             return False
 
@@ -156,7 +162,7 @@ class Scrape(object):
     def load_search_page(self):
         """Load search page."""
         # might not have loaded for server scrape:
-        self.load_url(
+        self.driver.get(
             "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
             "SearchEntry.aspx")
 
@@ -174,8 +180,6 @@ class Scrape(object):
         second_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
                                date_range).group(2)  # 02/25/2015
         second_date = second_date.replace('/', '')
-
-        log.info('Scraping dates: {0} to {1}'.format(first_date, second_date))
 
         return first_date, second_date
 
@@ -249,8 +253,8 @@ class Scrape(object):
         """
         self.load_search_page()
 
-        log.debug('Sleeping 2.0 seconds')
-        time.sleep(2.0)
+        # log.info('Sleep 2.0 seconds')
+        # time.sleep(2.0)
 
         first_date, second_date = self.find_permanent_date_range()
 
@@ -271,41 +275,62 @@ class Scrape(object):
     # Search parameters
     def click_advanced_tab(self):
         """Click on the advanced tab."""
-        log.info('Find advanced tab')
-        advanced_tab_elem = self.driver.find_element_by_id(
-            "x:2130005445.2:mkr:ti1")
+        html_id = 'x:2130005445.2:mkr:ti1'
+
+        log.info('Find advanced tab at HTML ID {}'.format(html_id))
+        advanced_tab_elem = self.driver.find_element_by_id(html_id)
 
         log.info('Click on advanced tab')
         advanced_tab_elem.click()
 
     def enter_date_filed_from(self, search_date):
         """Enter "date from"."""
-        date_file_from_elem = self.driver.find_element_by_id(
-            "x:1221134975.0:mkr:3")
+        html_id = 'x:1221134975.0:mkr:3'
+
+        log.info('Find "date filed from" field at HTML ID {}'.format(html_id))
+        date_file_from_elem = self.driver.find_element_by_id(html_id)
+
+        log.info('Click on "date filed from" field')
         date_file_from_elem.click()
+
+        log.info('Enter {} into "date filed from" field'.format(search_date))
         date_file_from_elem.send_keys(search_date)
 
     def enter_date_filed_to(self, search_date):
         """Enter "date to"."""
-        date_file_to_elem = self.driver.find_element_by_id(
-            "x:96043147.0:mkr:3")
+        html_id = 'x:96043147.0:mkr:3'
+
+        log.info('Find "date filed to" field at HTML ID {}'.format(html_id))
+        date_file_to_elem = self.driver.find_element_by_id(html_id)
+
+        log.info('Click on "date filed to" field')
         date_file_to_elem.click()
+
+        log.info('Enter {} into "date filed to" field'.format(search_date))
         date_file_to_elem.send_keys(search_date)
 
     def select_document_type(self):
         """Select SALE document type in dropdown."""
-        # TODO: Assert text is SALE
-        document_type_elem = self.driver.find_element_by_id(
-            "cphNoMargin_f_dclDocType_298")  # SALE
+        html_id = 'cphNoMargin_f_dclDocType_298'
 
-        log.info('Select document type:', document_type_elem.text)
+        # TODO: Assert text is SALE
+        log.info('Find document type SALE at HTML ID {}'.format(html_id))
+        document_type_elem = self.driver.find_element_by_id(html_id)  # SALE
+
+        log.debug(document_type_elem)
+        log.debug(dir(document_type_elem))
+
+        pdb.set_trace()
+
+        log.info('Document type is {}'.format(document_type_elem.value))
         document_type_elem.click()
 
     def click_search_button(self):
         """Click on the search button."""
-        log.info('Find search button')
-        search_button_elem = self.driver.find_element_by_id(
-            "cphNoMargin_SearchButtons2_btnSearch__1")  # Was __2
+        html_id = 'cphNoMargin_SearchButtons2_btnSearch__1'
+
+        log.info('Find search button at HTML ID {}'.format(html_id))
+        search_button_elem = self.driver.find_element_by_id(html_id)
 
         log.info('Click search button')
         search_button_elem.click()
@@ -323,191 +348,178 @@ class Scrape(object):
 
         self.click_search_button()
 
-        log.debug('Sleeping 5.0 seconds')
+        log.info('Sleep 5.0 seconds')
         time.sleep(5.0)
 
     # Parse results
     def parse_results(self, year, month, day):
         """Parse initial result page for total number of sales."""
-        # Find current page number
+        html_id = 'cphNoMargin_cphNoMargin_OptionsBar1_ItemList'
+
         try:
-            log.info('Find item_list_elem')
-            item_list_elem = self.driver.find_element_by_id(
-                "cphNoMargin_cphNoMargin_OptionsBar1_ItemList")
+            log.info('Find results list at HTML ID {}'.format(html_id))
+            item_list_elem = self.driver.find_element_by_id(html_id)
+
             log.info('Find option')
             options = item_list_elem.find_elements_by_tag_name("option")
         except Exception as error:
-            # Save table page
-            log.error(error, exc_info=True)
             log.info('No sales for this day')
-            html_out = open(
-                "{0}/data/raw/{1}-{2}-{3}/page-html/page1.html".format(
-                    PROJECT_DIR, year, month, day
-                ), "wb")
-            html_out.write((self.driver.page_source).encode('utf-8'))
-            html_out.close()
+            log.error(error, exc_info=True)
+
+            html_out = '{}/data/raw/{}-{}-{}/page-html/page1.html'.format(
+                PROJECT_DIR, year, month, day)
+
+            with open(html_out, 'wb') as f_out:
+                f_out.write((self.driver.page_source).encode('utf-8'))
+
             return
 
         total_pages = int(options[-1].get_attribute('value'))
-        log.debug('{0} pages to parse for {1}-{2}-{3}'.format(
-                  total_pages, year, month, day))
+        log.info('{0} pages of records for {1}-{2}-{3}'.format(
+            total_pages, year, month, day))
 
         for i in range(1, total_pages + 1):
             self.parse_page(i, year, month, day)
-            time.sleep(15.0)
+
+            log.info('Sleep 5.0 seconds')
+            time.sleep(5.0)
 
     def parse_page(self, i, year, month, day):
         """Parse results page for sale document IDs."""
         # Save table page
         log.info('Parse page {0} for {1}-{2}-{3}'.format(i, year, month, day,))
 
-        html_out = open((
-            "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html").format(
-                PROJECT_DIR, year, month, day, i),
-            "wb")
-        html_out.write((self.driver.page_source).encode('utf-8'))
-        html_out.close()
-
-        bs_file = "{0}/data/raw/{1}-{2}-{3}/page-html/page{4}.html".format(
+        html_out = '{}/data/raw/{}-{}-{}/page-html/page{}.html'.format(
             PROJECT_DIR, year, month, day, i)
-        soup = BeautifulSoup(open(bs_file), "html.parser")
 
-        log.info('Find all object IDs')
+        with open(html_out, 'wb') as f_out:
+            f_out.write((self.driver.page_source).encode('utf-8'))
+
+        # TODO: Read from memory instead of new output file
+        soup = BeautifulSoup(open(html_out), "html.parser")
+
+        # log.info('Find all object IDs')
 
         # For this one page
         rows = soup.find_all('td', class_="igede12b9e")  # List of Object IDs
 
-        log.debug('There are {} rows for this page'.format(len(rows)))
+        # First table row is empty
+        log.info('{} records to scrape for this page'.format(len(rows) - 1))
 
         for j in range(1, len(rows)):
             overall_row = (i - 1) * 20 + j
-            log.debug(
-                'Analyzing overall row {0} for {1}-{2}-{3}'.format(
-                    overall_row, year, month, day))
+            log.info('Parse overall record {} for {}-{}-{}'.format(
+                overall_row, year, month, day))
 
             self.parse_sale(j, rows, year, month, day)
+
+            log.info('Sleep 5.0 seconds')
             time.sleep(5.0)
 
-        log.info(
-            'Go to http://onlinerecords.orleanscivilclerk.com/' +
-            'RealEstate/SearchResults.aspx')
-        self.load_url(
-            "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
-            "SearchResults.aspx")
+        url = 'http://onlinerecords.orleanscivilclerk.com/RealEstate/' + \
+              'SearchResults.aspx'
+        log.info('Load URL {}'.format(url))
+        self.driver.get(url)
 
-        log.info('Find next page button')
-        next_button_elem = self.driver.find_element_by_id(
-            "OptionsBar1_imgNext")
+        html_id = 'OptionsBar1_imgNext'
+        log.info('Find next page button at HTML ID {}'.format(html_id))
+        next_button_elem = self.driver.find_element_by_id(html_id)
 
         log.info('Click next page button')
         next_button_elem.click()
-
-    def load_url(self, url):
-        """Load a new URL and give enough time to load."""
-        self.driver.get(url)
-        time.sleep(5.0)
 
     def parse_sale(self, j, rows, year, month, day):
         """Parse single sale page and save HTML."""
         document_id = rows[j].string
 
-        log.debug(
-            'Saving HTML for {0} on {1}-{2}-{3}'.format(
-                document_id, year, month, day))
+        log.info('Saving HTML for document ID {} on {}-{}-{}'.format(
+            document_id, year, month, day))
 
-        single_sale_url = (
-            "http://onlinerecords.orleanscivilclerk.com/" +
-            "RealEstate/SearchResults.aspx?" +
-            "global_id={}" +
-            "&type=dtl").format(document_id)
-        log.debug('Sale URL: {}'.format(single_sale_url))
+        url = ('http://onlinerecords.orleanscivilclerk.com/RealEstate/' +
+               'SearchResults.aspx?global_id={}&type=dtl').format(document_id)
 
         try:
-            log.info('Loading {}'.format(single_sale_url))
-            self.load_url(single_sale_url)
-        except Exception as error:
-            log.error(error, exc_info=True)
+            log.info('Loading sale URL {}'.format(url))
+            self.driver.get(url)
+        except Exception:  # TODO
+            log.exception('Error loading sale URL {}'.format(url))
 
         html = self.driver.page_source
-
-        log.info('Save this sale HTML')
-
-        html_file = "{0}/data/raw/{1}-{2}-{3}/form-html/{4}.html".format(
+        html_out = "{0}/data/raw/{1}-{2}-{3}/form-html/{4}.html".format(
             PROJECT_DIR, year, month, day, document_id)
 
-        html_out = open(html_file, "wb")
-        html_out.write(html.encode('utf-8'))
-        html_out.close()
+        log.info('Save {}'.format(html_out))
+
+        with open(html_out, "wb") as f_out:
+            f_out.write(html.encode('utf-8'))
 
         try:
-            assert not self.is_error_page(html_file)
-        except Exception as error:
-            log.debug('Deleting error page: {}'.format(html_file))
-            log.error(error, exc_info=True)
+            assert not self.is_error_page(html_out)  # TODO: Read from memory
+        except Exception:  # TODO
+            log.exception('Received error page')
 
-            os.remove(html_file)
-
-            return
+            log.info('Deleting error page {}'.format(html_out))
+            os.remove(html_out)
 
     @staticmethod
     def is_error_page(html):
-        """Check if the downloaded single sale HTML is an error page."""
+        """Check if the downloaded single sale HTML is an error page.
+
+        TODO: This should read from HTML already in memory not new output file.
+        """
         soup = BeautifulSoup(open(html), "html.parser")
         title = soup.find_all('title')[0].string
 
-        # log.debug('Error page was downloaded.')
         return title == 'Error'
 
     # Logout
     def logout(self):
         """Logout of site."""
+        url = 'http://onlinerecords.orleanscivilclerk.com/RealEstate/' + \
+              'SearchEntry.aspx'
         # No matter which page you're on, you can go back here and logout.
-        log.info(
-            'Load http://onlinerecords.orleanscivilclerk.com/' +
-            'RealEstate/SearchEntry.aspx')
-        self.load_url(
-            "http://onlinerecords.orleanscivilclerk.com/RealEstate/" +
-            "SearchEntry.aspx")
+        log.info('Load {}'.format(url))
+        self.driver.get(url)
 
-        log.info('Find logout button')
-        logout_elem = self.driver.find_element_by_id("Header1_lnkLogout")
+        html_id = 'Header1_lnkLogout'
+
+        log.info('Find logout button at HTML ID {}'.format(html_id))
+        logout_elem = self.driver.find_element_by_id(html_id)
 
         log.info('Click logout button')
         logout_elem.click()
 
     def cycle_through_dates(self):
-        """For each date in range, search, parse results and save HTML."""
+        """For each date in range, search, parse results and save HTML.
+
+        TODO: Make this asynchronous.
+        """
         current_date = self.initial_date
 
         # Must search each date one at a time because there is a limit of
-        # 300 results per search.
+        # 300 results per search. A single day shouldn't reach that ceiling.
         while current_date != (self.until_date + timedelta(days=1)):
-            log.debug(current_date)
-            log.debug(self.until_date)
-
             year = current_date.strftime('%Y')  # "2014"
             month = current_date.strftime('%m')  # "09"
             day = current_date.strftime('%d')  # "09"
 
-            log.debug('{0}-{1}-{2}'.format(year, month, day))
+            log.info('Search records for {}-{}-{}'.format(year, month, day))
 
             # Check if folder for this day exists. If not, then make one.
             pagedir = "{0}/data/raw/{1}-{2}-{3}/page-html".format(
                 PROJECT_DIR, year, month, day)
-            log.debug(pagedir)
 
             formdir = "{0}/data/raw/{1}-{2}-{3}/form-html".format(
                 PROJECT_DIR, year, month, day)
-            log.debug(formdir)
 
             if not os.path.exists(pagedir):
-                log.info('Making {}'.format(pagedir))
+                log.info('Create directory {}'.format(pagedir))
                 os.makedirs(pagedir)
             if not os.path.exists(formdir):
-                log.info('Making {}'.format(formdir))
+                log.info('Create directory {}'.format(formdir))
                 os.makedirs(formdir)
 
-            search_date = month + day + year
+            search_date = '{}{}{}'.format(month, day, year)
 
             # The meat of this loop
             self.navigate_search_page(year, month, day)
@@ -516,18 +528,23 @@ class Scrape(object):
             self.parse_results(year, month, day)
 
             current_date += timedelta(days=1)
-            log.debug(current_date)
 
     def main(self):
         """The main scrape method."""
         self.login()  # Has built-in delay after
 
-        assert self.is_logged_in()
+        log.info('New page title: {}'.format(self.driver.title))
+
+        if not self.is_logged_in():
+            log.info('Not logged in. Closing down')
+            self.logout()
+            self.driver.close()
+            self.driver.quit()
 
         try:
             self.cycle_through_dates()
-        except Exception as error:
-            log.error(error, exc_info=True)
+        except Exception:  # TODO
+            log.exception('An error occured')  # TODO
 
             # TODO: Switch to Slack
             # m = Mail(
@@ -540,47 +557,33 @@ class Scrape(object):
             self.logout()
             self.driver.close()
             self.driver.quit()
-
-            log.info('Done!')
+            log.info('Done')
 
 
 def cli_has_errors(arguments):
     """Check for any CLI parsing errors."""
-    all_arguments = (
-        arguments['<single_date>'] is not None and
-        arguments['<early_date>'] is not None and
-        arguments['<late_date>'] is not None)
+    single = arguments['<single_date>']
+    early = arguments['<early_date>']
+    late = arguments['<late_date>']
 
-    if all_arguments:
-        # print("Must use single date or date range, but not both.")
+    all_args = all(arg is not None for arg in (single, early, late))
+
+    if all_args:
+        log.error("Date arguments must be a single date or a date range")
         return True
 
-    single_and_other_arguments = (
-        (
-            arguments['<single_date>'] is not None and
-            arguments['<early_date>'] is not None
-        ) or
-        (
-            arguments['<single_date>'] is not None and
-            arguments['<late_date>'] is not None
-        ))
+    single_and_other_arg = single is not None and \
+        any(arg is not None for arg in (early, late))
 
-    if single_and_other_arguments:
-        # print("Cannot use a single date and a date range bound.")
+    if single_and_other_arg:
+        log.error("Cannot use a single date and a date range bound.")
         return True
 
-    one_date_bound_only = (
-        (
-            arguments['<early_date>'] is not None and
-            arguments['<late_date>'] is None
-        ) or
-        (
-            arguments['<early_date>'] is None and
-            arguments['<late_date>'] is not None
-        ))
+    only_one_date_bound = any(arg is not None for arg in (early, late)) and \
+        any(arg is None for arg in (early, late))
 
-    if one_date_bound_only:
-        # print("Must pick both ends of a date range bound.")
+    if only_one_date_bound:
+        log.error("Date range must include both dates")
         return True
 
     return False
@@ -588,36 +591,35 @@ def cli_has_errors(arguments):
 
 def cli(arguments):
     """Parse command-line arguments."""
-    # Catch any missed errors
     if cli_has_errors(arguments):
         return
 
-    if arguments['<single_date>']:  # Single date
+    if arguments['<single_date>']:
         early_date = arguments['<single_date>']
         late_date = arguments['<single_date>']
 
-        log.info('Scraping single date: {}.'.format(early_date))
-    elif arguments['<early_date>'] and arguments['<late_date>']:  # Date range
+        log.info('Scraping single date: {}'.format(early_date))
+    elif arguments['<early_date>'] and arguments['<late_date>']:
         early_date = arguments['<early_date>']
         late_date = arguments['<late_date>']
 
-        log.info('Scraping date range: {0} to {1}.'.format(
+        log.info('Scraping date range: {0} to {1}'.format(
             early_date, late_date))
-    else:  # No dates provided
-        log.info('Scraping yesterday.')
+    else:  # No dates provided. Default is to scrape previous day.
+        log.info('Scraping yesterday')
 
-        Scrape().main()  # Default: scrape yesterday.
+        Scrape().main()
         return
 
     # Check for errors
-    early_datetime = datetime.strptime(early_date, "%Y-%m-%d")
-    late_datetime = datetime.strptime(late_date, "%Y-%m-%d")
+    early_datetime = datetime.strptime(early_date, '%Y-%m-%d')
+    late_datetime = datetime.strptime(late_date, '%Y-%m-%d')
 
     if early_datetime > late_datetime:
-        raise BadDateRangeError("The date range does not make sense.")
+        raise BadDateRangeError('Bad date range')
 
     Scrape(initial_date=early_date, until_date=late_date).main()
 
 if __name__ == '__main__':
-    arguments = docopt(__doc__, version="0.0.1")
+    arguments = docopt(__doc__, version='0.0.1')
     cli(arguments)
