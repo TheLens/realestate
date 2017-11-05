@@ -151,7 +151,7 @@ class Scrape(object):
             log.info("Login successful")
         except Exception as error:
             log.info("Login failed")
-            log.exception(error.message)
+            log.exception(error)
             raise
 
     # Navigate search page
@@ -164,18 +164,16 @@ class Scrape(object):
 
     def find_permanent_date_range(self):
         """Parse search page for permanent date range."""
-        date_range_elem = self.driver.find_element_by_id(
-            "cphNoMargin_lblSearchSummary")
+        html_id = 'cphNoMargin_lblSearchSummary'
 
-        date_range = date_range_elem.text
+        log.info('Find permanent date range at HTML ID {}'.format(html_id))
+        date_range_elem = self.driver.find_element_by_id(html_id)
 
-        first_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
-                              date_range).group(1)  # 02/18/2014
-        first_date = first_date.replace('/', '')
+        match = re.match(r"Permanent Index From ([0-9/]*) to ([0-9/]*)",
+                         date_range_elem.text)
 
-        second_date = re.match(r"Permanent\ Index From ([0-9/]*) to ([0-9/]*)",
-                               date_range).group(2)  # 02/25/2015
-        second_date = second_date.replace('/', '')
+        first_date = match.group(1).replace('/', '')  # 02/18/2014
+        second_date = match.group(2).replace('/', '')
 
         return first_date, second_date
 
@@ -356,7 +354,7 @@ class Scrape(object):
             log.info('Find results list at HTML ID {}'.format(html_id))
             item_list_elem = self.driver.find_element_by_id(html_id)
 
-            log.info('Find option')
+            # log.info('Find option')
             options = item_list_elem.find_elements_by_tag_name("option")
         except Exception as error:
             log.info('No sales for this day')
@@ -403,14 +401,8 @@ class Scrape(object):
         log.info('{} records to scrape for this page'.format(len(rows) - 1))
 
         for j in range(1, len(rows)):
-            overall_row = (i - 1) * 20 + j
-            log.info('Parse overall record {} for {}-{}-{}'.format(
-                overall_row, year, month, day))
-
+            # overall_row = (i - 1) * 20 + j
             self.parse_sale(j, rows, year, month, day)
-
-            log.info('Sleep 5.0 seconds')
-            time.sleep(5.0)
 
         url = 'http://onlinerecords.orleanscivilclerk.com/RealEstate/' + \
               'SearchResults.aspx'
@@ -428,14 +420,11 @@ class Scrape(object):
         """Parse single sale page and save HTML."""
         document_id = rows[j].string
 
-        log.info('Saving HTML for document ID {} on {}-{}-{}'.format(
-            document_id, year, month, day))
-
         url = ('http://onlinerecords.orleanscivilclerk.com/RealEstate/' +
                'SearchResults.aspx?global_id={}&type=dtl').format(document_id)
 
         try:
-            log.info('Loading sale URL {}'.format(url))
+            log.info('Load sale URL {}'.format(url))
             self.driver.get(url)
         except Exception:  # TODO
             log.exception('Error loading sale URL {}'.format(url))
@@ -525,26 +514,23 @@ class Scrape(object):
 
             current_date += timedelta(days=1)
 
-    def shut_down(self):
-        """Log out and close the scraper."""
-        self.logout()
-        self.driver.close()
-        self.driver.quit()
-
     def main(self):
         """The main scrape method."""
         try:
             self.login()
         except Exception:
-            self.shut_down()
+            self.driver.close()
+            self.driver.quit()
             raise
 
         try:
             self.cycle_through_dates()
         except Exception as error:  # TODO
-            log.exception(error.message)  # TODO
+            log.exception(error)  # TODO
         finally:
-            self.shut_down()
+            self.logout()
+            self.driver.close()
+            self.driver.quit()
 
 
 def cli_has_errors(arguments):
