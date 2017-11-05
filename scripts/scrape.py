@@ -25,7 +25,6 @@ import os
 import re
 import glob
 import time
-import pdb
 
 from bs4 import BeautifulSoup
 from datetime import timedelta, datetime
@@ -147,16 +146,13 @@ class Scrape(object):
         log.info('Sleep 5.0 seconds')
         time.sleep(5.0)
 
-    def is_logged_in(self):
-        """Confirm that login was successful."""
         try:
             self.driver.find_element_by_id("Header1_lnkLogout")
             log.info("Login successful")
-            return True
         except Exception as error:
             log.info("Login failed")
-            log.error(error, exc_info=True)
-            return False
+            log.exception(error.message)
+            raise
 
     # Navigate search page
     def load_search_page(self):
@@ -315,15 +311,15 @@ class Scrape(object):
 
         # TODO: Assert text is SALE
         log.info('Find document type SALE at HTML ID {}'.format(html_id))
-        document_type_elem = self.driver.find_element_by_id(html_id)  # SALE
+        doc_type_elem = self.driver.find_element_by_id(html_id)  # SALE
 
-        log.debug(document_type_elem)
-        log.debug(dir(document_type_elem))
+        short_type = doc_type_elem.get_attribute('value')
 
-        pdb.set_trace()
+        parent_elem = doc_type_elem.find_element_by_xpath('..')
+        long_type = parent_elem.find_element_by_tag_name('label').text
 
-        log.info('Document type is {}'.format(document_type_elem.value))
-        document_type_elem.click()
+        log.info('Document type is {} ({})'.format(long_type, short_type))
+        doc_type_elem.click()
 
     def click_search_button(self):
         """Click on the search button."""
@@ -529,35 +525,26 @@ class Scrape(object):
 
             current_date += timedelta(days=1)
 
+    def shut_down(self):
+        """Log out and close the scraper."""
+        self.logout()
+        self.driver.close()
+        self.driver.quit()
+
     def main(self):
         """The main scrape method."""
-        self.login()  # Has built-in delay after
-
-        log.info('New page title: {}'.format(self.driver.title))
-
-        if not self.is_logged_in():
-            log.info('Not logged in. Closing down')
-            self.logout()
-            self.driver.close()
-            self.driver.quit()
+        try:
+            self.login()
+        except Exception:
+            self.shut_down()
+            raise
 
         try:
             self.cycle_through_dates()
-        except Exception:  # TODO
-            log.exception('An error occured')  # TODO
-
-            # TODO: Switch to Slack
-            # m = Mail(
-            #     subject="Error running Land Record's scrape.py script",
-            #     body='Check the log for more details.',
-            #     frm='lens.real.estate.scraper@gmail.com',
-            #     to=['tthoren@thelensnola.org'])
-            # m.send_with_attachment(files=[LOG_FILE])
+        except Exception as error:  # TODO
+            log.exception(error.message)  # TODO
         finally:
-            self.logout()
-            self.driver.close()
-            self.driver.quit()
-            log.info('Done')
+            self.shut_down()
 
 
 def cli_has_errors(arguments):
