@@ -305,11 +305,11 @@ class Scrape(object):
 
     def select_document_type(self):
         """Select SALE document type in dropdown."""
-        html_id = 'cphNoMargin_f_dclDocType_298'
+        html_id = 'cphNoMargin_f_dclDocType_297'  # SALE
 
         # TODO: Assert text is SALE
         log.info('Find document type SALE at HTML ID {}'.format(html_id))
-        doc_type_elem = self.driver.find_element_by_id(html_id)  # SALE
+        doc_type_elem = self.driver.find_element_by_id(html_id)
 
         short_type = doc_type_elem.get_attribute('value')
 
