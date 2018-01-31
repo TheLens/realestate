@@ -38,6 +38,10 @@ from www import log, YESTERDAY_DAY, PROJECT_DIR, WEBDRIVER_LOG
 # from selenium.webdriver.common.desired_capabilities import (
 #     DesiredCapabilities)
 
+from slacker import Slacker
+
+slack = Slacker(os.getenv("SLACK_REALESTATE_ACCESS_TOKEN"))
+
 
 class BadDateRangeError(Exception):
     """Error for when date range is backward."""
@@ -518,15 +522,21 @@ class Scrape(object):
         """The main scrape method."""
         try:
             self.login()
-        except Exception:
+        except Exception:  # TODO
+            log.exception("Problem during login")
+            slack.chat.post_message(
+                "#realestate",
+                "Expired password @channel"
+            )
+
             self.driver.close()
             self.driver.quit()
             raise
 
         try:
             self.cycle_through_dates()
-        except Exception as error:  # TODO
-            log.exception(error)  # TODO
+        except Exception:  # TODO
+            log.exception("")
         finally:
             self.logout()
             self.driver.close()
