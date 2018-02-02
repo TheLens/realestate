@@ -13,6 +13,17 @@ function tablesorterOptions() {
   $("#myTable").tablesorter({widthFixed: false});
 }
 
+// https://stackoverflow.com/a/901144
+function getParameterByName(name, url) {
+  if (!url) url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 function mapSearching() {
   /*
    Map movement filter is turned on.
@@ -21,11 +32,13 @@ function mapSearching() {
   var nbhd_text, zip_text;
 
   if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
-    nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    // nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    nbhd_text = getParameterByName('nbhd');
   }
 
   if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
-    zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+    // zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+    zip_text = getParameterByName('zip');
   }
 
   // If search input bar unchanged (nbhd in URL matches search input text), delete.
@@ -103,12 +116,14 @@ function doSearch(category) {
 
   // Get URL's neighborhood value
   if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
-    nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    // nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    nbhd_text = getParameterByName('nbhd');
   }
 
   // Get URL's zip value
   if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
-    zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+    // zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+    zip_text = getParameterByName('zip');
   }
 
   // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
@@ -183,7 +198,7 @@ function doSearch(category) {
       } else {
         window.history.pushState(null,'hi',query_string);
       }
-      
+
       document.getElementById('current-page').innerHTML = info.data.current_page;
       document.getElementById('number-of-pages').innerHTML = info.data.number_of_pages;
 
@@ -224,12 +239,14 @@ $("body").on("click", ".page-forward", function () {
 
     // Get URL's neighborhood value
     if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
-      nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+      // nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+      nbhd_text = getParameterByName(nbhd);
     }
 
     // Get URL's zip value
     if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
-      zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+      // zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+      zip_text = getParameterByName('zip');
     }
 
     // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
@@ -335,12 +352,14 @@ $("body").on("click", ".page-back", function () {
 
     // Get URL's neighborhood value
     if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
-      nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+      // nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+      nbhd_text = getParameterByName('nbhd');
     }
 
     // Get URL's zip value
     if (window.location.search.substring(0).match(/zip\=(.*)/i) !== null) {
-      zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+      // zip_text = window.location.search.substring(0).match(/zip\=(.*)/i)[1];
+      zip_text = getParameterByName('zip');
     }
 
     // If search input is still equal to the neighborhood previously searched for, keep in search bar and continue to use as neighborhood, not as keyword.
@@ -489,90 +508,3 @@ String.prototype.trunc = String.prototype.trunc ||
   function(n) {
     return this.length > n ? this.substr(0, n - 1) + ' ...' : this;
   };
-
-/*
- Not using for now.
-*/
-/*
-function getLocation(data) {
-  var position;
-  var options = {
-    enableHighAccuracy: true,
-    timeout: 5000,
-    maximumAge: 0
-  };
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(position) {
-        data.latitude = position.coords.latitude;
-        data.longitude = position.coords.longitude;
-        geoSearch(data);
-      },
-      function(err) {
-        return null;
-      },
-      options);
-  } else {
-    alert("Geolocation is not supported by this browser.");
-    return null;
-  }
-}
-*/
-
-/*
-function geoSearch(data) {
-  var bounds = map.getBounds();
-  data.bounds = bounds;
-  var map_button_state = document.getElementById("map-button").checked;
-  data.map_button_state = map_button_state;
-
-  var page = $('#table-wrapper').attr('data-page');
-  var number_of_pages = $('#table-wrapper').attr('data-number-of-pages');
-  data.page = page;f
-  data.number_of_pages = number_of_pages;
-  data.direction = null;
-
-  var georequest = JSON.stringify(data);
-  var query_string = buildQueryString(data);
-
-  $.ajax({
-    url: app_routing + "search",
-    type: "POST",
-    data: georequest,
-    contentType: "application/json; charset=utf-8",
-    success: function (info) {
-      if (query_string === '') {
-        window.history.pushState(null,'hi',document.URL.split("?")[0]);
-      } else {
-        // var testarr = document.URL.split('?')[0].split('');
-        // testarr.splice(-1, 1);
-        // var root_url = testarr.join('');
-        window.history.pushState(null,'hi',query_string);
-      }
-      document.getElementById('current-page').innerHTML = info.page;
-      document.getElementById('number_of_pages').innerHTML = info.number_of_pages;
-
-      $('#table-wrapper').data('current-page', info.page);
-      $('#table-wrapper').data('number_of_pages', info.number_of_pages);
-      $('#table-wrapper').data('page_length', info.page_length);
-
-      $("#tbody").html(info.table_template);
-      $("#table-footer-wrapper").trigger("updateAll");
-      document.getElementById('results_language').innerHTML = info.results_language;
-      document.getElementById('results-not-found').style.display = info.show_results;
-
-      updateMap(info.js_data, 0);
-    }
-  });
-}
-*/
-
-/*
-$(document).on("click", '.searchButton', function (e) {
-  if (e.target.id === 'geosearch-button') {
-    getLocation(data);
-    return;
-  }
-  doSearch();
-});
-*/
