@@ -9,8 +9,7 @@ Returns either a dict of list of dicts.
 import os
 from bs4 import BeautifulSoup
 
-from www.utils import (
-    convert_amount)
+from www.utils import convert_amount
 from www import log
 
 
@@ -611,10 +610,3 @@ class LocationParser(object):
                 lot = ""
 
         return lot
-
-# if __name__ == '__main__':
-#     # html_path = (
-#     #     '%s/' % DATA_DIR +
-#     #     'raw/2014-02-18/form-html/OPR288694480.html')
-#     # print(LocationParser(html_path).form_list())
-#     pass
