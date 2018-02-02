@@ -11,7 +11,7 @@ function updateMap(data, mapsearching, backforward, neighborhood_fit_bounds) {
   addDataToMap(data);
 
   if (mapsearching === 1) {
-    // If box is checked yes, don't alter user's view 
+    // If box is checked yes, don't alter user's view
     map.setView(center, zoom);
   } else if (mapsearching === 0) {
     if (backforward !== 1) {
@@ -285,6 +285,17 @@ function showFooterOrNot(data) {
   }
 }
 
+// https://stackoverflow.com/a/901144
+function getParameterByName(name, url) {
+  if (!url) url = window.location.href;
+  name = name.replace(/[\[\]]/g, "\\$&");
+  var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+      results = regex.exec(url);
+  if (!results) return null;
+  if (!results[2]) return '';
+  return decodeURIComponent(results[2].replace(/\+/g, " "));
+}
+
 function initialMapFunction(data) {
   // Not sure what this is
   tablesorterOptions();
@@ -298,7 +309,8 @@ function initialMapFunction(data) {
   var nbhd_text;
 
   if (window.location.search.substring(0).match(/nbhd\=(.*)/i) !== null) {
-    nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    // nbhd_text = decodeURIComponent(window.location.search.substring(0).match(/nbhd\=(.*)/i)[1]);
+    nbhd_text = getParameterByName('nbhd');
   }
 
   if (Object.keys(dataLayer._layers).length === 0) { //if there aren't any points on the map
@@ -310,7 +322,7 @@ function initialMapFunction(data) {
       selectedNeighborhood(nbhd_text);
     }
   }
-  
+
   //tableHover(dataLayer);
   //mapHover(dataLayer);
 
