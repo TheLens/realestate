@@ -17,6 +17,8 @@ PROJECT_DIR = os.path.abspath(
 
 GEO_DIR = "{}/data/geo".format(PROJECT_DIR)
 
+LOGGING_LEVEL = logging.DEBUG
+
 if USER == 'ubuntu':  # Server
     BACKUP_DIR = '/backups/realestate'
 
@@ -41,8 +43,6 @@ if USER == 'ubuntu':  # Server
     RELOADER = False
     DEBUG = False
     PORT = 5004
-
-    LOGGING_LEVEL = logging.INFO
 else:  # Local
     BACKUP_DIR = '{}/backups'.format(PROJECT_DIR)
 
@@ -65,8 +65,6 @@ else:  # Local
     RELOADER = True
     DEBUG = True
     PORT = 5000
-
-    LOGGING_LEVEL = logging.DEBUG
 
 APP_ROUTING = '/realestate'
 JS_APP_ROUTING = '/realestate'
@@ -117,8 +115,8 @@ filehandler.setLevel(LOGGING_LEVEL)
 
 # Create formatter and add it to the handlers
 formatter = logging.Formatter(
-    '%(asctime)s - %(filename)s - %(funcName)s - ' +
-    '%(lineno)d - %(levelname)s - %(message)s')
+    '%(asctime)s - %(filename)s %(lineno)d - %(levelname)s - %(message)s'
+)
 filehandler.setFormatter(formatter)
 
 # Add the handlers to the logger

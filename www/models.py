@@ -37,15 +37,14 @@ class Models(object):
         :returns: Data for the homepage, such as date the app was last updated
         and a list of neighborhoods for the dropdown.
         """
-        log.debug('get_home')
-
         update_date = self.get_last_updated_date()
-        log.debug(update_date)
+        log.info(update_date)
 
         neighborhoods = self.get_neighborhoods()
 
         data = {'update_date': update_date,
                 'neighborhoods': neighborhoods}
+        log.info(data)
 
         return data
 
@@ -599,8 +598,6 @@ class Models(object):
 
     def get_last_updated_date(self):
         """TODO."""
-        log.debug('get_last_updated_date')
-
         query = SESSION.query(
             Cleaned
         ).filter(
@@ -609,13 +606,15 @@ class Models(object):
             desc(Cleaned.document_recorded)
         ).limit(1).all()
 
+        log.info(query)
+
         updated_date = ''
 
         for row in query:
             updated_date = ymd_to_full_date(
                 (row.document_recorded).strftime('%Y-%m-%d'), no_day=True)
 
-        log.debug(updated_date)
+        log.info(updated_date)
 
         SESSION.close()
 

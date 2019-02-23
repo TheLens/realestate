@@ -20,10 +20,12 @@ app = Flask(__name__)
 @app.route("%s/" % (APP_ROUTING), methods=['GET'])
 def home():
     """Receive a GET call for the homepage (/) and returns the view."""
-    log.debug('home')
-
     data = Models().get_home()
+    log.info(data)
+
     view = Views().get_home(data)
+    log.info(view)
+
     return view
 
 
@@ -62,14 +64,10 @@ def search():
     :returns: View of search page.
     """
     if request.method == 'GET':
-        log.debug('search GET')
-
         data, newrows, jsdata = Models().get_search(request)
         view = Views().get_search(data, newrows, jsdata)
 
     if request.method == 'POST':
-        log.debug('search POST')
-
         data = request.get_json()
         data, newrows, jsdata = Models().post_search(data)
         view = Views().post_search(data, newrows, jsdata)
@@ -87,8 +85,6 @@ def sale(instrument_no=None):
     :type instrument_no: string
     :returns: The sale's page or an error page if no sale found.
     """
-    log.debug('sale')
-
     instrument_no = urllib.parse.unquote(instrument_no)  # .decode('utf8')
 
     data, jsdata, newrows = Models().get_sale(instrument_no)
@@ -132,7 +128,7 @@ def page_not_found(error):
     :type error: not sure
     :returns: The view.
     """
-    log.debug(error)
+    log.info(error)
 
     view = Views().get_error_page()
     return view
